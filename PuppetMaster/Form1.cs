@@ -207,16 +207,12 @@ namespace PuppetMaster
             typeof(IPuppetToClient),
             "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado);
 
-
-
              if (client != null)
              {
-                 //client.guardaMS(metaDataServers);
+                 client.guardaMS(metaDataServers);
                  client.open(nomeFile);
              }
-           
-                 
-                           
+                  
          }
 
          //Diz ao cliente para fechar ficheiro X

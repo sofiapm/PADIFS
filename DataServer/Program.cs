@@ -72,12 +72,13 @@ namespace DataServer
         public void read(string fileName, string semantics)
         {
             System.Console.WriteLine("Cliente está a ler ficheiro do DS");
-            
-            IDSToClient client = (IDSToClient)Activator.GetObject(
+
+            //Nao se pode fazer ciclo
+            /*IDSToClient client = (IDSToClient)Activator.GetObject(
             typeof(IDSToClient),
             "tcp://localhost:8070/Client");
             
-            client.respostaDS("DS envia a Cliente: Já li ficheiro: " + fileName);
+            client.respostaDS("DS envia a Cliente: Já li ficheiro: " + fileName);*/
 
         }
 
@@ -92,11 +93,12 @@ namespace DataServer
         {
             System.Console.WriteLine("MS pergunta se DS esta vivo.");
 
-            IDSToMS ms = (IDSToMS)Activator.GetObject(
+            //Nao se pode fazer ciclo
+            /*IDSToMS ms = (IDSToMS)Activator.GetObject(
             typeof(IDSToMS),
             "tcp://localhost:8081/MetaDataServer1");
 
-            ms.respostaDS("DS diz: I'm Alive!");
+            ms.respostaDS("DS diz: I'm Alive!");*/
         }
 
         public void respostaMS(string resp)

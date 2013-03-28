@@ -62,11 +62,12 @@ namespace MetaDataServer
         {
             System.Console.WriteLine("cliente mandou MS abrir ficheiro: " + fileName);
 
-            IMSToClient client = (IMSToClient)Activator.GetObject(
+            //Nao se pode fazer ciclo
+            /*IMSToClient client = (IMSToClient)Activator.GetObject(
             typeof(IMSToClient),
             "tcp://localhost:8070/Client");
 
-            client.respostaMS("MS envia info sobre ficheiro a abrir");
+            client.respostaMS("MS envia info sobre ficheiro a abrir");*/
         }
 
         //informs MS that client is no longer using that file - client must discard all metadata for that file
@@ -92,11 +93,12 @@ namespace MetaDataServer
         {
             System.Console.WriteLine(resposta);
 
-            IMSToDS ds = (IMSToDS)Activator.GetObject(
+            //Nao se pode fazer ciclo
+            /*IMSToDS ds = (IMSToDS)Activator.GetObject(
             typeof(IMSToDS),
             "tcp://localhost:8090/DataServer");
 
-            ds.respostaMS("Recebi o teu i'm alive.");
+            ds.respostaMS("Recebi o teu i'm alive.");*/
         }
     }
 }
