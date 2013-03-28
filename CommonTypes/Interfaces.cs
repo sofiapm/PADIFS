@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,9 @@ namespace CommonTypes
 {
     public interface IPuppetToClient
     {
+        //puppet envia informações ao cliente
+        void guardaMS(Hashtable metadataservers);
+        
         //puppet manda o cliente enviar pedidos ao MS
         void open(string fileName);     
         void close(string fileName);    
@@ -35,7 +39,7 @@ namespace CommonTypes
 
     public interface IClientToPuppet
     {
-
+        void respostaClient (string resposta);
     }
 
     public interface IClientToMS
@@ -54,32 +58,34 @@ namespace CommonTypes
 
     public interface IDSToPuppet
     {
-
+        void respostaDS(string resposta);
     }
 
     public interface IDSToMS
     {
-
+        void respostaDS(string resposta);
     }
 
     public interface IDSToClient
     {
-
+        void respostaDS(string resposta);
     }
 
     public interface IMSToPuppet
     {
-
+        void respostaMS(string resposta);
     }
 
     public interface IMSToClient
     {
-
+        void respostaMS(string resposta);
+        void guardaDS(Hashtable dataservers);
     }
 
     public interface IMSToDS
     {
-
+        void areYouAlive();
+        void respostaMS(string resp);
     }
 
     

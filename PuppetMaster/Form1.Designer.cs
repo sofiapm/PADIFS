@@ -28,11 +28,452 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.button_closeFile = new System.Windows.Forms.Button();
+            this.button_openFile = new System.Windows.Forms.Button();
+            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.button_start_client = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.button_kill_client = new System.Windows.Forms.Button();
+            this.listBox_clients = new System.Windows.Forms.ListBox();
+            this.label_clients = new System.Windows.Forms.Label();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.button_start_meta2 = new System.Windows.Forms.Button();
+            this.button_start_meta3 = new System.Windows.Forms.Button();
+            this.button_start_meta1 = new System.Windows.Forms.Button();
+            this.listBox_metadata = new System.Windows.Forms.ListBox();
+            this.button_recover_meta = new System.Windows.Forms.Button();
+            this.button_fail_meta = new System.Windows.Forms.Button();
+            this.label_metadata = new System.Windows.Forms.Label();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.button_start_data = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.listBox_data = new System.Windows.Forms.ListBox();
+            this.button_recover_data = new System.Windows.Forms.Button();
+            this.button_fail_data = new System.Windows.Forms.Button();
+            this.button_Unfreeze = new System.Windows.Forms.Button();
+            this.button_freeze = new System.Windows.Forms.Button();
+            this.label_data = new System.Windows.Forms.Label();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.listBox_scripts = new System.Windows.Forms.ListBox();
+            this.button_script = new System.Windows.Forms.Button();
+            this.label_scripts = new System.Windows.Forms.Label();
+            this.panel1.SuspendLayout();
+            this.panel2.SuspendLayout();
+            this.panel3.SuspendLayout();
+            this.panel4.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // panel1
+            // 
+            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.button_closeFile);
+            this.panel1.Controls.Add(this.button_openFile);
+            this.panel1.Controls.Add(this.textBox3);
+            this.panel1.Controls.Add(this.button_start_client);
+            this.panel1.Controls.Add(this.textBox1);
+            this.panel1.Controls.Add(this.button_kill_client);
+            this.panel1.Controls.Add(this.listBox_clients);
+            this.panel1.Controls.Add(this.label_clients);
+            this.panel1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.panel1.Location = new System.Drawing.Point(12, 245);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(268, 503);
+            this.panel1.TabIndex = 0;
+            // 
+            // button_closeFile
+            // 
+            this.button_closeFile.BackColor = System.Drawing.SystemColors.Control;
+            this.button_closeFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_closeFile.ForeColor = System.Drawing.Color.Black;
+            this.button_closeFile.Location = new System.Drawing.Point(142, 385);
+            this.button_closeFile.Name = "button_closeFile";
+            this.button_closeFile.Size = new System.Drawing.Size(121, 31);
+            this.button_closeFile.TabIndex = 10;
+            this.button_closeFile.Text = "Close File";
+            this.button_closeFile.UseVisualStyleBackColor = false;
+            this.button_closeFile.Click += new System.EventHandler(this.button_closeFile_Click);
+            // 
+            // button_openFile
+            // 
+            this.button_openFile.BackColor = System.Drawing.SystemColors.Control;
+            this.button_openFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_openFile.ForeColor = System.Drawing.Color.Black;
+            this.button_openFile.Location = new System.Drawing.Point(5, 385);
+            this.button_openFile.Name = "button_openFile";
+            this.button_openFile.Size = new System.Drawing.Size(121, 31);
+            this.button_openFile.TabIndex = 9;
+            this.button_openFile.Text = "Open File";
+            this.button_openFile.UseVisualStyleBackColor = false;
+            this.button_openFile.Click += new System.EventHandler(this.button_openFile_Click);
+            // 
+            // textBox3
+            // 
+            this.textBox3.Location = new System.Drawing.Point(5, 359);
+            this.textBox3.Name = "textBox3";
+            this.textBox3.Size = new System.Drawing.Size(258, 20);
+            this.textBox3.TabIndex = 8;
+            this.textBox3.TextChanged += new System.EventHandler(this.textBox3_TextChanged);
+            // 
+            // button_start_client
+            // 
+            this.button_start_client.BackColor = System.Drawing.SystemColors.Control;
+            this.button_start_client.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_start_client.ForeColor = System.Drawing.Color.Black;
+            this.button_start_client.Location = new System.Drawing.Point(3, 60);
+            this.button_start_client.Name = "button_start_client";
+            this.button_start_client.Size = new System.Drawing.Size(260, 25);
+            this.button_start_client.TabIndex = 6;
+            this.button_start_client.Text = "Start Client";
+            this.button_start_client.UseVisualStyleBackColor = false;
+            this.button_start_client.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(5, 34);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(258, 20);
+            this.textBox1.TabIndex = 5;
+            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            // 
+            // button_kill_client
+            // 
+            this.button_kill_client.BackColor = System.Drawing.SystemColors.Control;
+            this.button_kill_client.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_kill_client.ForeColor = System.Drawing.Color.Black;
+            this.button_kill_client.Location = new System.Drawing.Point(3, 328);
+            this.button_kill_client.Name = "button_kill_client";
+            this.button_kill_client.Size = new System.Drawing.Size(260, 25);
+            this.button_kill_client.TabIndex = 4;
+            this.button_kill_client.Text = "Kill Client";
+            this.button_kill_client.UseVisualStyleBackColor = false;
+            this.button_kill_client.Click += new System.EventHandler(this.button_kill_client_Click);
+            // 
+            // listBox_clients
+            // 
+            this.listBox_clients.FormattingEnabled = true;
+            this.listBox_clients.Location = new System.Drawing.Point(3, 105);
+            this.listBox_clients.Name = "listBox_clients";
+            this.listBox_clients.Size = new System.Drawing.Size(260, 186);
+            this.listBox_clients.TabIndex = 1;
+            this.listBox_clients.SelectedIndexChanged += new System.EventHandler(this.listBox_clients_SelectedIndexChanged);
+            // 
+            // label_clients
+            // 
+            this.label_clients.AutoSize = true;
+            this.label_clients.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_clients.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label_clients.Location = new System.Drawing.Point(-1, 0);
+            this.label_clients.Name = "label_clients";
+            this.label_clients.Size = new System.Drawing.Size(98, 31);
+            this.label_clients.TabIndex = 0;
+            this.label_clients.Text = "Clients";
+            this.label_clients.Click += new System.EventHandler(this.label1_Click);
+            // 
+            // panel2
+            // 
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.button_start_meta2);
+            this.panel2.Controls.Add(this.button_start_meta3);
+            this.panel2.Controls.Add(this.button_start_meta1);
+            this.panel2.Controls.Add(this.listBox_metadata);
+            this.panel2.Controls.Add(this.button_recover_meta);
+            this.panel2.Controls.Add(this.button_fail_meta);
+            this.panel2.Controls.Add(this.label_metadata);
+            this.panel2.Location = new System.Drawing.Point(286, 245);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(274, 503);
+            this.panel2.TabIndex = 1;
+            // 
+            // button_start_meta2
+            // 
+            this.button_start_meta2.BackColor = System.Drawing.SystemColors.Control;
+            this.button_start_meta2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_start_meta2.ForeColor = System.Drawing.Color.Black;
+            this.button_start_meta2.Location = new System.Drawing.Point(3, 66);
+            this.button_start_meta2.Name = "button_start_meta2";
+            this.button_start_meta2.Size = new System.Drawing.Size(266, 25);
+            this.button_start_meta2.TabIndex = 11;
+            this.button_start_meta2.Text = "Start MetaDataServer 2";
+            this.button_start_meta2.UseVisualStyleBackColor = false;
+            this.button_start_meta2.Click += new System.EventHandler(this.button_start_meta2_Click);
+            // 
+            // button_start_meta3
+            // 
+            this.button_start_meta3.BackColor = System.Drawing.SystemColors.Control;
+            this.button_start_meta3.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_start_meta3.ForeColor = System.Drawing.Color.Black;
+            this.button_start_meta3.Location = new System.Drawing.Point(3, 97);
+            this.button_start_meta3.Name = "button_start_meta3";
+            this.button_start_meta3.Size = new System.Drawing.Size(266, 25);
+            this.button_start_meta3.TabIndex = 10;
+            this.button_start_meta3.Text = "Start MetaDataServer 3";
+            this.button_start_meta3.UseVisualStyleBackColor = false;
+            this.button_start_meta3.Click += new System.EventHandler(this.button_start_meta3_Click);
+            // 
+            // button_start_meta1
+            // 
+            this.button_start_meta1.BackColor = System.Drawing.SystemColors.Control;
+            this.button_start_meta1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_start_meta1.ForeColor = System.Drawing.Color.Black;
+            this.button_start_meta1.Location = new System.Drawing.Point(3, 34);
+            this.button_start_meta1.Name = "button_start_meta1";
+            this.button_start_meta1.Size = new System.Drawing.Size(266, 25);
+            this.button_start_meta1.TabIndex = 9;
+            this.button_start_meta1.Text = "Start MetaDataServer 1";
+            this.button_start_meta1.UseVisualStyleBackColor = false;
+            this.button_start_meta1.Click += new System.EventHandler(this.button_start_meta1_Click);
+            // 
+            // listBox_metadata
+            // 
+            this.listBox_metadata.FormattingEnabled = true;
+            this.listBox_metadata.Location = new System.Drawing.Point(7, 130);
+            this.listBox_metadata.Name = "listBox_metadata";
+            this.listBox_metadata.Size = new System.Drawing.Size(262, 160);
+            this.listBox_metadata.TabIndex = 2;
+            // 
+            // button_recover_meta
+            // 
+            this.button_recover_meta.BackColor = System.Drawing.SystemColors.Control;
+            this.button_recover_meta.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_recover_meta.ForeColor = System.Drawing.Color.Black;
+            this.button_recover_meta.Location = new System.Drawing.Point(144, 296);
+            this.button_recover_meta.Name = "button_recover_meta";
+            this.button_recover_meta.Size = new System.Drawing.Size(125, 25);
+            this.button_recover_meta.TabIndex = 3;
+            this.button_recover_meta.Text = "Recover";
+            this.button_recover_meta.UseVisualStyleBackColor = false;
+            this.button_recover_meta.Click += new System.EventHandler(this.button_recover_meta_Click);
+            // 
+            // button_fail_meta
+            // 
+            this.button_fail_meta.BackColor = System.Drawing.SystemColors.Control;
+            this.button_fail_meta.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_fail_meta.ForeColor = System.Drawing.Color.Black;
+            this.button_fail_meta.Location = new System.Drawing.Point(3, 296);
+            this.button_fail_meta.Name = "button_fail_meta";
+            this.button_fail_meta.Size = new System.Drawing.Size(135, 25);
+            this.button_fail_meta.TabIndex = 1;
+            this.button_fail_meta.Text = "Fail";
+            this.button_fail_meta.UseVisualStyleBackColor = false;
+            this.button_fail_meta.Click += new System.EventHandler(this.button_fail_meta_Click);
+            // 
+            // label_metadata
+            // 
+            this.label_metadata.AutoSize = true;
+            this.label_metadata.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_metadata.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label_metadata.Location = new System.Drawing.Point(3, 0);
+            this.label_metadata.Name = "label_metadata";
+            this.label_metadata.Size = new System.Drawing.Size(221, 31);
+            this.label_metadata.TabIndex = 2;
+            this.label_metadata.Text = "MetadataServers";
+            // 
+            // panel3
+            // 
+            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.button_start_data);
+            this.panel3.Controls.Add(this.textBox2);
+            this.panel3.Controls.Add(this.listBox_data);
+            this.panel3.Controls.Add(this.button_recover_data);
+            this.panel3.Controls.Add(this.button_fail_data);
+            this.panel3.Controls.Add(this.button_Unfreeze);
+            this.panel3.Controls.Add(this.button_freeze);
+            this.panel3.Controls.Add(this.label_data);
+            this.panel3.Location = new System.Drawing.Point(566, 245);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(262, 503);
+            this.panel3.TabIndex = 2;
+            // 
+            // button_start_data
+            // 
+            this.button_start_data.BackColor = System.Drawing.SystemColors.Control;
+            this.button_start_data.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_start_data.ForeColor = System.Drawing.Color.Black;
+            this.button_start_data.Location = new System.Drawing.Point(3, 60);
+            this.button_start_data.Name = "button_start_data";
+            this.button_start_data.Size = new System.Drawing.Size(254, 25);
+            this.button_start_data.TabIndex = 7;
+            this.button_start_data.Text = "Start DataServer";
+            this.button_start_data.UseVisualStyleBackColor = false;
+            this.button_start_data.Click += new System.EventHandler(this.button_start_data_Click);
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(3, 34);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(254, 20);
+            this.textBox2.TabIndex = 8;
+            // 
+            // listBox_data
+            // 
+            this.listBox_data.FormattingEnabled = true;
+            this.listBox_data.Location = new System.Drawing.Point(3, 99);
+            this.listBox_data.Name = "listBox_data";
+            this.listBox_data.Size = new System.Drawing.Size(254, 160);
+            this.listBox_data.TabIndex = 4;
+            // 
+            // button_recover_data
+            // 
+            this.button_recover_data.BackColor = System.Drawing.SystemColors.Control;
+            this.button_recover_data.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_recover_data.ForeColor = System.Drawing.Color.Black;
+            this.button_recover_data.Location = new System.Drawing.Point(136, 296);
+            this.button_recover_data.Name = "button_recover_data";
+            this.button_recover_data.Size = new System.Drawing.Size(121, 25);
+            this.button_recover_data.TabIndex = 5;
+            this.button_recover_data.Text = "Recover";
+            this.button_recover_data.UseVisualStyleBackColor = false;
+            this.button_recover_data.Click += new System.EventHandler(this.button_recover_data_Click);
+            // 
+            // button_fail_data
+            // 
+            this.button_fail_data.BackColor = System.Drawing.SystemColors.Control;
+            this.button_fail_data.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_fail_data.ForeColor = System.Drawing.Color.Black;
+            this.button_fail_data.Location = new System.Drawing.Point(136, 265);
+            this.button_fail_data.Name = "button_fail_data";
+            this.button_fail_data.Size = new System.Drawing.Size(121, 25);
+            this.button_fail_data.TabIndex = 7;
+            this.button_fail_data.Text = "Fail";
+            this.button_fail_data.UseVisualStyleBackColor = false;
+            this.button_fail_data.Click += new System.EventHandler(this.button_fail_data_Click);
+            // 
+            // button_Unfreeze
+            // 
+            this.button_Unfreeze.BackColor = System.Drawing.SystemColors.Control;
+            this.button_Unfreeze.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_Unfreeze.ForeColor = System.Drawing.Color.Black;
+            this.button_Unfreeze.Location = new System.Drawing.Point(3, 296);
+            this.button_Unfreeze.Name = "button_Unfreeze";
+            this.button_Unfreeze.Size = new System.Drawing.Size(121, 25);
+            this.button_Unfreeze.TabIndex = 6;
+            this.button_Unfreeze.Text = "Unfreeze";
+            this.button_Unfreeze.UseVisualStyleBackColor = false;
+            this.button_Unfreeze.Click += new System.EventHandler(this.button_Unfreeze_Click);
+            // 
+            // button_freeze
+            // 
+            this.button_freeze.BackColor = System.Drawing.SystemColors.Control;
+            this.button_freeze.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_freeze.ForeColor = System.Drawing.Color.Black;
+            this.button_freeze.Location = new System.Drawing.Point(3, 265);
+            this.button_freeze.Name = "button_freeze";
+            this.button_freeze.Size = new System.Drawing.Size(121, 25);
+            this.button_freeze.TabIndex = 5;
+            this.button_freeze.Text = "Freeze";
+            this.button_freeze.UseVisualStyleBackColor = false;
+            this.button_freeze.Click += new System.EventHandler(this.button_freeze_Click);
+            // 
+            // label_data
+            // 
+            this.label_data.AutoSize = true;
+            this.label_data.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_data.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label_data.Location = new System.Drawing.Point(3, 0);
+            this.label_data.Name = "label_data";
+            this.label_data.Size = new System.Drawing.Size(166, 31);
+            this.label_data.TabIndex = 3;
+            this.label_data.Text = "DataServers";
+            // 
+            // panel4
+            // 
+            this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel4.Controls.Add(this.listBox_scripts);
+            this.panel4.Controls.Add(this.button_script);
+            this.panel4.Controls.Add(this.label_scripts);
+            this.panel4.Location = new System.Drawing.Point(12, 12);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(816, 227);
+            this.panel4.TabIndex = 3;
+            // 
+            // listBox_scripts
+            // 
+            this.listBox_scripts.FormattingEnabled = true;
+            this.listBox_scripts.Location = new System.Drawing.Point(9, 34);
+            this.listBox_scripts.Name = "listBox_scripts";
+            this.listBox_scripts.Size = new System.Drawing.Size(790, 147);
+            this.listBox_scripts.TabIndex = 7;
+            // 
+            // button_script
+            // 
+            this.button_script.BackColor = System.Drawing.SystemColors.Control;
+            this.button_script.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_script.ForeColor = System.Drawing.Color.Black;
+            this.button_script.Location = new System.Drawing.Point(639, 190);
+            this.button_script.Name = "button_script";
+            this.button_script.Size = new System.Drawing.Size(160, 25);
+            this.button_script.TabIndex = 6;
+            this.button_script.Text = "Launch Script";
+            this.button_script.UseVisualStyleBackColor = false;
+            // 
+            // label_scripts
+            // 
+            this.label_scripts.AutoSize = true;
+            this.label_scripts.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_scripts.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label_scripts.Location = new System.Drawing.Point(-1, 0);
+            this.label_scripts.Name = "label_scripts";
+            this.label_scripts.Size = new System.Drawing.Size(98, 31);
+            this.label_scripts.TabIndex = 3;
+            this.label_scripts.Text = "Scripts";
+            this.label_scripts.Click += new System.EventHandler(this.label1_Click_1);
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Text = "Form1";
+            this.ClientSize = new System.Drawing.Size(840, 749);
+            this.Controls.Add(this.panel4);
+            this.Controls.Add(this.panel3);
+            this.Controls.Add(this.panel2);
+            this.Controls.Add(this.panel1);
+            this.Name = "Form1";
+            this.Text = "PADI-FS";
+            this.Load += new System.EventHandler(this.Form1_Load);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
+            this.panel3.ResumeLayout(false);
+            this.panel3.PerformLayout();
+            this.panel4.ResumeLayout(false);
+            this.panel4.PerformLayout();
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Label label_clients;
+        private System.Windows.Forms.Button button_fail_meta;
+        private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.Label label_scripts;
+        private System.Windows.Forms.Label label_metadata;
+        private System.Windows.Forms.Label label_data;
+        private System.Windows.Forms.Button button_recover_meta;
+        private System.Windows.Forms.Button button_Unfreeze;
+        private System.Windows.Forms.Button button_freeze;
+        private System.Windows.Forms.Button button_recover_data;
+        private System.Windows.Forms.Button button_fail_data;
+        private System.Windows.Forms.Button button_script;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button button_kill_client;
+        private System.Windows.Forms.ListBox listBox_clients;
+        private System.Windows.Forms.ListBox listBox_metadata;
+        private System.Windows.Forms.ListBox listBox_data;
+        private System.Windows.Forms.ListBox listBox_scripts;
+        private System.Windows.Forms.Button button_start_client;
+        private System.Windows.Forms.Button button_start_meta2;
+        private System.Windows.Forms.Button button_start_meta3;
+        private System.Windows.Forms.Button button_start_meta1;
+        private System.Windows.Forms.Button button_start_data;
+        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.Button button_closeFile;
+        private System.Windows.Forms.Button button_openFile;
     }
 }
