@@ -11,13 +11,21 @@ namespace CommonTypes
     {
         //puppet envia informações ao cliente
         void guardaMS(Hashtable metadataservers);
+
+        //puppet manda o Cliente executar accoes
+        void runScript(List<string> operations);
+        void freeze();   //starts buffering read and write requests, without answering
+        void unfreeze(); //responds to all buffered requests from clients and restarts replying new requests
+        void fail();     
+        void recover();  
         
         //puppet manda o cliente enviar pedidos ao MS
         void open(string fileName);     
         void close(string fileName);    
         void create(string fileName, int numDS, int rQuorum, int wQuorum);  
         void delete(string fileName);
-      
+        
+
         //puppet mando o cliente enviar pedidos ao DS
         void read(string fileName, string semantics); 
         void write(string fileName, byte[] array);
@@ -35,6 +43,9 @@ namespace CommonTypes
     {
         void fail();    //the MS stops processing requests from clients or others MS
         void recover(); //MS starts receiving requests from clients and others MS
+        void freeze();   //starts buffering read and write requests, without answering
+        void unfreeze(); //responds to all buffered requests from clients and restarts replying new requests
+
     }
 
     public interface IClientToPuppet

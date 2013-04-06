@@ -54,6 +54,15 @@ namespace MetaDataServer
             System.Console.WriteLine("puppet mandou MS recuperar!");
         }
 
+        public void freeze()
+        {
+            System.Console.WriteLine("puppet mandou MS freeze!");
+        }
+        public void unfreeze()
+        {
+            System.Console.WriteLine("puppet mandou MS unfreeze!");
+        }
+
 
         /********Client To MetaDataServer***********/
 

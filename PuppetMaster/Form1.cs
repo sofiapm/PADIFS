@@ -13,6 +13,8 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting;
 using System.Collections;
 using System.Diagnostics;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace PuppetMaster
 {
@@ -33,6 +35,8 @@ namespace PuppetMaster
         public Hashtable metaDataServers;
         public Hashtable dataServers;
         public Hashtable clients;
+
+        public string[] scriptList;
 
         public int idClient;
         public int idDS;
@@ -113,6 +117,7 @@ namespace PuppetMaster
          {
              string nomeClient = listBox_clients.SelectedItem.ToString();
              stopClient(nomeClient);
+             clients.Remove(nomeClient);
          }
 
         //cria metadata 1
@@ -122,7 +127,7 @@ namespace PuppetMaster
              string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
              path += "/MetaDataServer.exe";
 
-             String name = "MetadataServer1";
+             String name = "m-1";
 
              metaDataServers.Add(name, "1");
 
@@ -142,7 +147,7 @@ namespace PuppetMaster
              string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
              path += "/MetaDataServer.exe";
 
-             String name = "MetadataServer2";
+             String name = "m-2";
 
              metaDataServers.Add(name, "2");
 
@@ -162,7 +167,7 @@ namespace PuppetMaster
              string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
              path += "/MetaDataServer.exe";
 
-             String name = "MetadataServer3";
+             String name = "m-3";
 
              metaDataServers.Add(name, "3");
 
@@ -350,6 +355,20 @@ namespace PuppetMaster
              listBox_clients.Items.Remove(clientName);
          }
 
+         //termina o processo dataServer
+         private void stopDataServer(string dataName)
+         {
+             runningProcesses[dataName].Kill();
+             listBox_data.Items.Remove(dataName);
+         }
+
+         //termina o processo metaData
+         private void stopMetaDataServer(string metaDataName)
+         {
+             runningProcesses[metaDataName].Kill();
+             listBox_metadata.Items.Remove(metaDataName);
+         }
+
         //começa o processo do DS
          public void startDS(string dsName)
          {
@@ -367,6 +386,446 @@ namespace PuppetMaster
              listBox_data.Items.Add(dsName);
          }
 
+         private void listBox_scripts_SelectedIndexChanged(object sender, EventArgs e)
+         {
+             string scriptLine;
+
+             if (listBox_scripts.SelectedItem != null)
+             {
+                 string scriptPath = (string)listBox_scripts.SelectedItem;
+                 StreamReader userscript = new StreamReader(scriptPath);
+
+                 listBox_script_steps.Items.Clear();
+                 while ((scriptLine = userscript.ReadLine()) != null)
+                 {
+                     listBox_script_steps.Items.Add(scriptLine);
+                 }
+             }
+         }
+
+         private void button_script_Click(object sender, EventArgs e)
+         {
+             // Displays an OpenFileDialog so the user can select a Cursor.
+             OpenFileDialog openFileDialog1 = new OpenFileDialog();
+             openFileDialog1.Filter = "Script|*.txt";
+             openFileDialog1.Title = "Escolha o Script";
+
+
+             if (openFileDialog1.ShowDialog() == DialogResult.OK)
+             {
+                 if (listBox_scripts.FindString(openFileDialog1.FileName, 0) != 0)
+                 {
+                     listBox_scripts.Items.Add(openFileDialog1.FileName);
+                 }
+
+             }
+         }
+
+         private void button_get_script_Click(object sender, EventArgs e)
+         {
+
+         }
+
+         private void listBox_script_steps_SelectedIndexChanged(object sender, EventArgs e)
+         {
+
+         }
+
+         private void button_run_all_Click(object sender, EventArgs e)
+         {
+             RunScript();
+         }
+
+         public void RunScript()
+         {
+             //KillAll();
+
+             if (listBox_script_steps.Items.Count != 0)
+             {
+                 foreach (string operation in listBox_script_steps.Items)
+                 {
+                     RunInstruction(operation);
+                 }
+             }
+         }
+
+         private void RunInstruction(string operation)
+         {
+             string[] token = new string [] { " ", "\t" , ", "};
+             string[] arg = operation.Split(token, StringSplitOptions.None);
+
+             if (operation.StartsWith("FAIL"))
+             {
+
+                 if (arg[1].StartsWith("c"))
+                 {
+                     if (clients[arg[1]] != null)
+                     {
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                        typeof(IPuppetToClient),
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                         client.fail();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o cliente
+                         System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("d"))
+                 {
+                     if (dataServers[arg[1]] != null)
+                     {
+                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+
+                         ds.fail();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("m"))
+                 {
+                     if (metaDataServers[arg[1]] != null)
+                     {
+                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                        typeof(IPuppetToMS),
+                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
+
+                         ms.fail();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+             }
+             else if (operation.StartsWith("RECOVER"))
+             {
+                 if (arg[1].StartsWith("c"))
+                 {
+                     if (clients[arg[1]] != null)
+                     {
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                        typeof(IPuppetToClient),
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                         client.recover();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o cliente
+                         System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("d"))
+                 {
+                     if (dataServers[arg[1]] != null)
+                     {
+                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+
+                         ds.recover();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("m"))
+                 {
+                     if (metaDataServers[arg[1]] != null)
+                     {
+                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                        typeof(IPuppetToMS),
+                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
+
+                         ms.recover();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+             }
+             else if (operation.StartsWith("FREEZE"))
+             {
+                 if (arg[1].StartsWith("c"))
+                 {
+                     if (clients[arg[1]] != null)
+                     {
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                        typeof(IPuppetToClient),
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                         client.freeze();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o cliente
+                         System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("d"))
+                 {
+                     if (dataServers[arg[1]] != null)
+                     {
+                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+
+                         ds.freeze();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("m"))
+                 {
+                     if (metaDataServers[arg[1]] != null)
+                     {
+                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                        typeof(IPuppetToMS),
+                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
+
+                         ms.freeze();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+             }
+             else if (operation.StartsWith("UNFREEZE"))
+             {
+                 if (arg[1].StartsWith("c"))
+                 {
+                     if (clients[arg[1]] != null)
+                     {
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                        typeof(IPuppetToClient),
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                         client.unfreeze();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o cliente
+                         System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("d"))
+                 {
+                     if (dataServers[arg[1]] != null)
+                     {
+                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+
+                         ds.unfreeze();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+                 else if (arg[1].StartsWith("m"))
+                 {
+                     if (metaDataServers[arg[1]] != null)
+                     {
+                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                        typeof(IPuppetToMS),
+                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
+
+                         ms.unfreeze();
+                     }
+                     else
+                     {
+                         //lança popup - nao existe o server
+                         System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
+                 }
+             }
+             else if (operation.StartsWith("CREATE"))
+             {
+                 if (clients[arg[1]] != null)
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                     client.create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
+                 }
+                 else
+                 {
+                     //lança popup - nao existe o cliente
+                     System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                 }
+             }
+             else if (operation.StartsWith("OPEN"))
+             {
+                 if (clients[arg[1]] != null)
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                     client.open(arg[2]);
+                 }
+                 else
+                 {
+                     //lança popup - nao existe o cliente
+                     System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                 }
+             }
+             else if (operation.StartsWith("CLOSE"))
+             {
+                 if (clients[arg[1]] != null)
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                     client.close(arg[2]);
+                 }
+                 else
+                 {
+                     //lança popup - nao existe o cliente
+                     System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                 }
+             }
+             else if (operation.StartsWith("READ"))
+             {
+                 if (clients[arg[1]] != null)
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                     //arg[4] e o string register
+                     //reads the contents of the file idetified bye  file-register (arg[2])
+                     //and stores it in a string register (arg[4]) int the puppet
+                     client.read(arg[2], arg[3]);
+                 }
+                 else
+                 {
+                     //lança popup - nao existe o cliente
+                     System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                 }
+             }
+             else if (operation.StartsWith("WRITE")) //EXISTEM 2 TIPOS DE WRITE
+             {
+                 if (clients[arg[1]] != null)
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+
+                     if (arg[3].Length > 1)
+                     {
+                         //ex: WRITE c-1, 0, "Text contents of the file. Contents are a string delimited by double quotes as this one"
+                         //client.write();
+                     }
+                     else
+                     {
+                         System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+                         Byte[] bytes = encoding.GetBytes(arg[3]);
+                         //ex: WRITE c-1, 0, 0
+                         client.write(arg[2], bytes);
+                     }
+                     
+                 }
+                 else
+                 {
+                     //lança popup - nao existe o cliente
+                     System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                 }
+             }
+             else if (operation.StartsWith("COPY"))
+             {
+                 //quem faz o copy???
+             }
+             else if (operation.StartsWith("DUMP"))
+             {
+                 //quem faz dump?? e onde??
+             }
+             else if (operation.StartsWith("EXESCRIPT"))
+             {
+                 List<string> operations = new List<string>();
+                 string scriptLine = null;
+                 string scriptPath = "";
+                 string currentDirectory = Environment.CurrentDirectory;
+                 string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                 string strpath = newDirectory[0] + "Scripts\\";
+                 for (int i = 2; i < arg.Length; i++)
+                 {
+                     scriptPath += arg[i] + " ";
+                 }
+                 scriptPath = strpath + scriptPath;
+                 StreamReader userscript = new StreamReader(scriptPath);
+
+                 while ((scriptLine = userscript.ReadLine()) != null)
+                 {
+                     operations.Add(scriptLine);
+                 }
+
+                 if (clients[arg[1]] != null)
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                     client.runScript(operations);
+                 }
+                 else
+                 {
+                     //lança popup - nao existe o cliente
+                     System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                 }
+                 
+             }
+
+         }
+
+         private void KillAll()
+         {
+
+             //Kill All Clients            
+             foreach (DictionaryEntry c in clients)
+             {
+                 stopClient(c.Key.ToString());
+             }
+             clients.Clear();
+
+             //Kill All dataServers            
+             foreach (DictionaryEntry d in dataServers)
+             {
+                 stopDataServer(d.Key.ToString());
+             }
+             dataServers.Clear();
+
+             //Kill All MetadataServers            
+             foreach (DictionaryEntry m in metaDataServers)
+             {
+                 stopMetaDataServer(m.Key.ToString());
+             }
+             metaDataServers.Clear();
+
+         }
+         
+        
 
     }
 

@@ -85,26 +85,74 @@ namespace Client
 
         public void create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
-            this.objMS = (IClientToMS)metaDataServers[1];
+            /*this.objMS = (IClientToMS)metaDataServers[1];
 
-            objMS.create(fileName, numDS, rQuorum, wQuorum);
+            objMS.create(fileName, numDS, rQuorum, wQuorum);*/
 
             System.Console.WriteLine("Mandou Ms criar file");
         }
 
         public void delete(string fileName)
         {
-            this.objMS = (IClientToMS)metaDataServers[1];
+            /*this.objMS = (IClientToMS)metaDataServers[1];
 
-            objMS.delete(fileName);
+            objMS.delete(fileName);*/
 
             System.Console.WriteLine("Mandou Ms apagar file");
         }
 
+        public void runScript(List<string> operations)
+        {
+            //corre as instrucoes do script
+            System.Console.WriteLine("Puppet mandou o Client correr script");
+
+            foreach (string operation in operations)
+            {
+                string[] token = new string[] { " ", ", " };
+                string[] arg = operation.Split(token, StringSplitOptions.None);
+
+                //O cliente recebe mais??
+
+                //arg[1] e sempre o processo, que e ignorado
+                if (arg[0].Equals("OPEN")) open(arg[2]);
+                else if (arg[0].Equals("CLOSE")) close(arg[2]);
+                else if (arg[0].Equals("CREATE")) create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
+                else if (arg[0].Equals("DELETE")) delete(arg[2]);
+                else if (arg[0].Equals("DUMP")) dump();
+
+            }
+        }
+
+        public void fail()
+        {
+            System.Console.WriteLine("Puppet mandou o Client falhar");
+        }
+
+        public void recover()
+        {
+            System.Console.WriteLine("Puppet mandou o Client recover");
+        }
+
+        public void freeze()
+        {
+            System.Console.WriteLine("Puppet mandou o Client freeze");
+        }
+
+        public void unfreeze()
+        {
+            System.Console.WriteLine("Puppet mandou o Client unfreeze");
+        }
+
+        public void dump()
+        {
+            System.Console.WriteLine("Puppet mandou o Client fazer Dump");
+        }
+
+
         //puppet mandou o cliente enviar pedidos ao DS
         public void read(string fileName, string semantics)
         {
-            this.objDS = (IClientToDS)dataServers[1];
+            /*this.objDS = (IClientToDS)dataServers[1];
 
             this.objDS.read(fileName, semantics);
 
@@ -114,7 +162,7 @@ namespace Client
             typeof(IClientToPuppet),
             "tcp://localhost:8060/PuppetMaster");
 
-            puppet.respostaClient("Ja pedi open");
+            puppet.respostaClient("Ja pedi open");*/
 
             System.Console.WriteLine("Mandou mensagem ao puppet");
 
@@ -123,9 +171,9 @@ namespace Client
 
         public void write(string fileName, byte[] array)
         {
-            this.objDS = (IClientToDS)dataServers[1];
+            /*this.objDS = (IClientToDS)dataServers[1];
 
-            objDS.write(fileName, array);
+            objDS.write(fileName, array);*/
 
             System.Console.WriteLine("Mandou Ms ler file");
         }

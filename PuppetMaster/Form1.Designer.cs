@@ -55,6 +55,8 @@
             this.button_freeze = new System.Windows.Forms.Button();
             this.label_data = new System.Windows.Forms.Label();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.button_run_all = new System.Windows.Forms.Button();
+            this.listBox_script_steps = new System.Windows.Forms.ListBox();
             this.listBox_scripts = new System.Windows.Forms.ListBox();
             this.button_script = new System.Windows.Forms.Button();
             this.label_scripts = new System.Windows.Forms.Label();
@@ -194,7 +196,7 @@
             this.button_start_meta2.Name = "button_start_meta2";
             this.button_start_meta2.Size = new System.Drawing.Size(266, 25);
             this.button_start_meta2.TabIndex = 11;
-            this.button_start_meta2.Text = "Start MetaDataServer 2";
+            this.button_start_meta2.Text = "Start MetaDataServer 1";
             this.button_start_meta2.UseVisualStyleBackColor = false;
             this.button_start_meta2.Click += new System.EventHandler(this.button_start_meta2_Click);
             // 
@@ -207,7 +209,7 @@
             this.button_start_meta3.Name = "button_start_meta3";
             this.button_start_meta3.Size = new System.Drawing.Size(266, 25);
             this.button_start_meta3.TabIndex = 10;
-            this.button_start_meta3.Text = "Start MetaDataServer 3";
+            this.button_start_meta3.Text = "Start MetaDataServer 2";
             this.button_start_meta3.UseVisualStyleBackColor = false;
             this.button_start_meta3.Click += new System.EventHandler(this.button_start_meta3_Click);
             // 
@@ -220,7 +222,7 @@
             this.button_start_meta1.Name = "button_start_meta1";
             this.button_start_meta1.Size = new System.Drawing.Size(266, 25);
             this.button_start_meta1.TabIndex = 9;
-            this.button_start_meta1.Text = "Start MetaDataServer 1";
+            this.button_start_meta1.Text = "Start MetaDataServer 0";
             this.button_start_meta1.UseVisualStyleBackColor = false;
             this.button_start_meta1.Click += new System.EventHandler(this.button_start_meta1_Click);
             // 
@@ -379,6 +381,8 @@
             // panel4
             // 
             this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel4.Controls.Add(this.button_run_all);
+            this.panel4.Controls.Add(this.listBox_script_steps);
             this.panel4.Controls.Add(this.listBox_scripts);
             this.panel4.Controls.Add(this.button_script);
             this.panel4.Controls.Add(this.label_scripts);
@@ -387,25 +391,49 @@
             this.panel4.Size = new System.Drawing.Size(816, 227);
             this.panel4.TabIndex = 3;
             // 
+            // button_run_all
+            // 
+            this.button_run_all.BackColor = System.Drawing.SystemColors.Control;
+            this.button_run_all.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_run_all.ForeColor = System.Drawing.Color.Black;
+            this.button_run_all.Location = new System.Drawing.Point(717, 187);
+            this.button_run_all.Name = "button_run_all";
+            this.button_run_all.Size = new System.Drawing.Size(94, 25);
+            this.button_run_all.TabIndex = 9;
+            this.button_run_all.Text = "Run All";
+            this.button_run_all.UseVisualStyleBackColor = false;
+            this.button_run_all.Click += new System.EventHandler(this.button_run_all_Click);
+            // 
+            // listBox_script_steps
+            // 
+            this.listBox_script_steps.FormattingEnabled = true;
+            this.listBox_script_steps.Location = new System.Drawing.Point(553, 34);
+            this.listBox_script_steps.Name = "listBox_script_steps";
+            this.listBox_script_steps.Size = new System.Drawing.Size(258, 147);
+            this.listBox_script_steps.TabIndex = 8;
+            this.listBox_script_steps.SelectedIndexChanged += new System.EventHandler(this.listBox_script_steps_SelectedIndexChanged);
+            // 
             // listBox_scripts
             // 
             this.listBox_scripts.FormattingEnabled = true;
             this.listBox_scripts.Location = new System.Drawing.Point(9, 34);
             this.listBox_scripts.Name = "listBox_scripts";
-            this.listBox_scripts.Size = new System.Drawing.Size(790, 147);
+            this.listBox_scripts.Size = new System.Drawing.Size(538, 147);
             this.listBox_scripts.TabIndex = 7;
+            this.listBox_scripts.SelectedIndexChanged += new System.EventHandler(this.listBox_scripts_SelectedIndexChanged);
             // 
             // button_script
             // 
             this.button_script.BackColor = System.Drawing.SystemColors.Control;
             this.button_script.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button_script.ForeColor = System.Drawing.Color.Black;
-            this.button_script.Location = new System.Drawing.Point(639, 190);
+            this.button_script.Location = new System.Drawing.Point(383, 187);
             this.button_script.Name = "button_script";
             this.button_script.Size = new System.Drawing.Size(160, 25);
             this.button_script.TabIndex = 6;
             this.button_script.Text = "Launch Script";
             this.button_script.UseVisualStyleBackColor = false;
+            this.button_script.Click += new System.EventHandler(this.button_script_Click);
             // 
             // label_scripts
             // 
@@ -475,5 +503,7 @@
         private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.Button button_closeFile;
         private System.Windows.Forms.Button button_openFile;
+        private System.Windows.Forms.Button button_run_all;
+        private System.Windows.Forms.ListBox listBox_script_steps;
     }
 }
