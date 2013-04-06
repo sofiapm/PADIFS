@@ -146,6 +146,7 @@ namespace Client
         public void dump()
         {
             System.Console.WriteLine("Puppet mandou o Client fazer Dump");
+
         }
 
 
