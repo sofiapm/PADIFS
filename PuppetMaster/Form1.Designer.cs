@@ -196,7 +196,7 @@
             this.button_start_meta2.Name = "button_start_meta2";
             this.button_start_meta2.Size = new System.Drawing.Size(266, 25);
             this.button_start_meta2.TabIndex = 11;
-            this.button_start_meta2.Text = "Start MetaDataServer 1";
+            this.button_start_meta2.Text = "Start MetaDataServer 2";
             this.button_start_meta2.UseVisualStyleBackColor = false;
             this.button_start_meta2.Click += new System.EventHandler(this.button_start_meta2_Click);
             // 
@@ -209,7 +209,7 @@
             this.button_start_meta3.Name = "button_start_meta3";
             this.button_start_meta3.Size = new System.Drawing.Size(266, 25);
             this.button_start_meta3.TabIndex = 10;
-            this.button_start_meta3.Text = "Start MetaDataServer 2";
+            this.button_start_meta3.Text = "Start MetaDataServer 3";
             this.button_start_meta3.UseVisualStyleBackColor = false;
             this.button_start_meta3.Click += new System.EventHandler(this.button_start_meta3_Click);
             // 
@@ -222,7 +222,7 @@
             this.button_start_meta1.Name = "button_start_meta1";
             this.button_start_meta1.Size = new System.Drawing.Size(266, 25);
             this.button_start_meta1.TabIndex = 9;
-            this.button_start_meta1.Text = "Start MetaDataServer 0";
+            this.button_start_meta1.Text = "Start MetaDataServer 1";
             this.button_start_meta1.UseVisualStyleBackColor = false;
             this.button_start_meta1.Click += new System.EventHandler(this.button_start_meta1_Click);
             // 

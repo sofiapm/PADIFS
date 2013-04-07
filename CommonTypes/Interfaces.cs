@@ -43,8 +43,6 @@ namespace CommonTypes
     {
         void fail();    //the MS stops processing requests from clients or others MS
         void recover(); //MS starts receiving requests from clients and others MS
-        void freeze();   //starts buffering read and write requests, without answering
-        void unfreeze(); //responds to all buffered requests from clients and restarts replying new requests
 
     }
 
@@ -53,9 +51,10 @@ namespace CommonTypes
         void respostaClient (string resposta);
     }
 
+
     public interface IClientToMS
     {
-        void open(string fileName);     //returns to client the contents of the metadata stored for that file
+        Hashtable open(string fileName);     //returns to client the contents of the metadata stored for that file
         void close(string fileName);    //informs MS that client is no longer using that file - client must discard all metadata for that file
         void create(string fileName, int numDS, int rQuorum, int wQuorum);  //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
         void delete(string fileName);   //deletes the file

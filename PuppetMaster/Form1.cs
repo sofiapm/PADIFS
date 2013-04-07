@@ -96,6 +96,12 @@ namespace PuppetMaster
             
             startClient(clientName);
             clients.Add(clientName, idClient);
+
+            IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                        typeof(IPuppetToClient),
+                        "tcp://localhost:807" + idClient + "/" + clientName + "PuppetClient");
+
+            client.guardaMS(metaDataServers);
                  
 
             listBox_clients.Items.Add(clientName);
@@ -123,19 +129,10 @@ namespace PuppetMaster
         //cria metadata 1
          private void button_start_meta1_Click(object sender, EventArgs e)
          {
-             string currentDirectory = Environment.CurrentDirectory;
-             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
-             path += "/MetaDataServer.exe";
-
              String name = "m-1";
+             startMS(name, "1");
 
              metaDataServers.Add(name, "1");
-
-             runningProcesses.Add(name, new Process());
-             runningProcesses[name].StartInfo.Arguments = name + " " + "8081";
-             runningProcesses[name].StartInfo.FileName = path;
-             runningProcesses[name].Start();
-
              textBox1.Clear();
              listBox_metadata.Items.Add(name);
          }
@@ -143,18 +140,10 @@ namespace PuppetMaster
         //cria metadata 2
          private void button_start_meta2_Click(object sender, EventArgs e)
          {
-             string currentDirectory = Environment.CurrentDirectory;
-             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
-             path += "/MetaDataServer.exe";
-
              String name = "m-2";
+             startMS(name, "2");
 
              metaDataServers.Add(name, "2");
-
-             runningProcesses.Add(name, new Process());
-             runningProcesses[name].StartInfo.Arguments = name + " " + "8082";
-             runningProcesses[name].StartInfo.FileName = path;
-             runningProcesses[name].Start();
 
              textBox1.Clear();
              listBox_metadata.Items.Add(name);
@@ -163,18 +152,10 @@ namespace PuppetMaster
         //cria metadata 3
          private void button_start_meta3_Click(object sender, EventArgs e)
          {
-             string currentDirectory = Environment.CurrentDirectory;
-             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
-             path += "/MetaDataServer.exe";
-
              String name = "m-3";
+             startMS(name, "3");
 
              metaDataServers.Add(name, "3");
-
-             runningProcesses.Add(name, new Process());
-             runningProcesses[name].StartInfo.Arguments = name + " " + "8083";
-             runningProcesses[name].StartInfo.FileName = path;
-             runningProcesses[name].Start();
 
              textBox1.Clear();
              listBox_metadata.Items.Add(name);
@@ -210,11 +191,10 @@ namespace PuppetMaster
              
              IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
             typeof(IPuppetToClient),
-            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado);
+            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
 
              if (client != null)
              {
-                 client.guardaMS(metaDataServers);
                  client.open(nomeFile);
              }
                   
@@ -229,7 +209,7 @@ namespace PuppetMaster
 
              IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
             typeof(IPuppetToClient),
-            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado);
+            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
 
              if (client != null)
                  client.close(nomeFile);
@@ -242,7 +222,7 @@ namespace PuppetMaster
 
              IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
             typeof(IPuppetToMS),
-            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS);
+            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
 
              if (ms != null)
                  ms.fail();
@@ -255,7 +235,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.freeze();
@@ -268,7 +248,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.fail();
@@ -281,7 +261,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.unfreeze();
@@ -294,7 +274,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.recover();
@@ -307,7 +287,7 @@ namespace PuppetMaster
 
              IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
             typeof(IPuppetToMS),
-            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS);
+            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
 
              if (ms != null)
                  ms.recover();
@@ -346,6 +326,19 @@ namespace PuppetMaster
 
              textBox1.Clear();
              
+         }
+
+         public void startMS(string name, string id)
+         {
+             string currentDirectory = Environment.CurrentDirectory;
+             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
+             path += "/MetaDataServer.exe";
+
+             runningProcesses.Add(name, new Process());
+             runningProcesses[name].StartInfo.Arguments = name + " " + "808" + id;
+             runningProcesses[name].StartInfo.FileName = path;
+             runningProcesses[name].Start();
+
          }
 
          //termina o processo cliente
@@ -438,7 +431,7 @@ namespace PuppetMaster
 
          public void RunScript()
          {
-             //KillAll();
+             KillAll();
 
              if (listBox_script_steps.Items.Count != 0)
              {
@@ -463,7 +456,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.fail();
                      }
@@ -471,39 +464,55 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
+
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                        typeof(IPuppetToClient),
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+                         
+                         client.guardaMS(metaDataServers);
+                         client.fail();
+                         
                      }
                  }
                  else if (arg[1].StartsWith("d"))
                  {
-                     if (dataServers[arg[1]] != null)
-                     {
-                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-                        typeof(IPuppetToDS),
-                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
-
-                         ds.fail();
-                     }
-                     else
+                     if (dataServers[arg[1]] == null)
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
+                        
                      }
+
+                     IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                       typeof(IPuppetToDS),
+                       "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
+
+                     ds.fail();
                  }
                  else if (arg[1].StartsWith("m"))
                  {
-                     if (metaDataServers[arg[1]] != null)
-                     {
-                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
-                        typeof(IPuppetToMS),
-                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
-
-                         ms.fail();
-                     }
-                     else
+                     if (metaDataServers[arg[1]] == null)
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startMS(arg[1], arg[1].Last().ToString());
+                         metaDataServers.Add(arg[1], arg[1].Last().ToString());
+                         listBox_metadata.Items.Add(arg[1]);
                      }
+                  
+                     IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                       typeof(IPuppetToMS),
+                       "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
+
+                     ms.fail();
                  }
              }
              else if (operation.StartsWith("RECOVER"))
@@ -514,7 +523,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.recover();
                      }
@@ -522,39 +531,54 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
+
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                       typeof(IPuppetToClient),
+                       "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                         client.guardaMS(metaDataServers);
+                         client.recover();
                      }
                  }
                  else if (arg[1].StartsWith("d"))
                  {
-                     if (dataServers[arg[1]] != null)
-                     {
-                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-                        typeof(IPuppetToDS),
-                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
-
-                         ds.recover();
-                     }
-                     else
+                     if (dataServers[arg[1]] == null)
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
                      }
+
+                     IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
+
+                     ds.recover();
                  }
                  else if (arg[1].StartsWith("m"))
                  {
-                     if (metaDataServers[arg[1]] != null)
-                     {
-                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
-                        typeof(IPuppetToMS),
-                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
-
-                         ms.recover();
-                     }
-                     else
+                     if (metaDataServers[arg[1]] == null)
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startMS(arg[1], arg[1].Last().ToString());
+                         metaDataServers.Add(arg[1], arg[1].Last().ToString());
+                         listBox_metadata.Items.Add(arg[1]);
                      }
+                     
+                     IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                        typeof(IPuppetToMS),
+                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
+
+                     ms.recover();
+
                  }
              }
              else if (operation.StartsWith("FREEZE"))
@@ -565,7 +589,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.freeze();
                      }
@@ -573,40 +597,38 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
+
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                        typeof(IPuppetToClient),
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                         client.guardaMS(metaDataServers);
+                         client.freeze();
                      }
                  }
                  else if (arg[1].StartsWith("d"))
                  {
-                     if (dataServers[arg[1]] != null)
-                     {
-                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-                        typeof(IPuppetToDS),
-                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
-
-                         ds.freeze();
-                     }
-                     else
+                     if (dataServers[arg[1]] == null)
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
                      }
-                 }
-                 else if (arg[1].StartsWith("m"))
-                 {
-                     if (metaDataServers[arg[1]] != null)
-                     {
-                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
-                        typeof(IPuppetToMS),
-                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
+                    
+                     IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
 
-                         ms.freeze();
-                     }
-                     else
-                     {
-                         //lança popup - nao existe o server
-                         System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
-                     }
+                     ds.freeze();
                  }
+                
              }
              else if (operation.StartsWith("UNFREEZE"))
              {
@@ -616,7 +638,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.unfreeze();
                      }
@@ -624,40 +646,38 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
+
+                         IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                       typeof(IPuppetToClient),
+                       "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                         client.guardaMS(metaDataServers);
+                         client.unfreeze();
                      }
                  }
                  else if (arg[1].StartsWith("d"))
                  {
-                     if (dataServers[arg[1]] != null)
-                     {
-                         IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-                        typeof(IPuppetToDS),
-                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
-
-                         ds.unfreeze();
-                     }
-                     else
+                     if (dataServers[arg[1]] == null)
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
                      }
-                 }
-                 else if (arg[1].StartsWith("m"))
-                 {
-                     if (metaDataServers[arg[1]] != null)
-                     {
-                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
-                        typeof(IPuppetToMS),
-                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
 
-                         ms.unfreeze();
-                     }
-                     else
-                     {
-                         //lança popup - nao existe o server
-                         System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
-                     }
+                     IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
+
+                     ds.unfreeze();
                  }
+                 
              }
              else if (operation.StartsWith("CREATE"))
              {
@@ -665,14 +685,29 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
+                    
                      client.create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
                  }
                  else
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
+
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+                    
+                     client.guardaMS(metaDataServers);
+                    
+                    
+                     client.create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
+
                  }
              }
              else if (operation.StartsWith("OPEN"))
@@ -681,7 +716,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.open(arg[2]);
                  }
@@ -689,6 +724,17 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
+
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                   typeof(IPuppetToClient),
+                   "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                     client.guardaMS(metaDataServers);
+                     client.open(arg[2]);
                  }
              }
              else if (operation.StartsWith("CLOSE"))
@@ -697,7 +743,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.close(arg[2]);
                  }
@@ -705,6 +751,17 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
+
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                     client.guardaMS(metaDataServers);
+                     client.close(arg[2]);
                  }
              }
              else if (operation.StartsWith("READ"))
@@ -713,7 +770,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      //arg[4] e o string register
                      //reads the contents of the file idetified bye  file-register (arg[2])
@@ -724,6 +781,20 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
+
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                     client.guardaMS(metaDataServers);
+                     //arg[4] e o string register
+                     //reads the contents of the file idetified bye  file-register (arg[2])
+                     //and stores it in a string register (arg[4]) int the puppet
+                     client.read(arg[2], arg[3]);
                  }
              }
              else if (operation.StartsWith("WRITE")) //EXISTEM 2 TIPOS DE WRITE
@@ -732,7 +803,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      if (arg[3].Length > 1)
                      {
@@ -752,6 +823,29 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
+
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                     client.guardaMS(metaDataServers);
+
+                     if (arg[3].Length > 1)
+                     {
+                         //ex: WRITE c-1, 0, "Text contents of the file. Contents are a string delimited by double quotes as this one"
+                         //client.write();
+                     }
+                     else
+                     {
+                         System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+                         Byte[] bytes = encoding.GetBytes(arg[3]);
+                         //ex: WRITE c-1, 0, 0
+                         client.write(arg[2], bytes);
+                     }
                  }
              }
              else if (operation.StartsWith("COPY"))
@@ -786,13 +880,24 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
                      client.runScript(operations);
                  }
                  else
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
+
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+
+                     client.guardaMS(metaDataServers);
+                     client.runScript(operations);
                  }
                  
              }
