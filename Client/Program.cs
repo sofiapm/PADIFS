@@ -18,6 +18,7 @@ namespace Client
         {
             TcpChannel channel;
 
+
             channel = new TcpChannel(Int32.Parse(args[1]));
             ChannelServices.RegisterChannel(channel, false);
 
