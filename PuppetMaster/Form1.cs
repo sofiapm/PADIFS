@@ -123,19 +123,10 @@ namespace PuppetMaster
         //cria metadata 1
          private void button_start_meta1_Click(object sender, EventArgs e)
          {
-             string currentDirectory = Environment.CurrentDirectory;
-             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
-             path += "/MetaDataServer.exe";
-
              String name = "m-1";
+             startMS(name, "1");
 
              metaDataServers.Add(name, "1");
-
-             runningProcesses.Add(name, new Process());
-             runningProcesses[name].StartInfo.Arguments = name + " " + "8081";
-             runningProcesses[name].StartInfo.FileName = path;
-             runningProcesses[name].Start();
-
              textBox1.Clear();
              listBox_metadata.Items.Add(name);
          }
@@ -143,18 +134,10 @@ namespace PuppetMaster
         //cria metadata 2
          private void button_start_meta2_Click(object sender, EventArgs e)
          {
-             string currentDirectory = Environment.CurrentDirectory;
-             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
-             path += "/MetaDataServer.exe";
-
              String name = "m-2";
+             startMS(name, "2");
 
              metaDataServers.Add(name, "2");
-
-             runningProcesses.Add(name, new Process());
-             runningProcesses[name].StartInfo.Arguments = name + " " + "8082";
-             runningProcesses[name].StartInfo.FileName = path;
-             runningProcesses[name].Start();
 
              textBox1.Clear();
              listBox_metadata.Items.Add(name);
@@ -163,18 +146,10 @@ namespace PuppetMaster
         //cria metadata 3
          private void button_start_meta3_Click(object sender, EventArgs e)
          {
-             string currentDirectory = Environment.CurrentDirectory;
-             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
-             path += "/MetaDataServer.exe";
-
              String name = "m-3";
+             startMS(name, "3");
 
              metaDataServers.Add(name, "3");
-
-             runningProcesses.Add(name, new Process());
-             runningProcesses[name].StartInfo.Arguments = name + " " + "8083";
-             runningProcesses[name].StartInfo.FileName = path;
-             runningProcesses[name].Start();
 
              textBox1.Clear();
              listBox_metadata.Items.Add(name);
@@ -348,6 +323,19 @@ namespace PuppetMaster
              
          }
 
+         public void startMS(string name, string id)
+         {
+             string currentDirectory = Environment.CurrentDirectory;
+             string path = currentDirectory.Replace("PuppetMaster", "MetaDataServer");
+             path += "/MetaDataServer.exe";
+
+             runningProcesses.Add(name, new Process());
+             runningProcesses[name].StartInfo.Arguments = name + " " + "808" + id;
+             runningProcesses[name].StartInfo.FileName = path;
+             runningProcesses[name].Start();
+
+         }
+
          //termina o processo cliente
          private void stopClient(string clientName)
          {
@@ -471,6 +459,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
                      }
                  }
                  else if (arg[1].StartsWith("d"))
@@ -487,6 +479,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
                      }
                  }
                  else if (arg[1].StartsWith("m"))
@@ -503,6 +499,9 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startMS(arg[1], arg[1].Last().ToString());
+                         metaDataServers.Add(arg[1], arg[1].Last().ToString());
+                         listBox_metadata.Items.Add(arg[1]);
                      }
                  }
              }
@@ -522,6 +521,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
                      }
                  }
                  else if (arg[1].StartsWith("d"))
@@ -538,6 +541,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
                      }
                  }
                  else if (arg[1].StartsWith("m"))
@@ -554,6 +561,9 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startMS(arg[1], arg[1].Last().ToString());
+                         metaDataServers.Add(arg[1], arg[1].Last().ToString());
+                         listBox_metadata.Items.Add(arg[1]);
                      }
                  }
              }
@@ -573,6 +583,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
                      }
                  }
                  else if (arg[1].StartsWith("d"))
@@ -589,6 +603,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
                      }
                  }
                  else if (arg[1].StartsWith("m"))
@@ -605,6 +623,9 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startMS(arg[1], arg[1].Last().ToString());
+                         metaDataServers.Add(arg[1], arg[1].Last().ToString());
+                         listBox_metadata.Items.Add(arg[1]);
                      }
                  }
              }
@@ -624,6 +645,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o cliente
                          System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                         startClient(arg[1]);
+                         clients.Add(arg[1], idClient);
+                         listBox_clients.Items.Add(arg[1]);
+                         idClient++;
                      }
                  }
                  else if (arg[1].StartsWith("d"))
@@ -640,6 +665,10 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startDS(arg[1]);
+                         dataServers.Add(arg[1], idDS);
+                         listBox_data.Items.Add(arg[1]);
+                         idDS++;
                      }
                  }
                  else if (arg[1].StartsWith("m"))
@@ -656,6 +685,9 @@ namespace PuppetMaster
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
+                         startMS(arg[1], arg[1].Last().ToString());
+                         metaDataServers.Add(arg[1], arg[1].Last().ToString());
+                         listBox_metadata.Items.Add(arg[1]);
                      }
                  }
              }
@@ -673,6 +705,10 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
                  }
              }
              else if (operation.StartsWith("OPEN"))
@@ -689,6 +725,10 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
                  }
              }
              else if (operation.StartsWith("CLOSE"))
@@ -705,6 +745,10 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
                  }
              }
              else if (operation.StartsWith("READ"))
@@ -724,6 +768,10 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
                  }
              }
              else if (operation.StartsWith("WRITE")) //EXISTEM 2 TIPOS DE WRITE
@@ -752,6 +800,10 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
                  }
              }
              else if (operation.StartsWith("COPY"))
@@ -793,6 +845,10 @@ namespace PuppetMaster
                  {
                      //lança popup - nao existe o cliente
                      System.Windows.Forms.MessageBox.Show("O Cliente " + arg[1] + " nao existe!-" + arg[0]);
+                     startClient(arg[1]);
+                     clients.Add(arg[1], idClient);
+                     listBox_clients.Items.Add(arg[1]);
+                     idClient++;
                  }
                  
              }
