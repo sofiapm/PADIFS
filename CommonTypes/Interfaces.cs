@@ -51,6 +51,7 @@ namespace CommonTypes
         void respostaClient (string resposta);
     }
 
+
     public interface IClientToMS
     {
         Hashtable open(string fileName);     //returns to client the contents of the metadata stored for that file

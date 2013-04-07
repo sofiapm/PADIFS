@@ -578,6 +578,7 @@ namespace PuppetMaster
                         "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
 
                      ms.recover();
+
                  }
              }
              else if (operation.StartsWith("FREEZE"))
