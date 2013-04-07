@@ -11,44 +11,58 @@ using System.Collections;
 
 namespace Client
 {
-    class Program : MarshalByRefObject, IPuppetToClient, IDSToClient, IMSToClient
+    class Program //: MarshalByRefObject, IDSToClient, IMSToClient
     {
-        private static TcpChannel channel;
-        public IClientToMS objMS;
-        public IClientToDS objDS;
-        public Hashtable metaDataServers;
-        public Hashtable dataServers;
-
-
-        Program(Hashtable metaServers, Hashtable dataServer)
-        {
-            metaDataServers = metaServers;
-            this.dataServers = dataServer;
-        }
-
-        Program()
-        {
-        }
 
         static void Main(string[] args)
         {
+            TcpChannel channel;
             channel = new TcpChannel(Int32.Parse(args[1]));
             ChannelServices.RegisterChannel(channel, false);
 
             RemotingConfiguration.RegisterWellKnownServiceType(
-            typeof(Program),
-            args[0],
+            typeof(PuppetClient),
+            args[0] + "PuppetClient",
             WellKnownObjectMode.Singleton);
-            
+
+            RemotingConfiguration.RegisterWellKnownServiceType(
+            typeof(DSClient),
+            args[0] + "DSClient",
+            WellKnownObjectMode.Singleton);
+
+            RemotingConfiguration.RegisterWellKnownServiceType(
+            typeof(MSClient),
+            args[0] + "MSClient",
+            WellKnownObjectMode.Singleton);
+
             Hashtable metaDataServers = new Hashtable();
             Hashtable dataServers = new Hashtable();
+
+            Cliente cliente = new Cliente(channel, metaDataServers, dataServers);
+            PuppetClient.ctx = cliente;
+            DSClient.ctx = cliente;
+            MSClient.ctx = cliente;
 
             System.Console.WriteLine(args[0] + ": <enter> para sair...");
 
             System.Console.ReadLine();
         }
 
-        
+    }
+
+
+    class Cliente
+    {
+        private static TcpChannel channel;
+        public Hashtable metaDataServers;
+        public Hashtable dataServers;
+
+        public Cliente (TcpChannel canal, Hashtable metaServers, Hashtable dataServer)
+        {
+            channel=canal;
+            this.metaDataServers = metaServers;
+            this.dataServers = dataServer;
+        }
         
         /********Puppet To Client***********/
         //puppet envia informações ao cliente
@@ -57,18 +71,36 @@ namespace Client
             metaDataServers = metadataservers;
             System.Console.WriteLine("Recebeu MS para guardar");
 
-            /*this.objMS = (IClientToMS)metaDataServers[1];
-
-            objMS.open("guardei ms");*/
         }
 
 
         //puppet manda o cliente enviar pedidos ao MS
         public void open(string fileName)
         {
-            /*this.objMS = (IClientToMS)metaDataServers[1];
+            Hashtable n = null;
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IClientToMS ms = (IClientToMS)Activator.GetObject(
+                       typeof(IClientToMS),
+                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                try
+                {
+                    n = ms.open(fileName);
+                    break;
+                }
+                catch
+                {
+                    System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS");
+                }
+            }
 
-            objMS.open(fileName);*/
+            foreach (DictionaryEntry c in n)
+            {
+                System.Console.WriteLine("[TESTE]");
+                System.Console.WriteLine("c.key: " + c.Key);
+                System.Console.WriteLine("c.value: " + c.Value);
+            }
+            
 
             System.Console.WriteLine("Mandou Ms abrir file");
 
@@ -76,27 +108,63 @@ namespace Client
 
         public void close(string fileName)
         {
-            /*this.objMS = (IClientToMS)metaDataServers[1];
-
-            objMS.close(fileName);*/
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IClientToMS ms = (IClientToMS)Activator.GetObject(
+                       typeof(IClientToMS),
+                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                try
+                {
+                    ms.close(fileName);
+                    break;
+                }
+                catch
+                {
+                    System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS");
+                }
+            }
 
             System.Console.WriteLine("Mandou Ms fechar file");
         }
 
         public void create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
-            /*this.objMS = (IClientToMS)metaDataServers[1];
-
-            objMS.create(fileName, numDS, rQuorum, wQuorum);*/
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IClientToMS ms = (IClientToMS)Activator.GetObject(
+                       typeof(IClientToMS),
+                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                try
+                {
+                    ms.create(fileName, numDS, rQuorum, wQuorum);
+                    break;
+                }
+                catch ( Exception e)
+                {
+                    System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS - " + e.Message);
+                }
+            }
 
             System.Console.WriteLine("Mandou Ms criar file");
         }
 
         public void delete(string fileName)
         {
-            /*this.objMS = (IClientToMS)metaDataServers[1];
-
-            objMS.delete(fileName);*/
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IClientToMS ms = (IClientToMS)Activator.GetObject(
+                       typeof(IClientToMS),
+                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                try
+                {
+                    ms.delete(fileName);
+                    break;
+                }
+                catch
+                {
+                    System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS");
+                }
+            }
 
             System.Console.WriteLine("Mandou Ms apagar file");
         }
@@ -153,30 +221,47 @@ namespace Client
         //puppet mandou o cliente enviar pedidos ao DS
         public void read(string fileName, string semantics)
         {
-            /*this.objDS = (IClientToDS)dataServers[1];
 
-            this.objDS.read(fileName, semantics);
+            foreach (DictionaryEntry c in dataServers)
+            {
+                IClientToDS ds = (IClientToDS)Activator.GetObject(
+                       typeof(IClientToDS),
+                       "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
+                try
+                {
+                    ds.read(fileName, semantics);
+                    break;
+                }
+                catch
+                {
+                    System.Console.WriteLine("[READ]: Não conseguiu aceder ao DS");
+                }
+            }
 
-            System.Console.WriteLine("Mandou Ms ler file");
-
-            IClientToPuppet puppet = (IClientToPuppet)Activator.GetObject(
-            typeof(IClientToPuppet),
-            "tcp://localhost:8060/PuppetMaster");
-
-            puppet.respostaClient("Ja pedi open");*/
-
-            System.Console.WriteLine("Mandou mensagem ao puppet");
+            System.Console.WriteLine("Mandou Read ao DS");
 
 
         }
 
         public void write(string fileName, byte[] array)
         {
-            /*this.objDS = (IClientToDS)dataServers[1];
+            foreach (DictionaryEntry c in dataServers)
+            {
+                IClientToDS ds = (IClientToDS)Activator.GetObject(
+                       typeof(IClientToDS),
+                       "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
+                try
+                {
+                    ds.write(fileName, array);
+                    break;
+                }
+                catch
+                {
+                    System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                }
+            }
 
-            objDS.write(fileName, array);*/
-
-            System.Console.WriteLine("Mandou Ms ler file");
+            System.Console.WriteLine("Mandou Ms escrever file");
         }
 
         /********DS To Client***********/
@@ -195,6 +280,110 @@ namespace Client
         public void respostaMS(string resposta)
         {
             System.Console.WriteLine(resposta);
+        }
+    }
+
+    class PuppetClient : MarshalByRefObject, IPuppetToClient
+    {
+        public static Cliente ctx;
+
+        //puppet envia informações ao cliente
+        public void guardaMS(Hashtable metadataservers)
+        {
+           ctx.guardaMS(metadataservers);
+        }
+
+
+        //puppet manda o cliente enviar pedidos ao MS
+        public void open(string fileName)
+        {
+            ctx.open(fileName);
+
+        }
+
+        public void close(string fileName)
+        {
+            ctx.close(fileName);
+        }
+
+        public void create(string fileName, int numDS, int rQuorum, int wQuorum)
+        {
+            ctx.create(fileName, numDS, rQuorum, wQuorum);
+        }
+
+        public void delete(string fileName)
+        {
+            ctx.delete(fileName);
+        }
+
+        public void runScript(List<string> operations)
+        {
+            ctx.runScript(operations);
+        }
+
+        public void fail()
+        {
+            ctx.fail();
+        }
+
+        public void recover()
+        {
+            ctx.recover();
+        }
+
+        public void freeze()
+        {
+            ctx.freeze();
+        }
+
+        public void unfreeze()
+        {
+            ctx.unfreeze();
+        }
+
+        public void dump()
+        {
+            ctx.dump();
+
+        }
+
+
+        //puppet mandou o cliente enviar pedidos ao DS
+        public void read(string fileName, string semantics)
+        {
+            ctx.read(fileName, semantics);
+
+
+        }
+
+        public void write(string fileName, byte[] array)
+        {
+            ctx.write(fileName, array);
+        }
+    }
+
+    class DSClient : MarshalByRefObject, IDSToClient
+    {
+        public static Cliente ctx;
+
+        public void respostaDS(string resposta)
+        {
+            ctx.respostaDS(resposta);
+        }
+    }
+
+    class MSClient : MarshalByRefObject, IMSToClient
+    {
+        public static Cliente ctx;
+
+        public void guardaDS(Hashtable dataservers)
+        {
+            ctx.guardaDS(dataservers);
+        }
+
+        public void respostaMS(string resposta)
+        {
+            ctx.respostaMS(resposta);
         }
     }
 }

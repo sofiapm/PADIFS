@@ -99,7 +99,7 @@ namespace PuppetMaster
 
             IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + idClient + "/" + clientName);
+                        "tcp://localhost:807" + idClient + "/" + clientName + "PuppetClient");
 
             client.guardaMS(metaDataServers);
                  
@@ -191,7 +191,7 @@ namespace PuppetMaster
              
              IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
             typeof(IPuppetToClient),
-            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado);
+            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
 
              if (client != null)
              {
@@ -209,7 +209,7 @@ namespace PuppetMaster
 
              IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
             typeof(IPuppetToClient),
-            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado);
+            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
 
              if (client != null)
                  client.close(nomeFile);
@@ -222,7 +222,7 @@ namespace PuppetMaster
 
              IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
             typeof(IPuppetToMS),
-            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS);
+            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
 
              if (ms != null)
                  ms.fail();
@@ -235,7 +235,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.freeze();
@@ -248,7 +248,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.fail();
@@ -261,7 +261,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.unfreeze();
@@ -274,7 +274,7 @@ namespace PuppetMaster
 
              IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
             typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS);
+            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
              if (ds != null)
                  ds.recover();
@@ -287,7 +287,7 @@ namespace PuppetMaster
 
              IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
             typeof(IPuppetToMS),
-            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS);
+            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
 
              if (ms != null)
                  ms.recover();
@@ -431,7 +431,7 @@ namespace PuppetMaster
 
          public void RunScript()
          {
-             //KillAll();
+             KillAll();
 
              if (listBox_script_steps.Items.Count != 0)
              {
@@ -456,7 +456,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.fail();
                      }
@@ -471,7 +471,7 @@ namespace PuppetMaster
 
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
                          
                          client.guardaMS(metaDataServers);
                          client.fail();
@@ -493,7 +493,7 @@ namespace PuppetMaster
 
                      IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
                        typeof(IPuppetToDS),
-                       "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+                       "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
 
                      ds.fail();
                  }
@@ -510,7 +510,7 @@ namespace PuppetMaster
                   
                      IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
                        typeof(IPuppetToMS),
-                       "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
+                       "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
 
                      ms.fail();
                  }
@@ -523,7 +523,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.recover();
                      }
@@ -538,7 +538,7 @@ namespace PuppetMaster
 
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                        typeof(IPuppetToClient),
-                       "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                       "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.guardaMS(metaDataServers);
                          client.recover();
@@ -558,7 +558,7 @@ namespace PuppetMaster
 
                      IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
                         typeof(IPuppetToDS),
-                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
 
                      ds.recover();
                  }
@@ -575,7 +575,7 @@ namespace PuppetMaster
                      
                      IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
                         typeof(IPuppetToMS),
-                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
 
                      ms.recover();
                  }
@@ -588,7 +588,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.freeze();
                      }
@@ -603,7 +603,7 @@ namespace PuppetMaster
 
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.guardaMS(metaDataServers);
                          client.freeze();
@@ -623,7 +623,7 @@ namespace PuppetMaster
                     
                      IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
                         typeof(IPuppetToDS),
-                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
 
                      ds.freeze();
                  }
@@ -637,7 +637,7 @@ namespace PuppetMaster
                      {
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                         typeof(IPuppetToClient),
-                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.unfreeze();
                      }
@@ -652,7 +652,7 @@ namespace PuppetMaster
 
                          IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                        typeof(IPuppetToClient),
-                       "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                       "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                          client.guardaMS(metaDataServers);
                          client.unfreeze();
@@ -672,7 +672,7 @@ namespace PuppetMaster
 
                      IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
                         typeof(IPuppetToDS),
-                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1]);
+                        "tcp://localhost:809" + dataServers[arg[1]] + "/" + arg[1] + "DataServerPuppet");
 
                      ds.unfreeze();
                  }
@@ -684,8 +684,9 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
+                    
                      client.create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
                  }
                  else
@@ -699,10 +700,13 @@ namespace PuppetMaster
 
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
                     
                      client.guardaMS(metaDataServers);
+                    
+                    
                      client.create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
+
                  }
              }
              else if (operation.StartsWith("OPEN"))
@@ -711,7 +715,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.open(arg[2]);
                  }
@@ -726,7 +730,7 @@ namespace PuppetMaster
 
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                    typeof(IPuppetToClient),
-                   "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                   "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.guardaMS(metaDataServers);
                      client.open(arg[2]);
@@ -738,7 +742,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.close(arg[2]);
                  }
@@ -753,7 +757,7 @@ namespace PuppetMaster
 
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.guardaMS(metaDataServers);
                      client.close(arg[2]);
@@ -765,7 +769,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      //arg[4] e o string register
                      //reads the contents of the file idetified bye  file-register (arg[2])
@@ -783,7 +787,7 @@ namespace PuppetMaster
 
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.guardaMS(metaDataServers);
                      //arg[4] e o string register
@@ -798,7 +802,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      if (arg[3].Length > 1)
                      {
@@ -825,7 +829,7 @@ namespace PuppetMaster
 
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.guardaMS(metaDataServers);
 
@@ -875,7 +879,7 @@ namespace PuppetMaster
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
                      client.runScript(operations);
                  }
                  else
@@ -889,7 +893,7 @@ namespace PuppetMaster
 
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                     typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1]);
+                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
                      client.guardaMS(metaDataServers);
                      client.runScript(operations);
