@@ -43,8 +43,6 @@ namespace CommonTypes
     {
         void fail();    //the MS stops processing requests from clients or others MS
         void recover(); //MS starts receiving requests from clients and others MS
-        void freeze();   //starts buffering read and write requests, without answering
-        void unfreeze(); //responds to all buffered requests from clients and restarts replying new requests
 
     }
 
