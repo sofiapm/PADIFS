@@ -10,25 +10,24 @@ namespace CommonTypes
     public interface IPuppetToClient
     {
         //puppet envia informações ao cliente
-        void guardaMS(Hashtable metadataservers);
+        //void guardaMS(Hashtable metadataservers);
 
         //puppet manda o Cliente executar accoes
         void runScript(List<string> operations);
-        void freeze();   //starts buffering read and write requests, without answering
-        void unfreeze(); //responds to all buffered requests from clients and restarts replying new requests
-        void fail();     
-        void recover();  
+        void dump();
         
         //puppet manda o cliente enviar pedidos ao MS
         void open(string fileName);     
         void close(string fileName);    
         void create(string fileName, int numDS, int rQuorum, int wQuorum);  
         void delete(string fileName);
+        void copy(int fileRegister1, string semantics, int fileRegister2, string salt);
         
 
         //puppet mando o cliente enviar pedidos ao DS
-        void read(string fileName, string semantics); 
-        void write(string fileName, byte[] array);
+        void read(string fileName, string semantics, int fileRegister); 
+        void writeR(int fileRegister, int ByteArrayRegister);
+        void writeS(int fileRegister, string conteudo);
     }
 
     public interface IPuppetToDS
@@ -37,12 +36,14 @@ namespace CommonTypes
         void unfreeze(); //responds to all buffered requests from clients and restarts replying new requests
         void fail();     //DS ignores requests from Clients or messages from MS
         void recover();  //DS starts receiving requests from Clients and MS
+        void dump();
     }
 
     public interface IPuppetToMS
     {
         void fail();    //the MS stops processing requests from clients or others MS
         void recover(); //MS starts receiving requests from clients and others MS
+        void dump();
 
     }
 

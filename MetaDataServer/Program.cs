@@ -42,7 +42,7 @@ namespace MetaDataServer
             MetaServerClient.ctx = meta;
             MetaServerDS.ctx = meta;
 
-            System.Console.WriteLine(args[0] + ": <enter> para sair...");
+            System.Console.WriteLine(args[0] + ": <enter> para sair..." + args[1]);
 
             System.Console.ReadLine();
         }
@@ -73,6 +73,11 @@ namespace MetaDataServer
             System.Console.WriteLine("puppet mandou MS recuperar!");
         }
 
+        public void dump()
+        {
+            System.Console.WriteLine("Puppet mandou o MS fazer Dump");
+        }
+
 
         /********Client To MetaDataServer***********/
 
@@ -83,6 +88,9 @@ namespace MetaDataServer
             
             //igualar a hashtable de DS a retornar ao cliente
             Hashtable n = new Hashtable ();
+
+            n.Add(1, 2);
+
             
             return n;
 
@@ -128,6 +136,11 @@ namespace MetaDataServer
         public void recover()
         {
             ctx.recover();
+        }
+
+        public void dump()
+        {
+            ctx.dump();
         }
     }
 

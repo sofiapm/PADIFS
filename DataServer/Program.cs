@@ -85,6 +85,11 @@ namespace DataServer
             System.Console.WriteLine("Puppet mandou o DS recuperar");
         }
 
+        public void dump()
+        {
+            System.Console.WriteLine("Puppet mandou o DS fazer Dump");
+        }
+
         /********Client To DataServer***********/
 
         //returns the version and content os local file
@@ -138,6 +143,11 @@ namespace DataServer
         public void recover()
         {
             ctx.recover();
+        }
+
+        public void dump()
+        {
+            ctx.dump();
         }
 
     }
