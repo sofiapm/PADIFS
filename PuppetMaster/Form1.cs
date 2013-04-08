@@ -578,10 +578,9 @@ namespace PuppetMaster
                  if (clients[arg[1]] != null)
                  {
                      IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
-                    typeof(IPuppetToClient),
-                    "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
+                   typeof(IPuppetToClient),
+                   "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
-                    
                      client.create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
                  }
                  else

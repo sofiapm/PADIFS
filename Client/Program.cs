@@ -38,9 +38,9 @@ namespace Client
             WellKnownObjectMode.Singleton);
 
             Hashtable metaDataServers = new Hashtable();
-            metaDataServers.Add("m-0", "1");
-            metaDataServers.Add("m-1", "2");
-            metaDataServers.Add("m-2", "3");
+            metaDataServers.Add("1", "m-0");
+            metaDataServers.Add("2", "m-1");
+            metaDataServers.Add("3", "m-2");
 
             Hashtable dataServers = new Hashtable();
 
@@ -75,11 +75,13 @@ namespace Client
         public void open(string fileName)
         {
             Hashtable n = null;
-            /*foreach (DictionaryEntry c in metaDataServers)
+            foreach (DictionaryEntry c in metaDataServers)
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
                        typeof(IClientToMS),
-                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                       "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                System.Console.WriteLine("Vou tentar falar com: " + c.Value.ToString());
+
                 try
                 {
                     n = ms.open(fileName);
@@ -88,52 +90,9 @@ namespace Client
                 catch (Exception e)
                 {
                     System.Console.WriteLine(e.ToString());
-                    System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
+                    System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                 }
-            }*/
-
-            IClientToMS ms = (IClientToMS)Activator.GetObject(
-                       typeof(IClientToMS),
-                       "tcp://localhost:808" + 1 + "/" + "m-0" + "MetaServerClient");
-            try
-            {
-                n = ms.open(fileName);
-                
             }
-            catch (Exception e)
-            {
-                System.Console.WriteLine(e.ToString());
-                System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + "m-0");
-            }
-
-            ms = (IClientToMS)Activator.GetObject(
-                      typeof(IClientToMS),
-                      "tcp://localhost:808" + 2 + "/" + "m-1" + "MetaServerClient");
-            try
-            {
-                n = ms.open(fileName);
-
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine(e.ToString());
-                System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + "m-1");
-            }
-
-            ms = (IClientToMS)Activator.GetObject(
-                      typeof(IClientToMS),
-                      "tcp://localhost:808" + 3 + "/" + "m-2" + "MetaServerClient");
-            try
-            {
-                n = ms.open(fileName);
-
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine(e.ToString());
-                System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + "m-2");
-            }
-
 
             foreach (DictionaryEntry c in n)
             {
@@ -153,7 +112,7 @@ namespace Client
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
                        typeof(IClientToMS),
-                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                       "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
                 try
                 {
                     ms.close(fileName);
@@ -174,7 +133,7 @@ namespace Client
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
                        typeof(IClientToMS),
-                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                       "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
                 try
                 {
                     ms.create(fileName, numDS, rQuorum, wQuorum);
@@ -195,7 +154,7 @@ namespace Client
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
                        typeof(IClientToMS),
-                       "tcp://localhost:808" + c.Value.ToString() + "/" + c.Key.ToString() + "MetaServerClient");
+                       "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
                 try
                 {
                     ms.delete(fileName);
