@@ -85,7 +85,9 @@ namespace MetaDataServer
         public DadosFicheiro open(string fileName)
         {
             System.Console.WriteLine("cliente mandou MS abrir ficheiro: " + fileName);
-            
+
+            System.Console.WriteLine("olaa fiiii, estou a alterar aqui");
+
             //igualar a hashtable de DS a retornar ao cliente
             Hashtable n = new Hashtable ();
 
