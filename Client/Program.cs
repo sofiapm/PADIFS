@@ -70,6 +70,9 @@ namespace Client
         //string id, string conteudo
         public Hashtable arrayRegister = new Hashtable();
 
+        int keyArrayRegister = 0;
+        int keyFileRegister = 0;
+
         public Cliente (TcpChannel canal, Hashtable metaServers, Hashtable dataServer)
         {
             channel=canal;
@@ -249,13 +252,13 @@ namespace Client
 
         }
 
-
-        //puppet mandou o cliente enviar pedidos ao DS
-        public void read(string fileName, string semantics, int strinRegister)
+        public byte[] read(int fileReg, string semantics) 
         {
+            string fileName = (string)fileRegister[fileReg];
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             Hashtable dataServers = dados.getPorts();
 
+            byte[] file = null;
             //guarda a resposta do DS no stringRegister
             foreach (DictionaryEntry c in dataServers)
             {
@@ -264,7 +267,7 @@ namespace Client
                        "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
                 try
                 {
-                    ds.read(fileName, semantics);
+                    file = ds.read(fileName, semantics);
                     break;
                 }
                 catch
@@ -273,8 +276,21 @@ namespace Client
                 }
             }
 
+            return file;
+        }
+        //puppet mandou o cliente enviar pedidos ao DS
+        public byte [] read(int fileReg, string semantics, int strinRegister)
+        {
+            
+            byte[] file = read(fileReg, semantics);
+
             System.Console.WriteLine("Mandou Read ao DS");
 
+            if (arrayRegister.ContainsKey(strinRegister))
+                arrayRegister.Remove(strinRegister);
+
+            arrayRegister.Add(strinRegister, file);
+            return file;
 
         }
 
@@ -293,7 +309,13 @@ namespace Client
         public void writeS(int fileReg, string conteudo)
         {
             string nameFile = (string)fileRegister[fileReg];
-            
+
+            if (arrayRegister.Count < 10)
+            {
+                arrayRegister.Add(keyArrayRegister, conteudo);
+                keyArrayRegister++;
+            }
+
             //string to byte[]
             byte[] bytes = new byte[conteudo.Length * sizeof(char)];
             System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
@@ -327,6 +349,20 @@ namespace Client
 
         public void copy(int fileRegister1, string semantics, int fileRegister2, string salt)
         {
+            byte[] file1 = read(fileRegister1, semantics);
+
+            //string to byte[]
+            byte[] file2 = new byte[salt.Length * sizeof(char)];
+            System.Buffer.BlockCopy(salt.ToCharArray(), 0, file2, 0, file2.Length);
+
+            byte[] resultado = new byte[file1.Length + file2.Length];
+            System.Buffer.BlockCopy(file1, 0, resultado, 0, file1.Length);
+            System.Buffer.BlockCopy(file2, 0, resultado, file1.Length, file2.Length);
+
+            string nameFile2 = (string)fileRegister[fileRegister1];
+            write(nameFile2, resultado);     
+            
+            
             System.Console.WriteLine("Cliente fez copy");
         }
 
@@ -398,9 +434,9 @@ namespace Client
 
 
         //puppet mandou o cliente enviar pedidos ao DS
-        public void read(string fileName, string semantics, int stringRegister)
+        public void read(int fileRegister, string semantics, int stringRegister)
         {
-            ctx.read(fileName, semantics, stringRegister);
+            ctx.read(fileRegister, semantics, stringRegister);
 
 
         }

@@ -120,9 +120,11 @@ namespace DataServer
         /********Client To DataServer***********/
 
         //returns the version and content os local file
-        public void read(string fileName, string semantics)
+        public byte[] read(string fileName, string semantics)
         {
             System.Console.WriteLine("Cliente está a ler ficheiro do DS");
+            byte[] b = {1, 2};
+            return b;
 
         }
 
@@ -184,9 +186,9 @@ namespace DataServer
         public static DataServer ctx;
 
         //returns the version and content os local file
-        public void read(string fileName, string semantics)
+        public byte[] read(string fileName, string semantics)
         {
-            ctx.read(fileName, semantics);
+            return ctx.read(fileName, semantics);
 
         }
 

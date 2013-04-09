@@ -698,7 +698,7 @@ namespace PuppetMaster
                      //arg[4] e o string register
                      //reads the contents of the file idetified bye  file-register (arg[2])
                      //and stores it in a string register (arg[4]) int the puppet
-                     client.read(arg[2], arg[3], Int32.Parse(arg[4]));
+                     client.read(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]));
                  }
                  else
                  {
@@ -718,7 +718,7 @@ namespace PuppetMaster
                      //arg[4] e o string register
                      //reads the contents of the file idetified bye  file-register (arg[2])
                      //and stores it in a string register (arg[4]) int the puppet
-                     client.read(arg[2], arg[3], Int32.Parse(arg[4]));
+                     client.read(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]));
                  }
              }
              else if (operation.StartsWith("WRITE")) //EXISTEM 2 TIPOS DE WRITE

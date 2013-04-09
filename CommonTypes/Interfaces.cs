@@ -25,7 +25,7 @@ namespace CommonTypes
         
 
         //puppet mando o cliente enviar pedidos ao DS
-        void read(string fileName, string semantics, int fileRegister); 
+        void read(int fileRegister, string semantics, int stringRegister); 
         void writeR(int fileRegister, int ByteArrayRegister);
         void writeS(int fileRegister, string conteudo);
     }
@@ -62,7 +62,7 @@ namespace CommonTypes
 
     public interface IClientToDS
     {
-        void read (string fileName, string semantics); //returns the version and content os local file
+        byte[] read (string fileName, string semantics); //returns the version and content os local file
         void write(string fileName, byte[] array); //overwrites the content of file, creates new version
     }
 
