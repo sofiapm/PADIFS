@@ -7,6 +7,7 @@ using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
+using System.Collections;
 
 namespace DataServer
 {
@@ -38,10 +39,34 @@ namespace DataServer
             args[0] + "DataServerMS",
             WellKnownObjectMode.Singleton);
 
-            DataServer ds = new DataServer(channel);
+            Hashtable metaDataServers = new Hashtable();
+            metaDataServers.Add("1", "m-0");
+            metaDataServers.Add("2", "m-1");
+            metaDataServers.Add("3", "m-2");
+
+            DataServer ds = new DataServer(channel, metaDataServers);
             DataServerClient.ctx = ds;
             DataServerMS.ctx = ds;
             DataServerPuppet.ctx = ds;
+
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IDSToMS ms = (IDSToMS)Activator.GetObject(
+                       typeof(IDSToMS),
+                       "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerDS");
+                System.Console.WriteLine("Vou tentar falar com: " + c.Value.ToString());
+
+                try
+                {
+                    ms.registarDS(args[0],args[1].Last().ToString());
+                    break;
+                }
+                catch (Exception e)
+                {
+                    System.Console.WriteLine(e.ToString());
+                    System.Console.WriteLine("[REGISTARDS]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
+                }
+            }
 
             System.Console.WriteLine(args[0] + ": <enter> para sair...");
 
@@ -53,10 +78,12 @@ namespace DataServer
     class DataServer
     {
         TcpChannel channel;
+        Hashtable metaDataServers;
 
-        public DataServer(TcpChannel channel)
+        public DataServer(TcpChannel channel, Hashtable md)
         {
             this.channel = channel;
+            metaDataServers = md;
         }
 
         /********Puppet To DataServer***********/

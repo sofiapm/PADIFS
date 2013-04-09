@@ -92,10 +92,21 @@ namespace MetaDataServer
         {
             System.Console.WriteLine("cliente mandou MS abrir ficheiro: " + fileName);
 
-            return new DadosFicheiro(
-                (int)readQuorum[fileName], 
-                (int)writeQuorum[fileName], 
-                (Hashtable)dataServers[fileName]);
+            try
+            {
+                System.Console.WriteLine((int)readQuorum[fileName] + " " + (int)writeQuorum[fileName]);
+
+                return new DadosFicheiro(
+                    (int)readQuorum[fileName],
+                    (int)writeQuorum[fileName],
+                    (Hashtable)dataServers[fileName]);
+            }
+            catch
+            {
+                System.Console.WriteLine("O Ficheiro " + fileName + " não existe.");
+            }
+
+            return new DadosFicheiro(0, 0, new Hashtable());
         }
 
         //informs MS that client is no longer using that file - client must discard all metadata for that file
@@ -129,6 +140,11 @@ namespace MetaDataServer
         {
             System.Console.WriteLine(resposta);
 
+        }
+
+        public void registarDS(string name, string id)
+        {
+            System.Console.WriteLine("MS registou cliente: " + name);
         }
     }
 
@@ -191,6 +207,11 @@ namespace MetaDataServer
         public void respostaDS(string resposta)
         {
             ctx.respostaDS(resposta);
+        }
+
+        public void registarDS(string nome, string ID)
+        {
+            ctx.registarDS(nome, ID);
         }
     }
 }

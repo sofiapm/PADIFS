@@ -96,10 +96,10 @@ namespace Client
             }
 
             
-                System.Console.WriteLine("[TESTE]");
-                System.Console.WriteLine("rQ: " + n.getRQ());
-                System.Console.WriteLine("wQ: " + n.getWQ());
-                System.Console.WriteLine("arrayports: " + n.getPorts().ToString());
+                //System.Console.WriteLine("[TESTE]");
+                //System.Console.WriteLine("rQ: " + n.getRQ());
+                //System.Console.WriteLine("wQ: " + n.getWQ());
+                //System.Console.WriteLine("arrayports: " + n.getPorts().ToString());
                         
             
 
