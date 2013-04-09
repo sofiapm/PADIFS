@@ -74,7 +74,7 @@ namespace CommonTypes
     public interface IDSToMS
     {
         void respostaDS(string resposta);
-        void registarDS(string nome);
+        void registarDS(string nome, string id);
     }
 
     public interface IDSToClient
