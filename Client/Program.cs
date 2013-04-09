@@ -62,6 +62,7 @@ namespace Client
         private static TcpChannel channel;
         public Hashtable metaDataServers;
         public Hashtable dataServers;
+        public Hashtable ficheiroInfo = new Hashtable();
 
         public Cliente (TcpChannel canal, Hashtable metaServers, Hashtable dataServer)
         {
@@ -74,7 +75,7 @@ namespace Client
         //puppet manda o cliente enviar pedidos ao MS
         public void open(string fileName)
         {
-            DadosFicheiro n = null;
+            DadosFicheiro fileData = null;
             foreach (DictionaryEntry c in metaDataServers)
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
@@ -85,7 +86,7 @@ namespace Client
                 try
                 {
                     
-                    n = ms.open(fileName);
+                    fileData = ms.open(fileName);
                     break;
                 }
                 catch (Exception e)
@@ -95,12 +96,20 @@ namespace Client
                 }
             }
 
-            
-                //System.Console.WriteLine("[TESTE]");
-                //System.Console.WriteLine("rQ: " + n.getRQ());
-                //System.Console.WriteLine("wQ: " + n.getWQ());
-                //System.Console.WriteLine("arrayports: " + n.getPorts().ToString());
-                        
+            if (fileData.getPorts().Equals(null))
+            {
+                System.Console.WriteLine("[OPEN]: O ficheiro não existe");
+            }
+            else
+            {
+                if (ficheiroInfo.Contains(fileName))
+                {
+                    ficheiroInfo.Remove(fileName);
+                }
+
+                ficheiroInfo.Add(fileName, fileData);
+            }
+                
             
 
             System.Console.WriteLine("Mandou Ms abrir file");
@@ -130,6 +139,7 @@ namespace Client
 
         public void create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
+            DadosFicheiro fileData = null;
             foreach (DictionaryEntry c in metaDataServers)
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
@@ -137,13 +147,36 @@ namespace Client
                        "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
                 try
                 {
-                    ms.create(fileName, numDS, rQuorum, wQuorum);
+                    
+                    if (ficheiroInfo.Contains(fileName))
+                    {
+                        ficheiroInfo.Remove(fileName);
+                    }
+
+                    //fileData = 
+                        ms.create(fileName, numDS, rQuorum, wQuorum);
                     break;
                 }
                 catch //( Exception e)
                 {
                     System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
                 }
+
+                if (fileData.getPorts().Equals(null))
+                {
+                    System.Console.WriteLine("[CREATE]: Não foi possivel criar o File do Lado do MetaDataServer");
+                }
+                else
+                {
+                    if (ficheiroInfo.Contains(fileName))
+                    {
+                        ficheiroInfo.Remove(fileName);
+                    }
+
+                    ficheiroInfo.Add(fileName, fileData);
+                }
+
+
             }
 
             System.Console.WriteLine("Mandou Ms criar file");
