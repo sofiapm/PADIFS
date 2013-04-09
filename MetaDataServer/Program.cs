@@ -100,7 +100,7 @@ namespace MetaDataServer
                 System.Console.WriteLine("O Ficheiro " + fileName + " não existe.");
             }
 
-            return new DadosFicheiro(0, 0, new Hashtable());
+            return new DadosFicheiro(0, 0, null);
         }
 
         //informs MS that client is no longer using that file - client must discard all metadata for that file
@@ -114,7 +114,7 @@ namespace MetaDataServer
         {
             System.Console.WriteLine("cliente mandou MS criar ficheiro: " + fileName);
             Hashtable ports = new Hashtable();
-            DadosFicheiro df = new DadosFicheiro(0, 0, ports);
+            DadosFicheiro df = new DadosFicheiro(0, 0, null);
 
             if (!files.ContainsKey(fileName))
             {             
