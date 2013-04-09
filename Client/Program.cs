@@ -62,14 +62,19 @@ namespace Client
     {
         private static TcpChannel channel;
         public Hashtable metaDataServers;
-        public Hashtable dataServers;
+        //public Hashtable dataServers;
+        //string nome, DadosFicheiro
         public Hashtable ficheiroInfo = new Hashtable();
+        //string id, string nome
+        public Hashtable fileRegister = new Hashtable();
+        //string id, string conteudo
+        public Hashtable arrayRegister = new Hashtable();
 
         public Cliente (TcpChannel canal, Hashtable metaServers, Hashtable dataServer)
         {
             channel=canal;
             this.metaDataServers = metaServers;
-            this.dataServers = dataServer;
+            //this.dataServers = dataServer;
         }
         
         /********Puppet To Client***********/
@@ -248,7 +253,10 @@ namespace Client
         //puppet mandou o cliente enviar pedidos ao DS
         public void read(string fileName, string semantics, int strinRegister)
         {
-            //guarda a resposta do DS no string^Register
+            DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
+            Hashtable dataServers = dados.getPorts();
+
+            //guarda a resposta do DS no stringRegister
             foreach (DictionaryEntry c in dataServers)
             {
                 IClientToDS ds = (IClientToDS)Activator.GetObject(
@@ -270,8 +278,34 @@ namespace Client
 
         }
 
-        public void write(string fileName, byte[] array)
+        public void writeR(int fileReg, int ByteArrayRegister)
         {
+            string nameFile = (string)fileRegister[fileReg];
+            string conteudo = (string)arrayRegister[ByteArrayRegister];
+
+            //string to byte[]
+            byte[] bytes = new byte[conteudo.Length * sizeof(char)];
+            System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
+
+            write(nameFile, bytes);
+        }
+
+        public void writeS(int fileReg, string conteudo)
+        {
+            string nameFile = (string)fileRegister[fileReg];
+            
+            //string to byte[]
+            byte[] bytes = new byte[conteudo.Length * sizeof(char)];
+            System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
+
+            write(nameFile, bytes);
+        }
+
+        public void write(string fileName, byte[] array)
+        {   
+            DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
+            Hashtable dataServers = dados.getPorts();
+
             foreach (DictionaryEntry c in dataServers)
             {
                 IClientToDS ds = (IClientToDS)Activator.GetObject(
@@ -304,11 +338,6 @@ namespace Client
 
 
         /********MS To Client***********/
-        public void guardaDS(Hashtable dataservers)
-        {
-            dataServers = dataservers;
-        }
-
         public void respostaMS(string resposta)
         {
             System.Console.WriteLine(resposta);
@@ -319,14 +348,14 @@ namespace Client
     {
         public static Cliente ctx;
 
-        public void writeR(int fileRegister, int ByteArrayRegister)
+        public void writeR(int fileReg, int ByteArrayRegister)
         {
-            //ctx.write();
+            ctx.writeR(fileReg, ByteArrayRegister);
         }
         
         public void writeS(int fileRegister, string conteudo)
         {
-            //ctx.write();
+            ctx.writeS(fileRegister, conteudo);
         }
 
         //puppet manda o cliente enviar pedidos ao MS
@@ -375,11 +404,6 @@ namespace Client
 
 
         }
-
-        public void write(string fileName, byte[] array)
-        {
-            ctx.write(fileName, array);
-        }
     }
 
     class DSClient : MarshalByRefObject, IDSToClient
@@ -395,11 +419,6 @@ namespace Client
     class MSClient : MarshalByRefObject, IMSToClient
     {
         public static Cliente ctx;
-
-        public void guardaDS(Hashtable dataservers)
-        {
-            ctx.guardaDS(dataservers);
-        }
 
         public void respostaMS(string resposta)
         {

@@ -90,7 +90,6 @@ namespace CommonTypes
     public interface IMSToClient
     {
         void respostaMS(string resposta);
-        void guardaDS(Hashtable dataservers);
     }
 
     public interface IMSToDS
