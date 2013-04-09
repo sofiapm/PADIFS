@@ -53,6 +53,12 @@ namespace MetaDataServer
     {
         TcpChannel channel;
 
+        Hashtable NBDataServers = new Hashtable();
+        Hashtable readQuorum = new Hashtable();
+        Hashtable writeQuorum = new Hashtable();
+        Hashtable dataServers = new Hashtable();
+
+
         public MetaServer(TcpChannel channel)
         {
             this.channel = channel;
@@ -86,17 +92,10 @@ namespace MetaDataServer
         {
             System.Console.WriteLine("cliente mandou MS abrir ficheiro: " + fileName);
 
-            System.Console.WriteLine("olaa fiiii, estou a alterar aqui");
-
-            //igualar a hashtable de DS a retornar ao cliente
-            Hashtable n = new Hashtable ();
-
-            n.Add(1, 2);
-
-            ArrayList y = new ArrayList();
-            y.Add(1);
-            return new DadosFicheiro(1, 2, y);
-
+            return new DadosFicheiro(
+                (int)readQuorum[fileName], 
+                (int)writeQuorum[fileName], 
+                (Hashtable)dataServers[fileName]);
         }
 
         //informs MS that client is no longer using that file - client must discard all metadata for that file
@@ -109,6 +108,14 @@ namespace MetaDataServer
         public void create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
             System.Console.WriteLine("cliente mandou MS criar ficheiro: " + fileName);
+
+            if (!NBDataServers.ContainsKey(fileName))
+            {
+                NBDataServers.Add(fileName, numDS);
+                readQuorum.Add(fileName, rQuorum);
+                writeQuorum.Add(fileName, wQuorum);
+            }
+
         }
 
         //deletes the file

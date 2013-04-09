@@ -74,6 +74,7 @@ namespace CommonTypes
     public interface IDSToMS
     {
         void respostaDS(string resposta);
+        void registarDS(string nome);
     }
 
     public interface IDSToClient
@@ -103,9 +104,9 @@ namespace CommonTypes
 
         int rQ;
         int wQ;
-        ArrayList ports;
+        Hashtable ports;
 
-        public DadosFicheiro(int rQ, int wQ, ArrayList ports){
+        public DadosFicheiro(int rQ, int wQ, Hashtable ports){
 
             this.rQ = rQ;
             this.wQ = wQ;
@@ -122,11 +123,9 @@ namespace CommonTypes
             return wQ;
         }
 
-        public ArrayList getPorts()
+        public Hashtable getPorts()
         {
             return ports;
-        }
-
-    
+        }    
     }
 }
