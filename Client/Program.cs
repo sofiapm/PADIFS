@@ -10,7 +10,7 @@ using System.Runtime.Remoting;
 using System.Collections;
 
 namespace Client
-{
+{   
     class Program //: MarshalByRefObject, IDSToClient, IMSToClient
     {
 
@@ -21,6 +21,9 @@ namespace Client
 
             channel = new TcpChannel(Int32.Parse(args[1]));
             ChannelServices.RegisterChannel(channel, false);
+
+            System.Console.WriteLine("************Cliente " + args[0] + " no port: " + args[1] + "************");
+
 
             RemotingConfiguration.RegisterWellKnownServiceType(
             typeof(PuppetClient),
@@ -48,8 +51,6 @@ namespace Client
             PuppetClient.ctx = cliente;
             DSClient.ctx = cliente;
             MSClient.ctx = cliente;
-
-            System.Console.WriteLine(args[0] + ": <enter> para sair...");
 
             System.Console.ReadLine();
         }
@@ -96,9 +97,14 @@ namespace Client
                 }
             }
 
-            if (fileData.getPorts().Equals(null))
+            bool temDS = true;
+
+            try{fileData.getPorts();}
+            catch (NullReferenceException e){temDS = false;}
+
+            if (!temDS)
             {
-                System.Console.WriteLine("[OPEN]: O ficheiro não existe");
+                System.Console.WriteLine("Não Consegue abrir o ficheiro!");
             }
             else
             {
@@ -109,11 +115,7 @@ namespace Client
 
                 ficheiroInfo.Add(fileName, fileData);
             }
-                
-            
-
-            System.Console.WriteLine("Mandou Ms abrir file");
-
+   
         }
 
         public void close(string fileName)
@@ -134,6 +136,8 @@ namespace Client
                 }
             }
 
+
+
             System.Console.WriteLine("Mandou Ms fechar file");
         }
 
@@ -147,39 +151,35 @@ namespace Client
                        "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
                 try
                 {
-                    
-                    if (ficheiroInfo.Contains(fileName))
-                    {
-                        ficheiroInfo.Remove(fileName);
-                    }
-
-                    //fileData = 
-                        ms.create(fileName, numDS, rQuorum, wQuorum);
+                    fileData = ms.create(fileName, numDS, rQuorum, wQuorum);
                     break;
                 }
                 catch //( Exception e)
                 {
                     System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
                 }
-
-                if (fileData.getPorts().Equals(null))
-                {
-                    System.Console.WriteLine("[CREATE]: Não foi possivel criar o File do Lado do MetaDataServer");
-                }
-                else
-                {
-                    if (ficheiroInfo.Contains(fileName))
-                    {
-                        ficheiroInfo.Remove(fileName);
-                    }
-
-                    ficheiroInfo.Add(fileName, fileData);
-                }
-
-
             }
 
-            System.Console.WriteLine("Mandou Ms criar file");
+            bool temDS = true;
+
+            try{ fileData.getPorts(); }
+            catch (NullReferenceException e){ temDS = false; }
+
+            if (!temDS)
+            {
+                System.Console.WriteLine("Nao conseguiu criar o ficheiro!");
+            }
+            else
+            {
+                if (ficheiroInfo.Contains(fileName))
+                {
+                    ficheiroInfo.Remove(fileName);
+                }
+
+                ficheiroInfo.Add(fileName, fileData);
+            }
+
+            //System.Console.WriteLine("Mandou Ms criar file");
         }
 
         public void delete(string fileName)
@@ -227,7 +227,20 @@ namespace Client
 
         public void dump()
         {
-            System.Console.WriteLine("Puppet mandou o Client fazer Dump");
+            System.Console.WriteLine("*******************************Client DUMP*******************************\n");
+            
+            foreach (DictionaryEntry c in ficheiroInfo)
+            {
+                DadosFicheiro dados = (DadosFicheiro) c.Value;
+                System.Console.WriteLine("Ficheiro: " + c.Key + " tem readQuorum=" + dados.getRQ() + " e writeQuorum=" + dados.getWQ() + "e esta guardado nos DS: ");
+                foreach (DictionaryEntry d in dados.getPorts())
+                {
+                    System.Console.WriteLine(d.Key + "\n\n");
+                }
+            }
+
+            System.Console.WriteLine("*************************************************************************\n\n");
+            
 
         }
 

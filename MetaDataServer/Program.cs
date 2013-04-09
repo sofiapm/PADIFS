@@ -130,7 +130,7 @@ namespace MetaDataServer
                     while (ports.Count < numDS)
                         //escolher DSs
                         foreach (DictionaryEntry entry in dataServers)
-                            ports.Add(entry, (String)dataServers[entry]);
+                            ports.Add(entry.Key, entry.Value);
                 }
 
                 df = new DadosFicheiro(rQuorum, wQuorum, ports);
