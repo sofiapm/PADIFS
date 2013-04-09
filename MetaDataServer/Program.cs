@@ -53,12 +53,11 @@ namespace MetaDataServer
     {
         TcpChannel channel;
 
-        Hashtable NBDataServers = new Hashtable();
-        Hashtable readQuorum = new Hashtable();
-        Hashtable writeQuorum = new Hashtable();
+        //hashtable de dataserververs
         Hashtable dataServers = new Hashtable();
 
-
+        Hashtable files = new Hashtable();
+ 
         public MetaServer(TcpChannel channel)
         {
             this.channel = channel;
@@ -94,12 +93,7 @@ namespace MetaDataServer
 
             try
             {
-                System.Console.WriteLine((int)readQuorum[fileName] + " " + (int)writeQuorum[fileName]);
-
-                return new DadosFicheiro(
-                    (int)readQuorum[fileName],
-                    (int)writeQuorum[fileName],
-                    (Hashtable)dataServers[fileName]);
+                return (DadosFicheiro)files[fileName];
             }
             catch
             {
@@ -116,17 +110,33 @@ namespace MetaDataServer
         }
 
         //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
-        public void create(string fileName, int numDS, int rQuorum, int wQuorum)
+        public DadosFicheiro create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
             System.Console.WriteLine("cliente mandou MS criar ficheiro: " + fileName);
+            Hashtable ports = new Hashtable();
+            DadosFicheiro df = new DadosFicheiro(0, 0, ports);
 
-            if (!NBDataServers.ContainsKey(fileName))
-            {
-                NBDataServers.Add(fileName, numDS);
-                readQuorum.Add(fileName, rQuorum);
-                writeQuorum.Add(fileName, wQuorum);
+            if (!files.ContainsKey(fileName))
+            {             
+                if (numDS > dataServers.Count)
+                {
+                    System.Console.Write("Não existem data servers suficientes.");
+                    return df;
+                }
+                else if (numDS == dataServers.Count)
+                    ports = dataServers;
+                else
+                {
+                    while (ports.Count < numDS)
+                        //escolher DSs
+                        foreach (DictionaryEntry entry in dataServers)
+                            ports.Add(entry, (String)dataServers[entry]);
+                }
+
+                df = new DadosFicheiro(rQuorum, wQuorum, ports);
+                files.Add(fileName, df);   
             }
-
+            return df;
         }
 
         //deletes the file
@@ -145,6 +155,9 @@ namespace MetaDataServer
         public void registarDS(string name, string id)
         {
             System.Console.WriteLine("MS registou cliente: " + name);
+
+            if (!dataServers.Contains(name))
+                dataServers.Add(name, id);
         }
     }
 
@@ -187,9 +200,9 @@ namespace MetaDataServer
         }
 
         //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
-        public void create(string fileName, int numDS, int rQuorum, int wQuorum)
+        public DadosFicheiro create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
-            ctx.create(fileName, numDS, rQuorum, wQuorum);
+            return ctx.create(fileName, numDS, rQuorum, wQuorum);
         }
 
         //deletes the file
