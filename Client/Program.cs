@@ -74,7 +74,7 @@ namespace Client
         //puppet manda o cliente enviar pedidos ao MS
         public void open(string fileName)
         {
-            Hashtable n = null;
+            DadosFicheiro n = null;
             foreach (DictionaryEntry c in metaDataServers)
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
@@ -84,6 +84,7 @@ namespace Client
 
                 try
                 {
+                    
                     n = ms.open(fileName);
                     break;
                 }
@@ -94,12 +95,12 @@ namespace Client
                 }
             }
 
-            foreach (DictionaryEntry c in n)
-            {
+            
                 System.Console.WriteLine("[TESTE]");
-                System.Console.WriteLine("c.key: " + c.Key);
-                System.Console.WriteLine("c.value: " + c.Value);
-            }
+                System.Console.WriteLine("rQ: " + n.getRQ());
+                System.Console.WriteLine("wQ: " + n.getWQ());
+                System.Console.WriteLine("arrayports: " + n.getPorts().ToString());
+                        
             
 
             System.Console.WriteLine("Mandou Ms abrir file");
