@@ -52,10 +52,9 @@ namespace CommonTypes
         void respostaClient (string resposta);
     }
 
-
     public interface IClientToMS
     {
-        Hashtable open(string fileName);     //returns to client the contents of the metadata stored for that file
+        DadosFicheiro open(string fileName);     //returns to client the contents of the metadata stored for that file
         void close(string fileName);    //informs MS that client is no longer using that file - client must discard all metadata for that file
         void create(string fileName, int numDS, int rQuorum, int wQuorum);  //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
         void delete(string fileName);   //deletes the file
@@ -99,5 +98,35 @@ namespace CommonTypes
         void respostaMS(string resp);
     }
 
+    [Serializable]
+    public class DadosFicheiro{
+
+        int rQ;
+        int wQ;
+        ArrayList ports;
+
+        public DadosFicheiro(int rQ, int wQ, ArrayList ports){
+
+            this.rQ = rQ;
+            this.wQ = wQ;
+            this.ports = ports;
+        }
+
+        public int getRQ()
+        {
+            return rQ;
+        }
+
+        public int getWQ()
+        {
+            return wQ;
+        }
+
+        public ArrayList getPorts()
+        {
+            return ports;
+        }
+
     
+    }
 }

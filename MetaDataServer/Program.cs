@@ -82,7 +82,7 @@ namespace MetaDataServer
         /********Client To MetaDataServer***********/
 
         //returns to client the contents of the metadata stored for that file
-        public Hashtable open(string fileName)
+        public DadosFicheiro open(string fileName)
         {
             System.Console.WriteLine("cliente mandou MS abrir ficheiro: " + fileName);
             
@@ -91,8 +91,9 @@ namespace MetaDataServer
 
             n.Add(1, 2);
 
-            
-            return n;
+            ArrayList y = new ArrayList();
+            y.Add(1);
+            return new DadosFicheiro(1, 2, y);
 
         }
 
@@ -149,7 +150,7 @@ namespace MetaDataServer
         public static MetaServer ctx;
 
         //returns to client the contents of the metadata stored for that file
-        public Hashtable open(string fileName)
+        public DadosFicheiro open(string fileName)
         {
             return ctx.open(fileName);
         }
