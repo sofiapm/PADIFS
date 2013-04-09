@@ -84,6 +84,7 @@ namespace Client
 
                 try
                 {
+                    
                     n = ms.open(fileName);
                     break;
                 }
