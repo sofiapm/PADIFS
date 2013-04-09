@@ -122,6 +122,14 @@ namespace Client
                 }
 
                 ficheiroInfo.Add(fileName, fileData);
+
+                if (fileRegister.Count < 10)
+                {
+                    fileRegister.Add(keyFileRegister, fileName);
+                    keyFileRegister++;
+                }
+                
+
             }
    
         }
@@ -297,28 +305,24 @@ namespace Client
         public void writeR(int fileReg, int ByteArrayRegister)
         {
             string nameFile = (string)fileRegister[fileReg];
-            string conteudo = (string)arrayRegister[ByteArrayRegister];
+            byte[] conteudo = (byte[])arrayRegister[ByteArrayRegister];
 
-            //string to byte[]
-            byte[] bytes = new byte[conteudo.Length * sizeof(char)];
-            System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
-
-            write(nameFile, bytes);
+            write(nameFile, conteudo);
         }
 
         public void writeS(int fileReg, string conteudo)
         {
             string nameFile = (string)fileRegister[fileReg];
-
-            if (arrayRegister.Count < 10)
-            {
-                arrayRegister.Add(keyArrayRegister, conteudo);
-                keyArrayRegister++;
-            }
-
             //string to byte[]
             byte[] bytes = new byte[conteudo.Length * sizeof(char)];
             System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
+
+
+            if (arrayRegister.Count < 10)
+            {
+                arrayRegister.Add(keyArrayRegister, bytes);
+                keyArrayRegister++;
+            }
 
             write(nameFile, bytes);
         }
@@ -328,8 +332,10 @@ namespace Client
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             Hashtable dataServers = dados.getPorts();
 
+
             foreach (DictionaryEntry c in dataServers)
             {
+                System.Console.WriteLine("[WRITE]: DS-key: " + c.Key + " DS-value " + c.Value);
                 IClientToDS ds = (IClientToDS)Activator.GetObject(
                        typeof(IClientToDS),
                        "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
@@ -386,12 +392,12 @@ namespace Client
 
         public void writeR(int fileReg, int ByteArrayRegister)
         {
-            ctx.writeR(fileReg, ByteArrayRegister);
+            //ctx.writeR(fileReg, ByteArrayRegister);
         }
         
         public void writeS(int fileRegister, string conteudo)
         {
-            ctx.writeS(fileRegister, conteudo);
+            //ctx.writeS(fileRegister, conteudo);
         }
 
         //puppet manda o cliente enviar pedidos ao MS
@@ -423,7 +429,7 @@ namespace Client
 
         public void copy(int fileRegister1, string semantics, int fileRegister2, string salt)
         {
-            ctx.copy(fileRegister1, semantics, fileRegister2, salt);
+            //ctx.copy(fileRegister1, semantics, fileRegister2, salt);
         }
 
         public void dump()
@@ -436,7 +442,7 @@ namespace Client
         //puppet mandou o cliente enviar pedidos ao DS
         public void read(int fileRegister, string semantics, int stringRegister)
         {
-            ctx.read(fileRegister, semantics, stringRegister);
+            //ctx.read(fileRegister, semantics, stringRegister);
 
 
         }

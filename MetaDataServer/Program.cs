@@ -117,7 +117,9 @@ namespace MetaDataServer
             DadosFicheiro df = new DadosFicheiro(0, 0, null);
 
             if (!files.ContainsKey(fileName))
-            {             
+            {
+                System.Console.Write("Numero de DS: " + dataServers.Count);
+
                 if (numDS > dataServers.Count)
                 {
                     System.Console.Write("Não existem data servers suficientes.");
@@ -125,16 +127,22 @@ namespace MetaDataServer
                 }
                 else if (numDS == dataServers.Count)
                     ports = dataServers;
-                else
-                {
-                    while (ports.Count < numDS)
-                        //escolher DSs
-                        foreach (DictionaryEntry entry in dataServers)
-                            ports.Add(entry.Key, entry.Value);
-                }
+                    else
+                    {
+                        while (ports.Count < numDS)
+                            //escolher DSs
+                            foreach (DictionaryEntry entry in dataServers)
+                                ports.Add(entry.Key, entry.Value);
+                    }
 
                 df = new DadosFicheiro(rQuorum, wQuorum, ports);
                 files.Add(fileName, df);   
+            }
+            df = (DadosFicheiro) files[fileName];
+            System.Console.WriteLine("*************DS************");
+            foreach (DictionaryEntry c in df.getPorts())
+            {
+                System.Console.WriteLine("KEY: " + c.Key + " Value: " + c.Value);
             }
             return df;
         }
