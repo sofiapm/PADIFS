@@ -54,8 +54,7 @@ namespace MetaDataServer
         TcpChannel channel;
 
         //hashtable de dataserververs
-        Hashtable dataServers = new Hashtable();
-
+        Hashtable dataServers = new Hashtable(); // pode estas ordenada por numero de ficheiros??
         Hashtable files = new Hashtable();
  
         public MetaServer(TcpChannel channel)
@@ -69,7 +68,6 @@ namespace MetaDataServer
         public void fail()
         {
             System.Console.WriteLine("puppet mandou MS falhar!");
-
         }
 
         //MS starts receiving requests from clients and others MS
@@ -81,6 +79,36 @@ namespace MetaDataServer
         public void dump()
         {
             System.Console.WriteLine("Puppet mandou o MS fazer Dump");
+            String result = "";
+
+            try
+            {
+                result = result + "\n***************DS Registados***************";
+                foreach (DictionaryEntry entry in dataServers)
+                    result = result + "\nNome: " + entry.Key + " ID: " + entry.Value;
+                result = result + "\n******************END DS*******************";
+
+                result = result + "\n*****************Ficheiros*****************";
+           
+                foreach (DictionaryEntry entry in files)
+                {
+                    string aux = "";
+                    foreach (DictionaryEntry ds in ((DadosFicheiro)entry.Value).getPorts())
+                        aux = aux + "\nNome: " + ds.Key + " ID: " + ds.Value;
+                    
+                    result = result + "\nNome: " + entry.Key
+                        + " ReadQuórum: " + ((DadosFicheiro)entry.Value).getRQ()
+                        + " WriteQuórum: " + ((DadosFicheiro)entry.Value).getWQ()
+                        + "\nDS: " + aux + "\n--------------";
+                }
+                result = result + "\n***************END Ficheiros***************\n";
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.ToString());
+            }
+
+            System.Console.WriteLine(result);
         }
 
 
@@ -118,32 +146,31 @@ namespace MetaDataServer
 
             if (!files.ContainsKey(fileName))
             {
-                System.Console.Write("Numero de DS: " + dataServers.Count);
-
+                System.Console.WriteLine("Numero de DS: " + dataServers.Count + ", Numero de replicas: " + numDS);
                 if (numDS > dataServers.Count)
                 {
-                    System.Console.Write("Não existem data servers suficientes.");
+                    System.Console.WriteLine("Não existem data servers suficientes.");
                     return df;
                 }
                 else if (numDS == dataServers.Count)
-                    ports = dataServers;
-                    else
-                    {
-                        while (ports.Count < numDS)
-                            //escolher DSs
-                            foreach (DictionaryEntry entry in dataServers)
-                                ports.Add(entry.Key, entry.Value);
-                    }
+                    ports = (Hashtable)dataServers.Clone();
+                else
+                {
+                    while (ports.Count < numDS)
+                        //escolher DSs
+                        foreach (DictionaryEntry entry in dataServers)
+                            ports.Add(entry.Key, entry.Value);
+                }
 
                 df = new DadosFicheiro(rQuorum, wQuorum, ports);
                 files.Add(fileName, df);   
             }
-            df = (DadosFicheiro) files[fileName];
+            
             System.Console.WriteLine("*************DS************");
             foreach (DictionaryEntry c in df.getPorts())
-            {
-                System.Console.WriteLine("KEY: " + c.Key + " Value: " + c.Value);
-            }
+                System.Console.WriteLine("Nome: " + c.Key + " ID: " + c.Value);
+            System.Console.WriteLine("***********DS-END***********");
+         
             return df;
         }
 
@@ -151,21 +178,25 @@ namespace MetaDataServer
         public void delete(string fileName)
         {
             System.Console.WriteLine("cliente mandou MS apagar ficheiro: " + fileName);
+
+            if(files.ContainsKey(fileName))
+                files.Remove(fileName);
+            else System.Console.WriteLine("o ficheiro não existe!");
         }
 
         /********DS To MetadataServer***********/
         public void respostaDS(string resposta)
         {
             System.Console.WriteLine(resposta);
-
         }
 
         public void registarDS(string name, string id)
         {
-            System.Console.WriteLine("MS registou cliente: " + name);
+            System.Console.WriteLine("MS registou DS: " + name);
 
             if (!dataServers.Contains(name))
                 dataServers.Add(name, id);
+            else System.Console.WriteLine("O DS " + name + " já está registado");
         }
     }
 

@@ -849,7 +849,7 @@ namespace PuppetMaster
                  }
                  else if (arg[1].StartsWith("m"))
                  {
-                     if (metaDataServers[arg[1]] == null)
+                    if (metaDataServers[arg[1]] != null)
                      {
                          IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
                        typeof(IPuppetToMS),
