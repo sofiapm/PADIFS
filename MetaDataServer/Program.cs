@@ -57,10 +57,18 @@ namespace MetaDataServer
         TcpChannel channel;
         String nomeMeta;
 
-        //hashtable de dataserververs
+        //hashtable de dataserververs <string nome, string ID>
         Hashtable dataServers = new Hashtable(); // pode estas ordenada por numero de ficheiros??
+
+        //hashtable de ficheiros <string filename, DadosFicheiro dados>
         Hashtable files = new Hashtable();
  
+        //hashtable de NBDataS <string filename, int ds>
+        Hashtable nBDataS = new Hashtable();
+
+        //flag activa quando o metadata server esta em fail
+        Boolean isFailed = false;
+
         public MetaServer(TcpChannel channel, String nome)
         {
             this.channel = channel;
@@ -73,12 +81,14 @@ namespace MetaDataServer
         public void fail()
         {
             System.Console.WriteLine("puppet mandou MS falhar!");
+            isFailed = true;
         }
 
         //MS starts receiving requests from clients and others MS
         public void recover()
         {
             System.Console.WriteLine("puppet mandou MS recuperar!");
+            isFailed = false;
         }
 
         public void dump()
@@ -122,18 +132,24 @@ namespace MetaDataServer
         //returns to client the contents of the metadata stored for that file
         public DadosFicheiro open(string fileName)
         {
-            System.Console.WriteLine("cliente mandou MS abrir ficheiro: " + fileName);
+            if (isFailed)
+                throw new NullReferenceException();
 
-            try
+            else
             {
-                return (DadosFicheiro)files[fileName];
-            }
-            catch
-            {
-                System.Console.WriteLine("O Ficheiro " + fileName + " não existe.");
-            }
+                System.Console.WriteLine("cliente mandou MS abrir ficheiro: " + fileName);
 
-            return new DadosFicheiro(0, 0, null);
+                try
+                {
+                    return (DadosFicheiro)files[fileName];
+                }
+                catch
+                {
+                    System.Console.WriteLine("O Ficheiro " + fileName + " não existe.");
+                }
+
+                return new DadosFicheiro(0, 0, null);
+            }
         }
 
         //informs MS that client is no longer using that file - client must discard all metadata for that file

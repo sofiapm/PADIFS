@@ -471,7 +471,7 @@ namespace PuppetMaster
                  }
                  else if (arg[1].StartsWith("m"))
                  {
-                     if (metaDataServers[arg[1]] == null)
+                     if (metaDataServers[arg[1]] != null)
                      {
                          IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
                         typeof(IPuppetToMS),
@@ -492,7 +492,7 @@ namespace PuppetMaster
              {
                  if (arg[1].StartsWith("d"))
                  {
-                     if (dataServers[arg[1]] == null)
+                     if (dataServers[arg[1]] != null)
                      {
                          IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
                         typeof(IPuppetToDS),
@@ -534,7 +534,7 @@ namespace PuppetMaster
              {
                  if (arg[1].StartsWith("d"))
                  {
-                     if (dataServers[arg[1]] == null)
+                     if (dataServers[arg[1]] != null)
                      {
                          IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
                         typeof(IPuppetToDS),
