@@ -105,6 +105,8 @@ namespace CommonTypes
         int wQ;
         Hashtable ports;
 
+        public DadosFicheiro() { }
+
         public DadosFicheiro(int rQ, int wQ, Hashtable ports){
 
             this.rQ = rQ;

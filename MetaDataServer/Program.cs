@@ -8,6 +8,9 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Collections;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.RegularExpressions;
 
 namespace MetaDataServer
 {
@@ -37,7 +40,7 @@ namespace MetaDataServer
             typeof(MetaServerDS),
             args[0] + "MetaServerDS", WellKnownObjectMode.Singleton);
 
-            MetaServer meta = new MetaServer (channel);
+            MetaServer meta = new MetaServer (channel, args[0]);
             MetaServerPuppet.ctx = meta;
             MetaServerClient.ctx = meta;
             MetaServerDS.ctx = meta;
@@ -52,14 +55,16 @@ namespace MetaDataServer
     class MetaServer
     {
         TcpChannel channel;
+        String nomeMeta;
 
         //hashtable de dataserververs
         Hashtable dataServers = new Hashtable(); // pode estas ordenada por numero de ficheiros??
         Hashtable files = new Hashtable();
  
-        public MetaServer(TcpChannel channel)
+        public MetaServer(TcpChannel channel, String nome)
         {
             this.channel = channel;
+            this.nomeMeta = nome;
         }
 
         /********Puppet To MetaDataServer***********/
@@ -197,6 +202,60 @@ namespace MetaDataServer
             if (!dataServers.Contains(name))
                 dataServers.Add(name, id);
             else System.Console.WriteLine("O DS " + name + " já está registado");
+        }
+
+        public void writeToDisc()
+        {
+            try
+            {
+                string currentDirectory = Environment.CurrentDirectory;
+                string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                string strpathDS = newDirectory[0] + "Disk\\" + "InfoDS" + nomeMeta + ".xml";
+                string strpathFile = newDirectory[0] + "Disk\\" + "InfoFiles" + nomeMeta + ".xml";
+
+                BinaryFormatter bfw = new BinaryFormatter();
+                StreamWriter ws = new StreamWriter(@"" + strpathDS);
+                bfw.Serialize(ws.BaseStream, dataServers);
+                ws.Close();
+
+                BinaryFormatter bfw2 = new BinaryFormatter();
+                StreamWriter ws2 = new StreamWriter(@"" + strpathFile);
+                bfw2.Serialize(ws2.BaseStream, files);
+                ws2.Close();
+
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.ToString());
+            }
+
+
+
+
+        }
+
+        public void readFromDisk()
+        {
+            try
+            {
+                string currentDirectory = Environment.CurrentDirectory;
+                string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                string strpathDS = newDirectory[0] + "Disk\\" + "InfoDS" + nomeMeta + ".xml";
+                string strpathFile = newDirectory[0] + "Disk\\" + "InfoFiles" + nomeMeta + ".xml";
+
+                StreamReader readMap = new StreamReader(@"" + strpathDS);
+                BinaryFormatter bf = new BinaryFormatter();
+                dataServers = (Hashtable)bf.Deserialize(readMap.BaseStream);
+
+                StreamReader readMap2 = new StreamReader(@"" + strpathFile);
+                BinaryFormatter bf2 = new BinaryFormatter();
+                files = (Hashtable)bf2.Deserialize(readMap2.BaseStream);
+
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.ToString());
+            }
         }
     }
 

@@ -561,7 +561,7 @@ namespace PuppetMaster
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
                          startDS(arg[1]);
                          dataServers.Add(arg[1], idDS);
-                         listBox_data.Items.Add(arg[1]);
+                         //listBox_data.Items.Add(arg[1]);
                          idDS++;
                      }
 

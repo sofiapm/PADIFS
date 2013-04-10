@@ -244,18 +244,34 @@ namespace Client
         public void dump()
         {
             System.Console.WriteLine("*******************************Client DUMP*******************************\n");
-            
+
+            System.Console.WriteLine("------------------------Informacao de Ficheiros------------------------");
             foreach (DictionaryEntry c in ficheiroInfo)
             {
                 DadosFicheiro dados = (DadosFicheiro) c.Value;
                 System.Console.WriteLine("Ficheiro: " + c.Key + " tem readQuorum=" + dados.getRQ() + " e writeQuorum=" + dados.getWQ() + "e esta guardado nos DS: ");
                 foreach (DictionaryEntry d in dados.getPorts())
                 {
-                    System.Console.WriteLine(d.Key + "\n\n");
+                    System.Console.WriteLine(d.Key+ "");
                 }
+                System.Console.WriteLine("");
+            }
+            System.Console.WriteLine("\n-----------------------------File Register-----------------------------");
+            foreach (DictionaryEntry c in fileRegister)
+            {
+                System.Console.WriteLine("FileRegister: " + c.Key + " Nome Ficheiro: " + c.Value);
             }
 
-            System.Console.WriteLine("*************************************************************************\n\n");
+            System.Console.WriteLine("\n-----------------------------Array Register-----------------------------");
+            foreach (DictionaryEntry c in arrayRegister)
+            {
+                System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                byte[] b = (byte [])c.Value;
+                String str = enc.GetString(b);
+                System.Console.WriteLine("ArrayRegister: " + c.Key + " Nome Ficheiro: " + str);
+            }
+
+            System.Console.WriteLine("\n*************************************************************************\n\n");
             
 
         }
@@ -323,6 +339,14 @@ namespace Client
                 arrayRegister.Add(keyArrayRegister, bytes);
                 keyArrayRegister++;
             }
+            else
+            {   
+                if(keyArrayRegister>9)
+                    keyArrayRegister = 0;
+                arrayRegister.Add(keyArrayRegister, bytes);
+                keyArrayRegister++;
+            }
+
 
             write(nameFile, bytes);
         }
@@ -392,12 +416,12 @@ namespace Client
 
         public void writeR(int fileReg, int ByteArrayRegister)
         {
-            //ctx.writeR(fileReg, ByteArrayRegister);
+            ctx.writeR(fileReg, ByteArrayRegister);
         }
         
         public void writeS(int fileRegister, string conteudo)
         {
-            //ctx.writeS(fileRegister, conteudo);
+            ctx.writeS(fileRegister, conteudo);
         }
 
         //puppet manda o cliente enviar pedidos ao MS
@@ -429,7 +453,7 @@ namespace Client
 
         public void copy(int fileRegister1, string semantics, int fileRegister2, string salt)
         {
-            //ctx.copy(fileRegister1, semantics, fileRegister2, salt);
+            ctx.copy(fileRegister1, semantics, fileRegister2, salt);
         }
 
         public void dump()
@@ -442,7 +466,7 @@ namespace Client
         //puppet mandou o cliente enviar pedidos ao DS
         public void read(int fileRegister, string semantics, int stringRegister)
         {
-            //ctx.read(fileRegister, semantics, stringRegister);
+            ctx.read(fileRegister, semantics, stringRegister);
 
 
         }
