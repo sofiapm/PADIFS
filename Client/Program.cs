@@ -130,9 +130,28 @@ namespace Client
                 {
                     fileRegister.Remove(keyFileRegister);
                 }
-                fileRegister.Add(keyFileRegister, fileName);
-                keyFileRegister++;
-                
+
+                int key=-1;
+                bool existia=false;
+                foreach (DictionaryEntry en in fileRegister)
+                {
+                    if (en.Value.ToString().Equals(fileName))
+                    {
+                        key = (int)en.Key;
+                        existia = true;
+                    }
+                }
+
+                if (existia)
+                {
+                    fileRegister.Remove(key);
+                    fileRegister.Add(key, fileName);
+                }
+                else
+                {
+                    fileRegister.Add(keyFileRegister, fileName);
+                    keyFileRegister++;
+                }               
 
             }
    
@@ -212,8 +231,28 @@ namespace Client
                 {
                     fileRegister.Remove(keyFileRegister);
                 }
-                fileRegister.Add(keyFileRegister, fileName);
-                keyFileRegister++;
+
+                int key = -1;
+                bool existia = false;
+                foreach (DictionaryEntry en in fileRegister)
+                {
+                    if (en.Value.ToString().Equals(fileName))
+                    {
+                        key = (int)en.Key;
+                        existia = true;
+                    }
+                }
+
+                if (existia)
+                {
+                    fileRegister.Remove(key);
+                    fileRegister.Add(key, fileName);
+                }
+                else
+                {
+                    fileRegister.Add(keyFileRegister, fileName);
+                    keyFileRegister++;
+                } 
             }
 
             
@@ -271,7 +310,7 @@ namespace Client
                         new Thread(delegate()
                         {
                             bool b = ds.delete(fileName);
-                            if (!b)
+                            if (b.Equals(false))
                                 consegueApagar = false;
                             idDados++;
                            
@@ -337,8 +376,11 @@ namespace Client
                     System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
                 }
             }
+
             if (consegueApagar)
+            {
                 ficheiroInfo.Remove(fileName);
+            }
                            
             
         }
