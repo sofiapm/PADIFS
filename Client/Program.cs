@@ -99,11 +99,11 @@ namespace Client
                 {
                     
                     fileData = ms.open(fileName);
-                    break;
+                    //break;
                 }
                 catch (Exception e)
                 {
-                    System.Console.WriteLine(e.ToString());
+                    //System.Console.WriteLine(e.ToString());
                     System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                 }
             }
@@ -148,7 +148,7 @@ namespace Client
                 try
                 {
                     ms.close(fileName);
-                    break;
+                    //break;
                 }
                 catch
                 {
@@ -173,7 +173,7 @@ namespace Client
                 try
                 {
                     fileData = ms.create(fileName, numDS, rQuorum, wQuorum);
-                    break;
+                    //break;
                 }
                 catch //( Exception e)
                 {
@@ -213,7 +213,7 @@ namespace Client
                 try
                 {
                     ms.delete(fileName);
-                    break;
+                    //break;
                 }
                 catch
                 {
@@ -255,10 +255,15 @@ namespace Client
             {
                 DadosFicheiro dados = (DadosFicheiro) c.Value;
                 System.Console.WriteLine("Ficheiro: " + c.Key + " tem readQuorum=" + dados.getRQ() + " e writeQuorum=" + dados.getWQ() + "e esta guardado nos DS: ");
-                foreach (DictionaryEntry d in dados.getPorts())
+                try
                 {
-                    System.Console.WriteLine(d.Key+ "");
+                    foreach (DictionaryEntry d in dados.getPorts())
+                    {
+                        System.Console.WriteLine(d.Key + "");
+                    }
                 }
+                catch { }
+
                 System.Console.WriteLine("");
             }
             System.Console.WriteLine("\n-----------------------------File Register-----------------------------");
@@ -322,74 +327,80 @@ namespace Client
 
         public byte[] read(int fileReg, string semantics) 
         {
-            
-            
-            string fileName = (string)fileRegister[fileReg];
-            DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             byte[] file = new byte[0];
 
-            Hashtable dadosDS = readthreads(fileName, semantics);
-
-            if (semantics.Equals("default"))
+            if (fileRegister.Contains(fileReg))
             {
-                int v = 0;
+                string fileName = (string)fileRegister[fileReg];
+                DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
+              
 
-                foreach (DictionaryEntry e in dadosDS)
+                Hashtable dadosDS = readthreads(fileName, semantics);
+
+                if (semantics.Equals("default"))
                 {
-                    DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
-                    if (d.getVersion() >= v)
-                    {
-                       v = d.getVersion();
-                        file = d.getFile();
-                        if (versao.Contains(fileName))
-                        {
-                            if (v > (int)versao[fileName])
-                            {
-                                versao.Remove(fileName);
-                                versao.Add(fileName, d.getVersion());
-                            }
-                        }
-                        else
-                            versao.Add(fileName, d.getVersion());
-                        break;
-                    }
-                }
-            }
-            else //monotonic
-            {
-                //ultima versao que li
-                int v=0;
-                if (versao.Contains(fileName))
-    
-                    v = (int) versao[fileName];
-                while (true)
-                {
-                    
-                    DadosFicheiroDS d=new DadosFicheiroDS(-1, null);
-                    //percorre todos os files que leu
+                    int v = 0;
+
                     foreach (DictionaryEntry e in dadosDS)
                     {
-                        d = (DadosFicheiroDS)e.Value;
-                        //se a versao deste file e maior ou igual a que tinha lido anteriormente
-                        //entao é este o file que vai ler e actualiza a versao
+                        DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
                         if (d.getVersion() >= v)
                         {
                             v = d.getVersion();
                             file = d.getFile();
-                            versao.Remove(fileName);
-                            versao.Add(fileName, d.getVersion());
+                            if (versao.Contains(fileName))
+                            {
+                                if (v > (int)versao[fileName])
+                                {
+                                    versao.Remove(fileName);
+                                    versao.Add(fileName, d.getVersion());
+                                }
+                            }
+                            else
+                                versao.Add(fileName, d.getVersion());
                             break;
                         }
-                        else
-                        {
-                            //caso contrario continua a ler
-                            dadosDS = readthreads(fileName, semantics);
-                        }
                     }
-                    if (d.getVersion() >= v) break;
+                }
+                else //monotonic
+                {
+                    //ultima versao que li
+                    int v = 0;
+                    if (versao.Contains(fileName))
+
+                        v = (int)versao[fileName];
+                    while (true)
+                    {
+
+                        DadosFicheiroDS d = new DadosFicheiroDS(-1, null);
+                        //percorre todos os files que leu
+                        foreach (DictionaryEntry e in dadosDS)
+                        {
+                            d = (DadosFicheiroDS)e.Value;
+                            //se a versao deste file e maior ou igual a que tinha lido anteriormente
+                            //entao é este o file que vai ler e actualiza a versao
+                            if (d.getVersion() >= v)
+                            {
+                                v = d.getVersion();
+                                file = d.getFile();
+                                versao.Remove(fileName);
+                                versao.Add(fileName, d.getVersion());
+                                break;
+                            }
+                            else
+                            {
+                                //caso contrario continua a ler
+                                dadosDS = readthreads(fileName, semantics);
+                            }
+                        }
+                        if (d.getVersion() >= v) break;
+                    }
                 }
             }
-
+            else
+            {
+                System.Console.WriteLine("[READ -DorM]: Nao existem dados do fileRegister");
+            }
             return file;
         }
         //puppet mandou o cliente enviar pedidos ao DS
@@ -421,21 +432,28 @@ namespace Client
 
         public void writeS(int fileReg, string conteudo)
         {
-            string nameFile = (string)fileRegister[fileReg];
-            //string to byte[]
-            byte[] bytes = new byte[conteudo.Length * sizeof(char)];
-            System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
+            if (fileRegister.Contains(fileReg))
+            {
+                string nameFile = (string)fileRegister[fileReg];
+                //string to byte[]
+                byte[] bytes = new byte[conteudo.Length * sizeof(char)];
+                System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
 
 
-            //E suposto aqui tambem guardar??????????????
-            if (arrayRegister.ContainsKey(keyArrayRegister))
-                arrayRegister.Remove(keyArrayRegister);
+                //E suposto aqui tambem guardar??????????????
+                if (arrayRegister.ContainsKey(keyArrayRegister))
+                    arrayRegister.Remove(keyArrayRegister);
+                else
+                    keyArrayRegister++;
+
+                arrayRegister.Add(keyArrayRegister, bytes);
+
+                write(nameFile, bytes);
+            }
             else
-                keyArrayRegister++;
-
-            arrayRegister.Add(keyArrayRegister, bytes);
-
-            write(nameFile, bytes);
+            {
+                System.Console.WriteLine("[WRITE-S]: Nao existem dados do FileRegister");
+            }
         }
 
         public void write(string fileName, byte[] array)
@@ -479,21 +497,27 @@ namespace Client
 
         public void copy(int fileRegister1, string semantics, int fileRegister2, string salt)
         {
-            byte[] file1 = read(fileRegister1, semantics);
+            try
+            {
+                byte[] file1 = read(fileRegister1, semantics);
 
-            //string to byte[]
-            byte[] file2 = new byte[salt.Length * sizeof(char)];
-            System.Buffer.BlockCopy(salt.ToCharArray(), 0, file2, 0, file2.Length);
+                //string to byte[]
+                byte[] file2 = new byte[salt.Length * sizeof(char)];
+                System.Buffer.BlockCopy(salt.ToCharArray(), 0, file2, 0, file2.Length);
 
-            byte[] resultado = new byte[file1.Length + file2.Length];
-            System.Buffer.BlockCopy(file1, 0, resultado, 0, file1.Length);
-            System.Buffer.BlockCopy(file2, 0, resultado, file1.Length, file2.Length);
+                byte[] resultado = new byte[file1.Length + file2.Length];
+                System.Buffer.BlockCopy(file1, 0, resultado, 0, file1.Length);
+                System.Buffer.BlockCopy(file2, 0, resultado, file1.Length, file2.Length);
 
-            string nameFile2 = (string)fileRegister[fileRegister1];
-            write(nameFile2, resultado);     
+                string nameFile2 = (string)fileRegister[fileRegister1];
+                write(nameFile2, resultado);
+                System.Console.WriteLine("[COPY]: Cliente fez copy");
+            }
+            catch
+            {
+                System.Console.WriteLine("[COPY]: Cliente FALHOU a fazer copy");
+            }
             
-            
-            System.Console.WriteLine("Cliente fez copy");
         }
 
         /********DS To Client***********/
