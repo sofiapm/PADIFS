@@ -393,6 +393,7 @@ namespace DataServer
                         return true;
                     }
                 }
+                else return true;
             }
             return false;
         }
