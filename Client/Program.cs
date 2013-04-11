@@ -262,8 +262,6 @@ namespace Client
                     {
                         new Thread(delegate()
                         {
-                            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-
                             bool b = ds.delete(fileName);
                             if (!b)
                                 consegueApagar = false;
@@ -271,8 +269,7 @@ namespace Client
                            
                             if (idDados >= dados.getPorts().Count)
                                 resetEvent.Set();
-                            while (true)
-                                System.Console.WriteLine("[READthreads]: NO WHILE");
+
                         }).Start();
                         
                         //break;
@@ -295,8 +292,6 @@ namespace Client
                     {
                         new Thread(delegate()
                         {
-                            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-
                             c.confirmarDelete(fileName, consegueApagar);
 
                             idDados++;
@@ -423,15 +418,12 @@ namespace Client
                 {
                     new Thread(delegate()
                     {
-                        Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-
                         dadosDS.Add(idDados, ds.read(fileName, semantics));
                         idDados++;
                         // If we're the last thread, signal
                         if (idDados >= dados.getRQ())
                             resetEvent.Set();
-                        while(true)
-                            System.Console.WriteLine("[READ]: thread: " + idDados); 
+                       
                     }).Start();
 
                     //break;
@@ -636,8 +628,6 @@ namespace Client
                     
                     new Thread(delegate()
                     {
-                        Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-
                         ds.write(fileName, array);
                         idWrite++;
                         // If we're the last thread, signal
