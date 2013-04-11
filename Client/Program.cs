@@ -244,7 +244,7 @@ namespace Client
             }
             else
             {
-                List<bool> consegueApagar = new List<bool>();
+                bool consegueApagar = true;
                 int idDados = 0;
                 foreach (DictionaryEntry c in dados.getPorts())
                 {
@@ -257,7 +257,8 @@ namespace Client
                         {
                             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 
-                            consegueApagar.Add(ds.delete(fileName));
+                            if (!ds.delete(fileName))
+                                consegueApagar = false;
                             idDados++;
                            
                             if (idDados == dados.getPorts().Count)
@@ -273,7 +274,35 @@ namespace Client
                     }
                 }
                 resetEvent.WaitOne();
-            }
+
+            //    foreach (DictionaryEntry c in dados.getPorts())
+            //    {
+            //        IClientToDS ds = (IClientToDS)Activator.GetObject(
+            //           typeof(IClientToDS),
+            //           "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
+            //        try
+            //        {
+            //            new Thread(delegate()
+            //            {
+            //                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+
+            //                ds.confirmarDelete(consegueApagar);
+                                
+            //                idDados++;
+
+            //                if (idDados == dados.getPorts().Count)
+            //                    resetEvent.Set();
+
+            //            }).Start();
+
+            //            //break;
+            //        }
+            //        catch
+            //        {
+            //            System.Console.WriteLine("[READthreads]: Não conseguiu aceder ao DS");
+            //        }
+            //    }
+            //}
                            
             
         }
