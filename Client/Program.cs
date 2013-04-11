@@ -302,7 +302,7 @@ namespace Client
             //            System.Console.WriteLine("[READthreads]: Não conseguiu aceder ao DS");
             //        }
             //    }
-            //}
+            }
                            
             
         }
