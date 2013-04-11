@@ -4,22 +4,7 @@ RECOVER m-0
 UNFREEZE d-1
 # Start a client and create a file f1 with 1 data servers 
 CREATE c-1, f1, 3, 1, 1
+DELETE c-1, f1
 # another file
-CREATE c-1, f2, 1, 1, 1
-#open files
-OPEN c-1, f1
-OPEN c-1, f2
-# more data servers
-UNFREEZE d-2
-UNFREEZE d-3
-UNFREEZE d-4
-CREATE c-1, f3, 1, 1, 1
-WRITE c-1, 0, "UUU"
-READ c-1, 0, default, 0
-READ c-1, 0, monotonic, 0
-# more metadata servers
-DUMP m-0
-DELETE c-2, f2
-CLOSE c-1, f2
 # script1 below would exist in the local puppet master disk
 EXESCRIPT c-1 script1.txt
