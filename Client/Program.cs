@@ -287,7 +287,7 @@ namespace Client
                         {
                             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 
-                            ds.confirmarDelete(consegueApagar);
+                            //ds.confirmarDelete(fileName, consegueApagar);
 
                             idDados++;
 
@@ -296,7 +296,7 @@ namespace Client
 
                         }).Start();
 
-                        //break;
+                        break;
                     }
                     catch
                     {
