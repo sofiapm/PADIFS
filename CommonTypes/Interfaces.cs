@@ -64,6 +64,8 @@ namespace CommonTypes
     {
         DadosFicheiroDS read(string fileName, string semantics); //returns the version and content os local file
         void write(string fileName, byte[] array); //overwrites the content of file, creates new version
+        bool delete(string fileName);
+        void confirmarDelet(bool confirmacao);
     }
 
     public interface IDSToPuppet

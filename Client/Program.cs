@@ -244,7 +244,7 @@ namespace Client
             }
             else
             {
-                bool consegueApagar = true;
+                List<bool> consegueApagar = new List<bool>();
                 int idDados = 0;
                 foreach (DictionaryEntry c in dados.getPorts())
                 {
@@ -257,7 +257,7 @@ namespace Client
                         {
                             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 
-                            //consegueApagar = ds.delete(fileName);
+                            consegueApagar.Add(ds.delete(fileName));
                             idDados++;
                            
                             if (idDados == dados.getPorts().Count)
