@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Collections;
+using System.Threading;
 
 namespace Client
 {   
@@ -44,7 +45,7 @@ namespace Client
             metaDataServers.Add("1", "m-0");
             metaDataServers.Add("2", "m-1");
             metaDataServers.Add("3", "m-2");
-
+            
             Hashtable dataServers = new Hashtable();
 
             Cliente cliente = new Cliente(channel, metaDataServers, dataServers);
@@ -69,6 +70,8 @@ namespace Client
         public Hashtable fileRegister = new Hashtable();
         //string id, string conteudo
         public Hashtable arrayRegister = new Hashtable();
+        //string nome, int versao
+        public Hashtable versao = new Hashtable();
 
         int keyArrayRegister = 0;
         int keyFileRegister = 0;
@@ -123,11 +126,12 @@ namespace Client
 
                 ficheiroInfo.Add(fileName, fileData);
 
-                if (fileRegister.Count < 10)
+                if (fileRegister.Contains(keyFileRegister))
                 {
-                    fileRegister.Add(keyFileRegister, fileName);
-                    keyFileRegister++;
+                    fileRegister.Remove(keyFileRegister);
                 }
+                fileRegister.Add(keyFileRegister, fileName);
+                keyFileRegister++;
                 
 
             }
@@ -153,6 +157,7 @@ namespace Client
             }
 
 
+            ficheiroInfo.Remove(fileName);
 
             System.Console.WriteLine("Mandou Ms fechar file");
         }
@@ -276,14 +281,15 @@ namespace Client
 
         }
 
-        public byte[] read(int fileReg, string semantics) 
+        public Hashtable readthreads(string fileName, string semantics)
         {
-            string fileName = (string)fileRegister[fileReg];
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             Hashtable dataServers = dados.getPorts();
 
-            byte[] file = null;
-            //guarda a resposta do DS no stringRegister
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
+            int idDados = 0;
+            Hashtable dadosDS = new Hashtable();
+
             foreach (DictionaryEntry c in dataServers)
             {
                 IClientToDS ds = (IClientToDS)Activator.GetObject(
@@ -291,12 +297,96 @@ namespace Client
                        "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
                 try
                 {
-                    file = ds.read(fileName, semantics);
-                    break;
+                    new Thread(delegate()
+                    {
+                        Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+
+                        dadosDS.Add(idDados, ds.read(fileName, semantics));
+                        idDados++;
+                        // If we're the last thread, signal
+                        if (idDados == dados.getRQ())
+                            resetEvent.Set();
+                    }).Start();
+
+                    //break;
                 }
                 catch
                 {
                     System.Console.WriteLine("[READ]: Não conseguiu aceder ao DS");
+                }
+            }
+
+            resetEvent.WaitOne();
+            return dadosDS;
+        }
+
+        public byte[] read(int fileReg, string semantics) 
+        {
+            
+            
+            string fileName = (string)fileRegister[fileReg];
+            DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
+            byte[] file = new byte[0];
+
+            Hashtable dadosDS = readthreads(fileName, semantics);
+
+            if (semantics.Equals("default"))
+            {
+                int v = 0;
+
+                foreach (DictionaryEntry e in dadosDS)
+                {
+                    DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
+                    if (d.getVersion() >= v)
+                    {
+                       v = d.getVersion();
+                        file = d.getFile();
+                        if (versao.Contains(fileName))
+                        {
+                            if (v > (int)versao[fileName])
+                            {
+                                versao.Remove(fileName);
+                                versao.Add(fileName, d.getVersion());
+                            }
+                        }
+                        else
+                            versao.Add(fileName, d.getVersion());
+                        break;
+                    }
+                }
+            }
+            else //monotonic
+            {
+                //ultima versao que li
+                int v=0;
+                if (versao.Contains(fileName))
+    
+                    v = (int) versao[fileName];
+                while (true)
+                {
+                    
+                    DadosFicheiroDS d=new DadosFicheiroDS(-1, null);
+                    //percorre todos os files que leu
+                    foreach (DictionaryEntry e in dadosDS)
+                    {
+                        d = (DadosFicheiroDS)e.Value;
+                        //se a versao deste file e maior ou igual a que tinha lido anteriormente
+                        //entao é este o file que vai ler e actualiza a versao
+                        if (d.getVersion() >= v)
+                        {
+                            v = d.getVersion();
+                            file = d.getFile();
+                            versao.Remove(fileName);
+                            versao.Add(fileName, d.getVersion());
+                            break;
+                        }
+                        else
+                        {
+                            //caso contrario continua a ler
+                            dadosDS = readthreads(fileName, semantics);
+                        }
+                    }
+                    if (d.getVersion() >= v) break;
                 }
             }
 
@@ -312,8 +402,11 @@ namespace Client
 
             if (arrayRegister.ContainsKey(strinRegister))
                 arrayRegister.Remove(strinRegister);
+            else
+                keyArrayRegister++;
 
             arrayRegister.Add(strinRegister, file);
+            
             return file;
 
         }
@@ -334,45 +427,52 @@ namespace Client
             System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
 
 
-            if (arrayRegister.Count < 10)
-            {
-                arrayRegister.Add(keyArrayRegister, bytes);
-                keyArrayRegister++;
-            }
+            //E suposto aqui tambem guardar??????????????
+            if (arrayRegister.ContainsKey(keyArrayRegister))
+                arrayRegister.Remove(keyArrayRegister);
             else
-            {   
-                if(keyArrayRegister>9)
-                    keyArrayRegister = 0;
-                arrayRegister.Add(keyArrayRegister, bytes);
                 keyArrayRegister++;
-            }
 
+            arrayRegister.Add(keyArrayRegister, bytes);
 
             write(nameFile, bytes);
         }
 
         public void write(string fileName, byte[] array)
-        {   
+        {
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
+
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             Hashtable dataServers = dados.getPorts();
-
+            int idWrite = 0;
 
             foreach (DictionaryEntry c in dataServers)
             {
-                System.Console.WriteLine("[WRITE]: DS-key: " + c.Key + " DS-value " + c.Value);
+                //System.Console.WriteLine("[WRITE]: DS-key: " + c.Key + " DS-value " + c.Value);
                 IClientToDS ds = (IClientToDS)Activator.GetObject(
                        typeof(IClientToDS),
                        "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
                 try
                 {
-                    ds.write(fileName, array);
-                    break;
+                    
+                    new Thread(delegate()
+                    {
+                        Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+
+                        ds.write(fileName, array);
+                        idWrite++;
+                        // If we're the last thread, signal
+                        if (idWrite == dados.getWQ())
+                            resetEvent.Set();
+                    }).Start();
                 }
                 catch
                 {
                     System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
                 }
             }
+
+            resetEvent.WaitOne();
 
             System.Console.WriteLine("Mandou DS escrever file");
         }

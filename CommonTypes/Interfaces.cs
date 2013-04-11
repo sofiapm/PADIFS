@@ -62,7 +62,7 @@ namespace CommonTypes
 
     public interface IClientToDS
     {
-        byte[] read (string fileName, string semantics); //returns the version and content os local file
+        DadosFicheiroDS read(string fileName, string semantics); //returns the version and content os local file
         void write(string fileName, byte[] array); //overwrites the content of file, creates new version
     }
 
@@ -126,5 +126,30 @@ namespace CommonTypes
         {
             return ports;
         }    
+    }
+
+    [Serializable]
+    public class DadosFicheiroDS
+    {
+        int version;
+        byte[] ficheiro;
+
+        public DadosFicheiroDS() { }
+
+        public DadosFicheiroDS(int version, byte[] ficheiro)
+        {
+            this.version = version;
+            this.ficheiro = ficheiro;
+        }
+
+        public int getVersion()
+        {
+            return version;
+        }
+
+        public byte[] getFile()
+        {
+            return ficheiro;
+        }
     }
 }
