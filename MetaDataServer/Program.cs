@@ -203,11 +203,11 @@ namespace MetaDataServer
 
             try
             {
-                result = result + "\n[DUMP]***************DS Registados***************";
+                result = result + "[DUMP]***************DS Registados***************";
                 foreach (DictionaryEntry entry in dataServers)
-                    result = result + "\nNome: " + entry.Key +
+                    result = result + "\n[DUMP]Nome: " + entry.Key +
                         " ID: " + entry.Value +
-                        " NumFiles: " + dict[(string)entry.Key]; //dataServersNum[entry.Key];
+                        " NumFiles: " + dict[(string)entry.Key]; 
                 result = result + "\n[DUMP]******************END DS*******************";
 
                 result = result + "\n[DUMP]*****************Ficheiros*****************";
@@ -216,14 +216,14 @@ namespace MetaDataServer
                 {
                     string aux = "";
                     foreach (DictionaryEntry ds in ((DadosFicheiro)entry.Value).getPorts())
-                        aux = aux + "\nNome: " + ds.Key + " ID: " + ds.Value;
+                        aux = aux + "\n[DUMP]NomeDS: " + ds.Key + " IDDS: " + ds.Value;
 
-                    result = result + "\nNome: " + entry.Key
+                    result = result + "\n[DUMP]Nome: " + entry.Key
                         + " ReadQuórum: " + ((DadosFicheiro)entry.Value).getRQ()
                         + " WriteQuórum: " + ((DadosFicheiro)entry.Value).getWQ()
-                        + "\nDS: " + aux + "\n--------------";
+                        + aux + "\n--------------";
                 }
-                result = result + "\n[DUMP]***************END Ficheiros***************\n";
+                result = result + "\n[DUMP]***************END Ficheiros***************";
             }
             catch (Exception e)
             {
