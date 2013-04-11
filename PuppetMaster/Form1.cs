@@ -345,6 +345,7 @@ namespace PuppetMaster
          private void stopClient(string clientName)
          {
              runningProcesses[clientName].Kill();
+             runningProcesses.Remove(clientName);
              listBox_clients.Items.Remove(clientName);
          }
 
@@ -352,6 +353,7 @@ namespace PuppetMaster
          private void stopDataServer(string dataName)
          {
              runningProcesses[dataName].Kill();
+             runningProcesses.Remove(dataName);
              listBox_data.Items.Remove(dataName);
          }
 
@@ -359,6 +361,7 @@ namespace PuppetMaster
          private void stopMetaDataServer(string metaDataName)
          {
              runningProcesses[metaDataName].Kill();
+             runningProcesses.Remove(metaDataName);
              listBox_metadata.Items.Remove(metaDataName);
          }
 

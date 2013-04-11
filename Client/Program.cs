@@ -329,6 +329,8 @@ namespace Client
                     System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
                 }
             }
+            if (consegueApagar)
+                ficheiroInfo.Remove(fileName);
                            
             
         }
@@ -448,7 +450,7 @@ namespace Client
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
 
                 Hashtable dataServers = dados.getPorts();
-                if (dataServers.Count < dados.getRQ())
+                if (dataServers.Count < dados.getRQ() || dataServers.Count < dados.getNumDS())
                 {
                     open(fileName);
                     if (dataServers.Count < dados.getRQ())
@@ -554,7 +556,7 @@ namespace Client
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
             Hashtable dataServers = dados.getPorts();
 
-            if (dataServers.Count < dados.getWQ())
+            if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
             {
                 open(nameFile);
                 if (dataServers.Count < dados.getWQ())
@@ -590,12 +592,12 @@ namespace Client
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
                 Hashtable dataServers = dados.getPorts();
 
-                if (dataServers.Count < dados.getWQ())
+                if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
                 {
                     open(nameFile);
                     if (dataServers.Count < dados.getWQ())
                     {
-                        System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
+                        System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
                     }
                     else
                     {
