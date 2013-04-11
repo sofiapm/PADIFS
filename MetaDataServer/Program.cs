@@ -18,11 +18,13 @@ namespace MetaDataServer
     class Program
     {
         //escrever a informação para disco
-        public static void  writeToDisc(string nomeMeta, Hashtable dataServers, Hashtable files, Hashtable nBDataS, Hashtable dataServersNum)
+        public static void  writeToDisk(string nomeMeta, Hashtable dataServers, Hashtable files, Hashtable nBDataS, SortedDictionary<string, int> dataServersNum)
         {
             while (true)
                 try
                 {
+                    //System.Console.WriteLine("O ms está a escrever para o disco!");
+
                     string currentDirectory = Environment.CurrentDirectory;
                     string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
                     string strpathDS = newDirectory[0] + "Disk\\" + "InfoDS" + nomeMeta + ".xml";
@@ -53,7 +55,8 @@ namespace MetaDataServer
                 }
                 catch (Exception e)
                 {
-                    System.Console.WriteLine(e.ToString());
+                    //System.Console.WriteLine("[WRITETODISK] O MS está a ler do disco!");
+                    //System.Console.WriteLine(e.ToString());
                 }
         }
        
@@ -96,16 +99,16 @@ namespace MetaDataServer
             System.Console.WriteLine(args[0] + ": <enter> para sair..." + args[1]);
 
             //thread de backup para disco --> tem que ser com monitores para aceder ao ficheiro
-            //ManualResetEvent resetEvent = new ManualResetEvent(false);
-            //new Thread(delegate()
-            //{
-            //    String m = args[0];
-            //    Hashtable ds = meta.get_dataServers();
-            //    Hashtable f = meta.get_files();
-            //    Hashtable nDS = meta.get_nBDataS();
-            //    Hashtable DSn = meta.get_DSnum();
-            //    writeToDisc(m, ds, f, nDS);
-            //}).Start();
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
+            new Thread(delegate()
+            {               
+                String m = args[0];
+                Hashtable ds = meta.get_dataServers();
+                Hashtable f = meta.get_files();
+                Hashtable nDS = meta.get_nBDataS();
+                SortedDictionary<string, int> DSn = meta.get_DSnum();
+                writeToDisk(m, ds, f, nDS, DSn);   
+            }).Start();
 
             System.Console.ReadLine();
         }
@@ -114,14 +117,17 @@ namespace MetaDataServer
 
     class MetaServer
     {
+        //canal de comunicação
         TcpChannel channel;
+
+        //nome do meta
         String nomeMeta;
 
         //hashtable de dataserververs <string nome, string ID>
         Hashtable dataServers = new Hashtable();
 
         //hashtable com o numero de ficheiros que cada ds tem <string nome, int num>
-        Hashtable dataServersNum = new Hashtable();
+        SortedDictionary<string, int> dict = new SortedDictionary<string, int>();
 
         //hashtable de ficheiros <string filename, DadosFicheiro dados>
         Hashtable files = new Hashtable();
@@ -132,12 +138,14 @@ namespace MetaDataServer
         //flag activa quando o metadata server esta em fail
         Boolean isFailed = false;
 
+        //construtor, recebe o canal e o nome
         public MetaServer(TcpChannel channel, String nome)
         {
             this.channel = channel;
             this.nomeMeta = nome;
         }
 
+        /****************Gets******************/
         public Hashtable get_dataServers()
         {
             return dataServers;
@@ -153,20 +161,19 @@ namespace MetaDataServer
             return nBDataS;
         }
 
-        public Hashtable get_DSnum()
+        public SortedDictionary<string, int> get_DSnum()
         {
-            return dataServersNum;
+            return dict;
         }
 
         /********Puppet To MetaDataServer***********/
-
         //the MS stops processing requests from clients or others MS
         public void fail()
         {
             System.Console.WriteLine("[FAIL] Puppet mandou MS falhar!");
             isFailed = true;
 
-            writeToDisc();
+            //writeToDisk();
         }
 
         //MS starts receiving requests from clients and others MS
@@ -185,6 +192,7 @@ namespace MetaDataServer
             }
         }
 
+        //imprimir o estado do MS
         public void dump()
         {
             if (isFailed)
@@ -195,14 +203,14 @@ namespace MetaDataServer
 
             try
             {
-                result = result + "\n***************DS Registados***************";
+                result = result + "\n[DUMP]***************DS Registados***************";
                 foreach (DictionaryEntry entry in dataServers)
-                    result = result + "\nNome: " + entry.Key + 
-                        " ID: " + entry.Value + 
-                        " NumFiles: " + dataServersNum[entry.Key];
-                result = result + "\n******************END DS*******************";
+                    result = result + "\nNome: " + entry.Key +
+                        " ID: " + entry.Value +
+                        " NumFiles: " + dict[(string)entry.Key]; //dataServersNum[entry.Key];
+                result = result + "\n[DUMP]******************END DS*******************";
 
-                result = result + "\n*****************Ficheiros*****************";
+                result = result + "\n[DUMP]*****************Ficheiros*****************";
 
                 foreach (DictionaryEntry entry in files)
                 {
@@ -215,7 +223,7 @@ namespace MetaDataServer
                         + " WriteQuórum: " + ((DadosFicheiro)entry.Value).getWQ()
                         + "\nDS: " + aux + "\n--------------";
                 }
-                result = result + "\n***************END Ficheiros***************\n";
+                result = result + "\n[DUMP]***************END Ficheiros***************\n";
             }
             catch (Exception e)
             {
@@ -227,7 +235,6 @@ namespace MetaDataServer
 
 
         /********Client To MetaDataServer***********/
-
         //returns to client the contents of the metadata stored for that file
         public DadosFicheiro open(string fileName)
         {
@@ -247,14 +254,16 @@ namespace MetaDataServer
             }
         }
 
-
         //informs MS that client is no longer using that file - client must discard all metadata for that file
         public void close(string fileName)
         {
             if (isFailed)
                 throw new NullReferenceException();
 
+            if (files.ContainsKey(fileName))
             System.Console.WriteLine("[CLOSE] Cliente mandou MS fechar ficheiro: " + fileName);
+            else
+                System.Console.WriteLine("[CLOSE] O ficheiro: " + fileName + " não existe!");
         }
 
         //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
@@ -269,7 +278,7 @@ namespace MetaDataServer
             DadosFicheiro df = new DadosFicheiro(0, 0, null);
             if (!files.ContainsKey(fileName))
             {
-                System.Console.WriteLine("[CREATE] Numero de DS: " + dataServers.Count + ", Numero de replicas: " + numDS);
+                System.Console.WriteLine("[CREATE] Numero de DS registados: " + dataServers.Count + ", Numero de replicas que o cliente quer: " + numDS);
                 
                 if (numDS >= dataServers.Count)
                     foreach (DictionaryEntry entry in dataServers)
@@ -277,23 +286,18 @@ namespace MetaDataServer
                 else
                     ports = bestDS(numDS);
 
-                //actualizar valores na hash dos ds
+                //actualizar valores na dic dos ds
                 foreach (DictionaryEntry entry in ports)
-                {
-                    int i = (int)dataServersNum[entry.Key] + 1;
-                    dataServersNum.Remove(entry.Key);
-                    dataServersNum.Add(entry.Key, i);
-                }
-                System.Console.WriteLine("saiu");
-
+                    ++dict[(string)entry.Key];
+                                
                 df = new DadosFicheiro(rQuorum, wQuorum, ports);
                 files.Add(fileName, df);
                 nBDataS.Add(fileName, numDS);
 
-                System.Console.WriteLine("********Stored in DS********");
+                System.Console.WriteLine("[CREATE]********Stored in DS********");
                 foreach (DictionaryEntry c in df.getPorts())
-                    System.Console.WriteLine("Nome: " + c.Key + " ID: " + c.Value);
-                System.Console.WriteLine("***********DS-END***********");
+                    System.Console.WriteLine("[CREATE] Nome: " + c.Key + " ID: " + c.Value);
+                System.Console.WriteLine("[CREATE]***********DS-END***********");
             }
             else
                 System.Console.WriteLine("[CREATE] O ficheiro " + fileName + " já existe!");
@@ -320,11 +324,8 @@ namespace MetaDataServer
                 files.Remove(fileName);
                 nBDataS.Remove(fileName);
                 //decrementar todos os ds onde o file estava
-                foreach (DictionaryEntry entry in ports){
-                    int i = (int)dataServersNum[entry.Key] - 1 ;
-                    dataServersNum.Remove(entry.Key);
-                    dataServersNum.Add(entry.Key, i);
-                }
+                foreach (DictionaryEntry entry in ports)
+                    --dict[(string)entry.Key];
             }
             else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
 
@@ -332,6 +333,7 @@ namespace MetaDataServer
         }
 
         /********DS To MetadataServer***********/
+        //resposta de confirmação do DS
         public void respostaDS(string resposta)
         {
             if (isFailed)
@@ -340,6 +342,7 @@ namespace MetaDataServer
             System.Console.WriteLine(resposta);
         }
 
+        //registar DS no MS
         public void registarDS(string name, string id)
         {
             if (isFailed)
@@ -350,15 +353,13 @@ namespace MetaDataServer
             if (!dataServers.ContainsKey(name))
             {
                 dataServers.Add(name,id);
-                dataServersNum.Add(name, 0);
+                dict.Add(name, 0);
 
                 foreach (DictionaryEntry entry in files)
                     if (((DadosFicheiro)entry.Value).getPorts().Count < (int)nBDataS[(string)entry.Key])
                     {
                         ((DadosFicheiro)entry.Value).getPorts().Add(name, id);
-                        int i = (int)dataServersNum[name] + 1;
-                        dataServersNum.Remove(name);
-                        dataServersNum.Add(name, i);
+                        ++dict[name];
                         System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
                     }
 
@@ -366,60 +367,27 @@ namespace MetaDataServer
             else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");
         }
 
+        /*************Funçoes auxiliares**************/
+        //retorna os num DS com menos files guardados
         public Hashtable bestDS(int num)
         {
             Hashtable ports = new Hashtable(); 
 
             //escolher num DSs
-            
-            foreach (DictionaryEntry entry in dataServers)
-            {
-                 for (int i = 0; i <= num; i++)
-                    if (!ports.ContainsKey(entry.Key))
-                      ports.Add(entry.Key, entry.Value);
-            }
+            Dictionary<string, int> nha = dict.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
            
-            return ports;
+                foreach (KeyValuePair<string, int> entry in nha)
+                {
+                    if (num == ports.Count)
+                        break;
+                    else if (!ports.ContainsKey(entry.Key))
+                        ports.Add(entry.Key,dataServers[entry.Key]);
+                }
+            
+             return ports;
         }
 
-        public void writeToDisc()
-        {
-            try
-            {                
-                string currentDirectory = Environment.CurrentDirectory;
-                string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-                string strpathDS = newDirectory[0] + "Disk\\" + "InfoDS" + nomeMeta + ".xml";
-                string strpathFile = newDirectory[0] + "Disk\\" + "InfoFiles" + nomeMeta + ".xml";
-                string strpathNBDS = newDirectory[0] + "Disk\\" + "NBDS" + nomeMeta + ".xml";
-                string strpathDSnum = newDirectory[0] + "Disk\\" + "DSnum" + nomeMeta + ".xml";
-
-                BinaryFormatter bfw = new BinaryFormatter();
-                StreamWriter ws = new StreamWriter(@"" + strpathDS);
-                bfw.Serialize(ws.BaseStream, dataServers);
-                ws.Close();
-
-                BinaryFormatter bfw2 = new BinaryFormatter();
-                StreamWriter ws2 = new StreamWriter(@"" + strpathFile);
-                bfw2.Serialize(ws2.BaseStream, files);
-                ws2.Close();
-
-                BinaryFormatter bfw3 = new BinaryFormatter();
-                StreamWriter ws3 = new StreamWriter(@"" + strpathNBDS);
-                bfw3.Serialize(ws3.BaseStream, nBDataS);
-                ws3.Close();
-
-                BinaryFormatter bfw4 = new BinaryFormatter();
-                StreamWriter ws4 = new StreamWriter(@"" + strpathDSnum);
-                bfw4.Serialize(ws4.BaseStream, dataServersNum);
-                ws4.Close();
-
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine("[WRITETODISC] " + e.ToString());
-            }
-        }
-
+        //ler informação do disco
         public void readFromDisk()
         {
             string currentDirectory = Environment.CurrentDirectory;
@@ -443,7 +411,7 @@ namespace MetaDataServer
 
             StreamReader readMap4 = new StreamReader(@"" + strpathDSnum);
             BinaryFormatter bf4 = new BinaryFormatter();
-            dataServersNum = (Hashtable)bf4.Deserialize(readMap4.BaseStream);
+            dict = (SortedDictionary<string, int>)bf4.Deserialize(readMap4.BaseStream);
         }
 
     }
@@ -464,6 +432,7 @@ namespace MetaDataServer
             ctx.recover();
         }
 
+        //imprime o estado do MS
         public void dump()
         {
             ctx.dump();
@@ -508,11 +477,13 @@ namespace MetaDataServer
             ctx.respostaDS(resposta);
         }
 
+        //regista o DS no MS
         public void registarDS(string nome, string ID)
         {
             ctx.registarDS(nome, ID);
         }
 
+        //confirmação de que o delete foi executado
         public void delete(string fileName)
         {
             ctx.delete(fileName);
