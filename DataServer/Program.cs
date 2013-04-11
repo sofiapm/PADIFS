@@ -368,13 +368,16 @@ namespace DataServer
         {
             if (!failed && !freezed)
             {
-                FileStructure newFile = (FileStructure)files[fileName];
-                if(!newFile.getLockRead() && !newFile.getLockWrite())
+                if (files.ContainsKey(fileName))
                 {
-                    newFile.lockDelete();
-                    files.Remove(fileName);
-                    files.Add(fileName, newFile);
-                    return true;
+                    FileStructure newFile = (FileStructure)files[fileName];
+                    if (!newFile.getLockRead() && !newFile.getLockWrite())
+                    {
+                        newFile.lockDelete();
+                        files.Remove(fileName);
+                        files.Add(fileName, newFile);
+                        return true;
+                    }
                 }
             }
             return false;
@@ -384,15 +387,21 @@ namespace DataServer
         {
             if (resposta == true)
             {
-                File.Delete(fileName);
-                files.Remove(fileName);
+                if (files.ContainsKey(fileName))
+                {
+                    File.Delete(fileName);
+                    files.Remove(fileName);
+                }
             }
             else
             {
-                FileStructure newFile = (FileStructure)files[fileName];
-                newFile.unlockDelete();
-                files.Remove(fileName);
-                files.Add(fileName, newFile);
+                if (files.ContainsKey(fileName))
+                {
+                    FileStructure newFile = (FileStructure)files[fileName];
+                    newFile.unlockDelete();
+                    files.Remove(fileName);
+                    files.Add(fileName, newFile);
+                }
             }
             
         }
