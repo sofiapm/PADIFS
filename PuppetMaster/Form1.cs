@@ -1075,8 +1075,8 @@ namespace PuppetMaster
          {
              String fileRegister = textBox8.Text;
              String conteudo = textBox9.Text;
-             //try
-             //{
+             try
+             {
                  string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
 
                  if (clients.Contains(nomeClientSeleccionado))
@@ -1087,13 +1087,14 @@ namespace PuppetMaster
 
                      if (client != null)
                      {
-                         client.writeS(Int32.Parse(fileRegister), conteudo);
+                     client.writeS(Int32.Parse(fileRegister), conteudo);
                      }
                  }
-             //}
-             //catch { 
+                 
+             }
+             catch { 
              
-             //}
+             }
          }
 
          private void button5_Click(object sender, EventArgs e)
