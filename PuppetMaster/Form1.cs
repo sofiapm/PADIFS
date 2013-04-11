@@ -1120,6 +1120,27 @@ namespace PuppetMaster
              }
              catch { }
          }
+
+         private void button6_Click(object sender, EventArgs e)
+         {
+             string nomeFile = textBox3.Text;
+             try
+             {
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                     {
+                         client.delete(nomeFile);
+                     }
+                 }
+             }
+             catch { }
+         }
      }
 
     public class PuppetMaster : MarshalByRefObject, IMSToPuppet, IClientToPuppet, IDSToPuppet
