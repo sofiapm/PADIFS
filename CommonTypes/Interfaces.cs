@@ -9,9 +9,6 @@ namespace CommonTypes
 {
     public interface IPuppetToClient
     {
-        //puppet envia informações ao cliente
-        //void guardaMS(Hashtable metadataservers);
-
         //puppet manda o Cliente executar accoes
         void runScript(List<string> operations);
         void dump();
@@ -105,6 +102,7 @@ namespace CommonTypes
     {
         //MS
         bool areYouAlive();
+        void fail();
         Hashtable get_dataServers();
         SortedDictionary<string, int> get_DSnum();
         Hashtable get_files();

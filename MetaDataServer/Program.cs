@@ -60,6 +60,32 @@ namespace MetaDataServer
                 }
         }
        
+        public static void isAlive(MetaServer meta, Hashtable metaDataServers){
+
+            while (true)
+            {
+                foreach (DictionaryEntry c in metaDataServers)
+                {
+                    IMSToMS ms = (IMSToMS)Activator.GetObject(
+                           typeof(IMSToMS),
+                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
+
+                    try
+                    {
+                        if (!ms.areYouAlive())
+                        {
+                            meta.setPrimary();
+                            //ms.fail();
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+
+            }
+        }
+
         static void Main(string[] args)
         {
             TcpChannel channel;
@@ -121,7 +147,13 @@ namespace MetaDataServer
                 Hashtable f = meta.get_files2();
                 Hashtable nDS = meta.get_nBDataS2();
                 SortedDictionary<string, int> DSn = meta.get_DSnum2();
-                writeToDisk(m, ds, f, nDS, DSn);   
+                writeToDisk(m, ds, f, nDS, DSn);
+            }).Start();
+
+            ManualResetEvent resetEvent2 = new ManualResetEvent(false);
+            new Thread(delegate()
+            {
+                isAlive(meta, metaDataServers);
             }).Start();
 
             System.Console.ReadLine();
@@ -220,13 +252,28 @@ namespace MetaDataServer
             return isFailed;
         }
 
+        public void setPrimary()
+        {
+            if (!primary)
+            {
+                primary = true;
+                System.Console.WriteLine("Passou a ser o PRIMARY");
+            }
+        }
+
+        public bool areYouAlive()
+        {
+            if (primary)
+                return !isFailed;
+            else throw new NullReferenceException();
+        }
+
         /********Puppet To MetaDataServer***********/
         //the MS stops processing requests from clients or others MS
         public void fail()
         {
             System.Console.WriteLine("[FAIL] Puppet mandou MS falhar!");
             isFailed = true;
-            primary = false;
         }
 
         //MS starts receiving requests from clients and others MS
@@ -702,7 +749,12 @@ namespace MetaDataServer
         //ack de confirmacao
         public bool areYouAlive()
         {
-            return ctx.get_failed();
+            return ctx.areYouAlive();
+        }
+
+        public void fail()
+        {
+            ctx.fail();
         }
 
     }
