@@ -216,11 +216,15 @@ namespace Client
         {
             DadosFicheiro dados=null;
             ManualResetEvent resetEvent = new ManualResetEvent(false);
+            List<IClientToDS> listDS = new List<IClientToDS>();
+            List<IClientToMS> listMS = new List<IClientToMS>();
             foreach (DictionaryEntry c in metaDataServers)
             {
                  IClientToMS ms = (IClientToMS)Activator.GetObject(
                           typeof(IClientToMS),
                            "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                 listMS.Add(ms);
+
                  try
                  {
                      dados = ms.delete(fileName);
@@ -238,30 +242,66 @@ namespace Client
             try{ dados.getPorts(); }
             catch (NullReferenceException e){ temDS = false; }
 
+            bool consegueApagar = false;
+
             if (!temDS)
             {
                 System.Console.WriteLine("[DELETE]: Nao tem DS para mandar o DELETE!");
             }
             else
             {
-                bool consegueApagar = true;
+                consegueApagar = true;
                 int idDados = 0;
                 foreach (DictionaryEntry c in dados.getPorts())
                 {
                     IClientToDS ds = (IClientToDS)Activator.GetObject(
                        typeof(IClientToDS),
                        "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
+                    listDS.Add(ds);
                     try
                     {
                         new Thread(delegate()
                         {
                             Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 
-                            if (!ds.delete(fileName))
+                            bool b = ds.delete(fileName);
+                            if (!b)
                                 consegueApagar = false;
                             idDados++;
                            
-                            if (idDados == dados.getPorts().Count)
+                            if (idDados >= dados.getPorts().Count)
+                                resetEvent.Set();
+                            while (true)
+                                System.Console.WriteLine("[READthreads]: NO WHILE");
+                        }).Start();
+                        
+                        //break;
+                    }
+                    catch
+                    {
+                        System.Console.WriteLine("[READthreads]: Não conseguiu aceder ao DS");
+                    }
+                }
+                resetEvent.WaitOne();
+
+                resetEvent = new ManualResetEvent(false);
+                idDados = 0;
+                foreach (IClientToDS c in listDS)
+                {
+                    //IClientToDS ds = (IClientToDS)Activator.GetObject(
+                    //   typeof(IClientToDS),
+                    //   "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
+                    try
+                    {
+                        new Thread(delegate()
+                        {
+                            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+
+                            c.confirmarDelete(fileName, consegueApagar);
+
+                            idDados++;
+
+                            if (idDados >= dados.getPorts().Count)
                                 resetEvent.Set();
 
                         }).Start();
@@ -274,36 +314,25 @@ namespace Client
                     }
                 }
                 resetEvent.WaitOne();
+            }
 
-                resetEvent = new ManualResetEvent(false);
-                foreach (DictionaryEntry c in dados.getPorts())
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IClientToMS ms = (IClientToMS)Activator.GetObject(
+                         typeof(IClientToMS),
+                          "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                listMS.Add(ms);
+
+                try
                 {
-                    IClientToDS ds = (IClientToDS)Activator.GetObject(
-                       typeof(IClientToDS),
-                       "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
-                    try
-                    {
-                        new Thread(delegate()
-                        {
-                            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-
-                            //ds.confirmarDelete(fileName, consegueApagar);
-
-                            idDados++;
-
-                            if (idDados == dados.getPorts().Count)
-                                resetEvent.Set();
-
-                        }).Start();
-
-                        break;
-                    }
-                    catch
-                    {
-                        System.Console.WriteLine("[READthreads]: Não conseguiu aceder ao DS");
-                    }
+                    ms.confirmarDelete(fileName, consegueApagar);
+                    System.Console.WriteLine("[DELETE]:  Confirmacao para Ms apagar file: " + fileName);
+                    break;
                 }
-                resetEvent.WaitOne();
+                catch
+                {
+                    System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
+                }
             }
                            
             
@@ -399,7 +428,7 @@ namespace Client
                         dadosDS.Add(idDados, ds.read(fileName, semantics));
                         idDados++;
                         // If we're the last thread, signal
-                        if (idDados == dados.getRQ())
+                        if (idDados >= dados.getRQ())
                             resetEvent.Set();
                         while(true)
                             System.Console.WriteLine("[READ]: thread: " + idDados); 
@@ -612,7 +641,7 @@ namespace Client
                         ds.write(fileName, array);
                         idWrite++;
                         // If we're the last thread, signal
-                        if (idWrite == dados.getWQ())
+                        if (idWrite >= dados.getWQ())
                             resetEvent.Set();
                     }).Start();
                 }
