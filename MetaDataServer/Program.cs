@@ -219,6 +219,7 @@ namespace MetaDataServer
         {
             return isFailed;
         }
+
         /********Puppet To MetaDataServer***********/
         //the MS stops processing requests from clients or others MS
         public void fail()
@@ -333,7 +334,7 @@ namespace MetaDataServer
                 catch
                 {
                     System.Console.WriteLine("[OPEN] O Ficheiro " + fileName + " não existe.");
-                    return new DadosFicheiro(0, 0, null);
+                    return new DadosFicheiro(0, 0, null, "",0);
                 }
         }
 
@@ -352,13 +353,13 @@ namespace MetaDataServer
         //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
         public DadosFicheiro create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
-            if (isFailed)
+            if (isFailed || !primary)
                 throw new NullReferenceException();
 
             System.Console.WriteLine("[CREATE] Cliente mandou MS criar ficheiro: " + fileName);
 
             Hashtable ports = new Hashtable();
-            DadosFicheiro df = new DadosFicheiro(0, 0, null);
+            DadosFicheiro df = new DadosFicheiro(0, 0, null, "",0);
             if (!files.ContainsKey(fileName))
             {
                 System.Console.WriteLine("[CREATE] Numero de DS registados: " + dataServers.Count + ", Numero de replicas que o cliente quer: " + numDS);
@@ -373,7 +374,7 @@ namespace MetaDataServer
                 foreach (DictionaryEntry entry in ports)
                     ++dict[(string)entry.Key];
                                 
-                df = new DadosFicheiro(rQuorum, wQuorum, ports);
+                df = new DadosFicheiro(rQuorum, wQuorum, ports, fileName, numDS);
                 files.Add(fileName, df);
                 nBDataS.Add(fileName, numDS);
 
@@ -385,8 +386,7 @@ namespace MetaDataServer
                         IMSToMS ms = (IMSToMS)Activator.GetObject(
                                typeof(IMSToMS),
                                "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
-                        //System.Console.WriteLine("[CREATE] Vou tentar falar com: " + c.Value.ToString());
-
+                     
                         try
                         {
                             ms.create_replica(df, numDS);
@@ -404,10 +404,7 @@ namespace MetaDataServer
             else
                 System.Console.WriteLine("[CREATE] O ficheiro " + fileName + " já existe!");
 
-
-            if (primary)
-             return df;
-            else throw new NullReferenceException();
+            return df;
         }
 
         //deletes the file
@@ -418,14 +415,14 @@ namespace MetaDataServer
 
             System.Console.WriteLine("[DELETE] Cliente mandou MS apagar ficheiro: " + fileName);
 
-            DadosFicheiro df = new DadosFicheiro(0, 0, null);
+            DadosFicheiro df = new DadosFicheiro(0, 0, null,"",0);
 
             if (files.ContainsKey(fileName))
             {
                 Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts().Clone();
                 df = new DadosFicheiro (((DadosFicheiro)files[fileName]).getRQ(),
                     ((DadosFicheiro)files[fileName]).getWQ(),
-                    ports) ;
+                    ports, fileName, ((DadosFicheiro)files[fileName]).getNumDS());
             }
             else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
 
@@ -456,17 +453,18 @@ namespace MetaDataServer
 
             if (confirmacao)
             {
-                DadosFicheiro df = new DadosFicheiro(0, 0, null);
+                DadosFicheiro df = new DadosFicheiro(0, 0, null, "",0);
 
                 if (files.ContainsKey(fileName))
                 {
                     Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts().Clone();
                     df = new DadosFicheiro(((DadosFicheiro)files[fileName]).getRQ(),
                         ((DadosFicheiro)files[fileName]).getWQ(),
-                        ports);
+                        ports, fileName, ((DadosFicheiro)files[fileName]).getNumDS());
 
                     files.Remove(fileName);
                     nBDataS.Remove(fileName);
+
                     //decrementar todos os ds onde o file estava
                     foreach (DictionaryEntry entry in ports)
                         --dict[(string)entry.Key];
@@ -500,18 +498,14 @@ namespace MetaDataServer
                     IMSToMS ms = (IMSToMS)Activator.GetObject(
                            typeof(IMSToMS),
                            "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
-                    System.Console.WriteLine("[REGISTARDS] Vou tentar falar com: " + c.Value.ToString());
-
+                    
                     try
                     {
                         ms.registarDS_replica(name,id);
                         System.Console.WriteLine("[REGISTARDS]: Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
-                       // break;
                     }
                     catch //(Exception e)
                     {
-                        // System.Console.WriteLine(e.ToString());
-                        //System.Console.WriteLine("[REGISTARDS]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                     }
                 }
 
@@ -535,14 +529,80 @@ namespace MetaDataServer
         /*************replicas***************/
         public void create_replica(DadosFicheiro file, int numDS)
         { 
+            if (isFailed || primary)
+                throw new NullReferenceException();
+
+            System.Console.WriteLine("[CREATE] Cliente mandou MS criar ficheiro: " + file.getName());
+
+            if (!files.ContainsKey(file.getName()))
+            {
+                files.Add(file.getName(), file);
+                nBDataS.Add(file.getName(), numDS);
+
+                //actualizar valores na dic dos ds
+                foreach (DictionaryEntry entry in file.getPorts())
+                    ++dict[(string)entry.Key];
+                           
+                System.Console.WriteLine("[CREATE]********Stored in DS********");
+                foreach (DictionaryEntry c in file.getPorts())
+                    System.Console.WriteLine("[CREATE] Nome: " + c.Key + " ID: " + c.Value);
+                System.Console.WriteLine("[CREATE]***********DS-END***********");
+            }
+            else
+                System.Console.WriteLine("[CREATE] O ficheiro " + file.getName() + " já existe!");
         }
 
-        public void registarDS_replica(string nome, string ID)
-        {    
+        public void registarDS_replica(string name, string id)
+        {
+            if (isFailed || primary)
+                throw new NullReferenceException();
+
+            System.Console.WriteLine("[REGISTARDS] MS registou DS: " + name);
+
+            if (!dataServers.ContainsKey(name))
+            {
+                dataServers.Add(name, id);
+                dict.Add(name, 0);
+
+                foreach (DictionaryEntry entry in files)
+                    if (((DadosFicheiro)entry.Value).getPorts().Count < (int)nBDataS[(string)entry.Key])
+                    {
+                        ((DadosFicheiro)entry.Value).getPorts().Add(name, id);
+                        ++dict[name];
+                        System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
+                    }
+
+            }
+            else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");  
         }
 
-        public void confirmarDelete_replica(string filename, bool confirmacao)
-        {   
+        public void confirmarDelete_replica(string fileName, bool confirmacao)
+        {
+            if (isFailed || primary)
+                throw new NullReferenceException();
+
+            System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
+
+            if (confirmacao)
+            {
+                DadosFicheiro df = new DadosFicheiro(0, 0, null, "", 0);
+
+                if (files.ContainsKey(fileName))
+                {
+                    Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts().Clone();
+                    df = new DadosFicheiro(((DadosFicheiro)files[fileName]).getRQ(),
+                        ((DadosFicheiro)files[fileName]).getWQ(),
+                        ports, fileName, ((DadosFicheiro)files[fileName]).getNumDS());
+
+                    files.Remove(fileName);
+                    nBDataS.Remove(fileName);
+
+                    //decrementar todos os ds onde o file estava
+                    foreach (DictionaryEntry entry in ports)
+                        --dict[(string)entry.Key];
+                }
+                else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
+            }
         }
 
         /*************Funçoes auxiliares**************/

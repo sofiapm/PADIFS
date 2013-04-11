@@ -124,12 +124,16 @@ namespace CommonTypes
         int rQ;
         int wQ;
         Hashtable ports;
+        string name;
+        int numDS;
 
-        public DadosFicheiro(int rQ, int wQ, Hashtable ports){
+        public DadosFicheiro(int rQ, int wQ, Hashtable ports, string n, int m){
 
             this.rQ = rQ;
             this.wQ = wQ;
             this.ports = ports;
+            this.name = n;
+            this.numDS = m;
         }
 
         public int getRQ()
@@ -145,7 +149,17 @@ namespace CommonTypes
         public Hashtable getPorts()
         {
             return ports;
-        }    
+        }
+
+        public string getName()
+        {
+            return name;
+        }
+
+        public int getNumDS()
+        {
+            return numDS;
+        }
     }
 
     [Serializable]
