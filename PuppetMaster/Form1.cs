@@ -135,6 +135,8 @@ namespace PuppetMaster
              metaDataServers.Add(name, "1");
              textBox1.Clear();
              listBox_metadata.Items.Add(name);
+
+             //mandar fazer recover
          }
 
         //cria metadata 2
@@ -187,16 +189,22 @@ namespace PuppetMaster
          private void button_openFile_Click(object sender, EventArgs e)
          {   
              string nomeFile = textBox3.Text;
-             string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
-             
-             IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
-            typeof(IPuppetToClient),
-            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
-
-             if (client != null)
+             try
              {
-                 client.open(nomeFile);
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                     {
+                         client.open(nomeFile);
+                     }
+                 }
              }
+             catch { }
                   
          }
 
@@ -205,92 +213,126 @@ namespace PuppetMaster
          private void button_closeFile_Click(object sender, EventArgs e)
          {
              string nomeFile = textBox3.Text;
-             string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
 
-             IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
-            typeof(IPuppetToClient),
-            "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+             try
+             {
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
 
-             if (client != null)
-                 client.close(nomeFile);
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                         client.close(nomeFile);
+                 }
+             }
+             catch { }
          }
 
         //Diz ao MS para falhar
          private void button_fail_meta_Click(object sender, EventArgs e)
          {
-             string nomeMS = listBox_metadata.SelectedItem.ToString();
+             try
+             {
+                 string nomeMS = listBox_metadata.SelectedItem.ToString();
 
-             IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
-            typeof(IPuppetToMS),
-            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
+                 IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                typeof(IPuppetToMS),
+                "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
 
-             if (ms != null)
-                 ms.fail();
+                 if (ms != null)
+                     ms.fail();
+             }
+             catch { }
          }
 
         //Diz ao DS para freeze
          private void button_freeze_Click(object sender, EventArgs e)
          {
-             string nomeDS = listBox_data.SelectedItem.ToString();
+             try
+             {
+                 string nomeDS = listBox_data.SelectedItem.ToString();
 
-             IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-            typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
+                 IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                typeof(IPuppetToDS),
+                "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
-             if (ds != null)
-                 ds.freeze();
+                 if (ds != null)
+                     ds.freeze();
+             }
+             catch { }
          }
 
         //Diz ao DS para falhar
          private void button_fail_data_Click(object sender, EventArgs e)
          {
-             string nomeDS = listBox_data.SelectedItem.ToString();
+             try
+             {
+                 string nomeDS = listBox_data.SelectedItem.ToString();
 
-             IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-            typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
+                 IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                typeof(IPuppetToDS),
+                "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
-             if (ds != null)
-                 ds.fail();
+                 if (ds != null)
+                     ds.fail();
+             }
+             catch
+             {
+             }
          }
 
         //Diz ao DS para unfreeze
          private void button_Unfreeze_Click(object sender, EventArgs e)
          {
-             string nomeDS = listBox_data.SelectedItem.ToString();
+             try
+             {
+                 string nomeDS = listBox_data.SelectedItem.ToString();
 
-             IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-            typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
+                 IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                typeof(IPuppetToDS),
+                "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
-             if (ds != null)
-                 ds.unfreeze();
+                 if (ds != null)
+                     ds.unfreeze();
+             }
+             catch { }
          }
 
         //Diz ao DS par recuperar
          private void button_recover_data_Click(object sender, EventArgs e)
          {
-             string nomeDS = listBox_data.SelectedItem.ToString();
+             try
+             {
+                 string nomeDS = listBox_data.SelectedItem.ToString();
 
-             IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
-            typeof(IPuppetToDS),
-            "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
+                 IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                typeof(IPuppetToDS),
+                "tcp://localhost:809" + dataServers[nomeDS] + "/" + nomeDS + "DataServerPuppet");
 
-             if (ds != null)
-                 ds.recover();
+                 if (ds != null)
+                     ds.recover();
+             }
+             catch { }
          }
 
          //Diz ao MS par recuperar
          private void button_recover_meta_Click(object sender, EventArgs e)
          {
-             string nomeMS = listBox_metadata.SelectedItem.ToString();
+             try
+             {
+                 string nomeMS = listBox_metadata.SelectedItem.ToString();
 
-             IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
-            typeof(IPuppetToMS),
-            "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
+                 IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                typeof(IPuppetToMS),
+                "tcp://localhost:808" + metaDataServers[nomeMS] + "/" + nomeMS + "MetaServerPuppet");
 
-             if (ms != null)
-                 ms.recover();
+                 if (ms != null)
+                     ms.recover();
+             }
+             catch { }
          }
 
          //faz update da lista Box dos clientes
@@ -345,6 +387,7 @@ namespace PuppetMaster
          private void stopClient(string clientName)
          {
              runningProcesses[clientName].Kill();
+             runningProcesses.Remove(clientName);
              listBox_clients.Items.Remove(clientName);
          }
 
@@ -352,6 +395,7 @@ namespace PuppetMaster
          private void stopDataServer(string dataName)
          {
              runningProcesses[dataName].Kill();
+             runningProcesses.Remove(dataName);
              listBox_data.Items.Remove(dataName);
          }
 
@@ -359,6 +403,7 @@ namespace PuppetMaster
          private void stopMetaDataServer(string metaDataName)
          {
              runningProcesses[metaDataName].Kill();
+             runningProcesses.Remove(metaDataName);
              listBox_metadata.Items.Remove(metaDataName);
          }
 
@@ -979,6 +1024,100 @@ namespace PuppetMaster
          private void button2_Click(object sender, EventArgs e)
          {
              KillAll();
+         }
+
+         private void label1_Click_2(object sender, EventArgs e)
+         {
+
+         }
+
+         private void label2_Click(object sender, EventArgs e)
+         {
+
+         }
+
+         private void button3_Click(object sender, EventArgs e)
+         {
+             string nomeFile = textBox4.Text;
+             string numDS = textBox5.Text;
+             string rQuorum = textBox6.Text;
+             string wQuorum = textBox7.Text;
+             try
+             {
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
+
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                     {
+                         client.create(nomeFile, Int32.Parse(numDS), Int32.Parse(rQuorum), Int32.Parse(wQuorum));
+                     }
+                 }
+             }
+             catch { }
+         }
+
+         private void textBox7_TextChanged(object sender, EventArgs e)
+         {
+
+         }
+
+         private void label5_Click(object sender, EventArgs e)
+         {
+
+         }
+
+         private void button4_Click(object sender, EventArgs e)
+         {
+             String fileRegister = textBox8.Text;
+             String conteudo = textBox9.Text;
+             //try
+             //{
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
+
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                     {
+                         client.writeS(Int32.Parse(fileRegister), conteudo);
+                     }
+                 }
+             //}
+             //catch { 
+             
+             //}
+         }
+
+         private void button5_Click(object sender, EventArgs e)
+         {
+             String fileRegister = textBox10.Text;
+             String semantics = textBox11.Text;
+             String stringReg = textBox12.Text;
+             try
+             {
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
+
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                     {
+                         client.read(Int32.Parse(fileRegister), semantics, Int32.Parse(stringReg));
+                     }
+                 }
+             }
+             catch { }
          }
      }
 
