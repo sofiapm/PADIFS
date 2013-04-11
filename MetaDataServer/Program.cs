@@ -72,7 +72,8 @@ namespace MetaDataServer
 
                     try
                     {
-                        if (!ms.areYouAlive())
+
+                        if (!meta.get_failed() && !ms.areYouAlive())
                         {
                             meta.setPrimary();
                             //ms.fail();
@@ -167,28 +168,28 @@ namespace MetaDataServer
         TcpChannel channel;
 
         //nome do meta
-        String nomeMeta;
+        public string nomeMeta;
 
         //hashtable dos outros metaDatas
-        Hashtable metaDataServers = new Hashtable();
+        public Hashtable metaDataServers = new Hashtable();
 
         //hashtable de dataserververs <string nome, string ID>
-        Hashtable dataServers = new Hashtable();
+        public Hashtable dataServers = new Hashtable();
 
         //hashtable com o numero de ficheiros que cada ds tem <string nome, int num>
-        SortedDictionary<string, int> dict = new SortedDictionary<string, int>();
+        public SortedDictionary<string, int> dict = new SortedDictionary<string, int>();
 
         //hashtable de ficheiros <string filename, DadosFicheiro dados>
-        Hashtable files = new Hashtable();
+        public Hashtable files = new Hashtable();
  
         //hashtable de NBDataS <string filename, int ds>
-        Hashtable nBDataS = new Hashtable();
+        public Hashtable nBDataS = new Hashtable();
 
         //flag activa quando o metadata server esta em fail
-        bool isFailed = false;
+        public bool isFailed = false;
 
         //flag que indica se é ou não o primario
-        bool primary = false;
+        public bool primary = false;
 
         //construtor, recebe o canal e o nome
         public MetaServer(TcpChannel channel, String nome, Hashtable mdservers)
@@ -263,9 +264,13 @@ namespace MetaDataServer
 
         public bool areYouAlive()
         {
-            if (primary)
+            if (!primary)
+                throw new NullReferenceException();
+            else {
+                if (isFailed)
+                    primary = false;
                 return !isFailed;
-            else throw new NullReferenceException();
+            }
         }
 
         /********Puppet To MetaDataServer***********/
@@ -274,6 +279,7 @@ namespace MetaDataServer
         {
             System.Console.WriteLine("[FAIL] Puppet mandou MS falhar!");
             isFailed = true;
+            //primary = false;
         }
 
         //MS starts receiving requests from clients and others MS
