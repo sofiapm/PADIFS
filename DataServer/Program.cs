@@ -324,7 +324,7 @@ namespace DataServer
                 {
                     System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
                     //invoque add to threadpool
-                  //  ThreadPool.QueueUserWorkItem(new WaitCallback(readFile), aux);
+
                 }
                 else
                 {
@@ -350,11 +350,7 @@ namespace DataServer
                 {
                     System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
                     //invoque add to threadpool
-                    //List<object> aux = new List<object>();
-                    //aux.Add(fileName);
-                    //aux.Add(array);
-                    //WaitCallback wcb = new WaitCallback(processRequest);
-                    //ThreadPool.QueueUserWorkItem(wcb, aux);
+
                 }
                 else
                 {
@@ -366,6 +362,39 @@ namespace DataServer
             {
                 System.Console.WriteLine("DataServer está failed. Ignora pedidos de clientes");
             }
+        }
+
+        public bool delete(string fileName)
+        {
+            if (!failed && !freezed)
+            {
+                FileStructure newFile = (FileStructure)files[fileName];
+                if(!newFile.getLockRead() && !newFile.getLockWrite())
+                {
+                    newFile.lockDelete();
+                    files.Remove(fileName);
+                    files.Add(fileName, newFile);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void confirmarDelete(string fileName, bool resposta)
+        {
+            if (resposta == true)
+            {
+                File.Delete(fileName);
+                files.Remove(fileName);
+            }
+            else
+            {
+                FileStructure newFile = (FileStructure)files[fileName];
+                newFile.unlockDelete();
+                files.Remove(fileName);
+                files.Add(fileName, newFile);
+            }
+            
         }
 
         /********MS To DataServer***********/
@@ -434,13 +463,12 @@ namespace DataServer
 
         public bool delete(string fileName)
         {
-            //return ctx.delete(fileName);
-            return true;
+            return ctx.delete(fileName);
         }
 
-        public void confirmarDelete(bool reposta)
+        public void confirmarDelete(string fileName, bool resposta)
         {
-            //ctx.write(fileName, array);
+            ctx.confirmarDelete(fileName, resposta);
         }
 
     }
