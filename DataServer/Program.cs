@@ -71,7 +71,6 @@ namespace DataServer
             }
 
             System.Console.WriteLine(args[0] + ": <enter> para sair...");
-            Monitor.Wait(channel);
             System.Console.ReadLine();
         }
 
