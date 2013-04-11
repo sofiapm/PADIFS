@@ -46,7 +46,7 @@ namespace DataServer
             metaDataServers.Add("2", "m-1");
             metaDataServers.Add("3", "m-2");
 
-            DataServer ds = new DataServer(channel, metaDataServers);
+            DataServer ds = new DataServer(args[0], channel, metaDataServers);
             DataServerClient.ctx = ds;
             DataServerMS.ctx = ds;
             DataServerPuppet.ctx = ds;
@@ -71,7 +71,7 @@ namespace DataServer
             }
 
             System.Console.WriteLine(args[0] + ": <enter> para sair...");
-
+            Monitor.Wait(channel);
             System.Console.ReadLine();
         }
 
@@ -91,6 +91,11 @@ namespace DataServer
             version = 0;
             isWriting = false;
             isReading = false;
+        }
+
+        public string getFileName()
+        {
+            return FileName;
         }
 
         public void lockWrite()
@@ -207,15 +212,16 @@ namespace DataServer
         Hashtable files;
         bool freezed;
         bool failed;
-        
+        string dataServerID;
 
-        public DataServer(TcpChannel channel, Hashtable md)
+        public DataServer(string id, TcpChannel channel, Hashtable md)
         {
             this.channel = channel;
             metaDataServers = md;
             files = new Hashtable();
             freezed = true;
             failed = false;
+            dataServerID = id;
         }
 
         /********Puppet To DataServer***********/
@@ -251,6 +257,13 @@ namespace DataServer
         public void dump()
         {
             System.Console.WriteLine("Puppet mandou o DS fazer Dump");
+            System.Console.WriteLine("---------------------DataServer: " + dataServerID + " ------------------------");
+            foreach (DictionaryEntry entry in files)
+            {
+                FileStructure aux;
+                aux = (FileStructure)entry.Value;
+                System.Console.WriteLine("DataServer id: {0}, File name: {1}, Version: {2}, Write lock: {3}, Read lock: {4}, Delete lock: {5}", dataServerID, aux.getFileName(), aux.getVersion(), aux.getLockWrite(), aux.getLockRead(), aux.getLockDelete());
+            }
         }
 
         public DadosFicheiroDS readFile(string fileName, string semantics)
