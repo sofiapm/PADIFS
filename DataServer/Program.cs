@@ -256,13 +256,15 @@ namespace DataServer
         public void dump()
         {
             System.Console.WriteLine("Puppet mandou o DS fazer Dump");
-            System.Console.WriteLine("---------------------DataServer: " + dataServerID + " ------------------------");
+            System.Console.WriteLine("---------------------BEGIN DUMP DataServer: " + dataServerID + " ------------------------");
             foreach (DictionaryEntry entry in files)
             {
                 FileStructure aux;
                 aux = (FileStructure)entry.Value;
                 System.Console.WriteLine("DataServer id: {0}, File name: {1}, Version: {2}, Write lock: {3}, Read lock: {4}, Delete lock: {5}", dataServerID, aux.getFileName(), aux.getVersion(), aux.getLockWrite(), aux.getLockRead(), aux.getLockDelete());
             }
+            System.Console.WriteLine("--------------------END DUMP DataServer: " + dataServerID + " ------------------------");
+
         }
 
         public DadosFicheiroDS readFile(string fileName, string semantics)
