@@ -215,6 +215,10 @@ namespace MetaDataServer
             else throw new NullReferenceException();
         }
 
+        public bool get_failed()
+        {
+            return isFailed;
+        }
         /********Puppet To MetaDataServer***********/
         //the MS stops processing requests from clients or others MS
         public void fail()
@@ -248,8 +252,6 @@ namespace MetaDataServer
                            typeof(IMSToMS),
                            "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
 
-                    //System.Console.WriteLine("[RECOVER] Vou tentar falar com: " + c.Value.ToString());
-
                     try
                     {
                         dataServers = ms.get_dataServers();
@@ -257,7 +259,6 @@ namespace MetaDataServer
                         files = ms.get_files();
                         nBDataS = ms.get_nBDataS();
 
-                        //System.Console.WriteLine("[RECOVER]: Contactou com sucesso um MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                         break;
                     }
                     catch (Exception e)
@@ -265,7 +266,6 @@ namespace MetaDataServer
                         if (ms_falhados)
                             primary = true;
                       
-                        //System.Console.WriteLine("[RECOVER]: Não conseguiu aceder ao MS " + c.Value.ToString() + " E " + c.Key.ToString());
                         ms_falhados = true;
 
                         if (primary)
@@ -321,32 +321,12 @@ namespace MetaDataServer
         //returns to client the contents of the metadata stored for that file
         public DadosFicheiro open(string fileName)
         {
-            if (isFailed)
+            if (isFailed || !primary)
                 throw new NullReferenceException();
 
             System.Console.WriteLine("[OPEN] Cliente mandou MS abrir ficheiro: " + fileName);
 
-            //envia mensagem para outras replicas
-            if (primary)
-            {
-                foreach (DictionaryEntry c in metaDataServers)
-                {
-                    IClientToMS ms = (IClientToMS)Activator.GetObject(
-                           typeof(IClientToMS),
-                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
-                    //System.Console.WriteLine("[OPEN] Vou tentar falar com: " + c.Value.ToString());
-
-                    try
-                    {
-                        ms.open(fileName);
-                    }
-                    catch //(Exception e)
-                    {
-                        // System.Console.WriteLine(e.ToString());
-                    }
-                }
-
-                try
+            try
                 {
                     return (DadosFicheiro)files[fileName];
                 }
@@ -355,9 +335,6 @@ namespace MetaDataServer
                     System.Console.WriteLine("[OPEN] O Ficheiro " + fileName + " não existe.");
                     return new DadosFicheiro(0, 0, null);
                 }
-            }
-            else
-                throw new NullReferenceException();
         }
 
         //informs MS that client is no longer using that file - client must discard all metadata for that file
@@ -380,28 +357,6 @@ namespace MetaDataServer
 
             System.Console.WriteLine("[CREATE] Cliente mandou MS criar ficheiro: " + fileName);
 
-            //envia mensagem para outras replicas
-            if (primary)
-                foreach (DictionaryEntry c in metaDataServers)
-                {
-                    IClientToMS ms = (IClientToMS)Activator.GetObject(
-                           typeof(IClientToMS),
-                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
-                    //System.Console.WriteLine("[CREATE] Vou tentar falar com: " + c.Value.ToString());
-
-                    try
-                    {
-                        ms.create(fileName, numDS, rQuorum, wQuorum);
-                        //System.Console.WriteLine("[CREATE]: Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
-                        //break;
-                    }
-                    catch //(Exception e)
-                    {
-                        // System.Console.WriteLine(e.ToString());
-                        //System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
-                    }
-                }
-
             Hashtable ports = new Hashtable();
             DadosFicheiro df = new DadosFicheiro(0, 0, null);
             if (!files.ContainsKey(fileName))
@@ -422,6 +377,25 @@ namespace MetaDataServer
                 files.Add(fileName, df);
                 nBDataS.Add(fileName, numDS);
 
+
+                //envia mensagem para outras replicas
+                if (primary)
+                    foreach (DictionaryEntry c in metaDataServers)
+                    {
+                        IMSToMS ms = (IMSToMS)Activator.GetObject(
+                               typeof(IMSToMS),
+                               "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
+                        //System.Console.WriteLine("[CREATE] Vou tentar falar com: " + c.Value.ToString());
+
+                        try
+                        {
+                            ms.create_replica(df, numDS);
+                        }
+                        catch //(Exception e)
+                        {
+                        }
+                    }
+
                 System.Console.WriteLine("[CREATE]********Stored in DS********");
                 foreach (DictionaryEntry c in df.getPorts())
                     System.Console.WriteLine("[CREATE] Nome: " + c.Key + " ID: " + c.Value);
@@ -429,6 +403,7 @@ namespace MetaDataServer
             }
             else
                 System.Console.WriteLine("[CREATE] O ficheiro " + fileName + " já existe!");
+
 
             if (primary)
              return df;
@@ -438,29 +413,10 @@ namespace MetaDataServer
         //deletes the file
         public DadosFicheiro delete(string fileName)
         {
-            if (isFailed)
+            if (isFailed || !primary)
                 throw new NullReferenceException();
 
             System.Console.WriteLine("[DELETE] Cliente mandou MS apagar ficheiro: " + fileName);
-
-            //envia mensagem para outras replicas
-            if (primary)
-                foreach (DictionaryEntry c in metaDataServers)
-                {
-                    IClientToMS ms = (IClientToMS)Activator.GetObject(
-                           typeof(IClientToMS),
-                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
-                    //System.Console.WriteLine("[OPEN] Vou tentar falar com: " + c.Value.ToString());
-
-                    try
-                    {
-                        ms.delete(fileName);
-                    }
-                    catch //(Exception e)
-                    {
-                        // System.Console.WriteLine(e.ToString());
-                    }
-                }
 
             DadosFicheiro df = new DadosFicheiro(0, 0, null);
 
@@ -473,36 +429,30 @@ namespace MetaDataServer
             }
             else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
 
-            if (primary)
-               return df;
-            else throw new NullReferenceException();
+            return df;
         }
 
         public void confirmarDelete(string fileName, bool confirmacao)
         {
-            if (isFailed)
+            if (isFailed || !primary)
                 throw new NullReferenceException();
 
             System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
 
             //envia mensagem para outras replicas
-            if (primary)
-                foreach (DictionaryEntry c in metaDataServers)
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IMSToMS ms = (IMSToMS)Activator.GetObject(
+                        typeof(IMSToMS),
+                        "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
+                try
                 {
-                    IClientToMS ms = (IClientToMS)Activator.GetObject(
-                           typeof(IClientToMS),
-                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
-                    //System.Console.WriteLine("[OPEN] Vou tentar falar com: " + c.Value.ToString());
-
-                    try
-                    {
-                        ms.confirmarDelete(fileName, confirmacao);
-                    }
-                    catch //(Exception e)
-                    {
-                        // System.Console.WriteLine(e.ToString());
-                    }
+                    ms.confirmarDelete_replica(fileName, confirmacao);
                 }
+                catch //(Exception e)
+                {
+                }
+            }
 
             if (confirmacao)
             {
@@ -523,9 +473,6 @@ namespace MetaDataServer
                 }
                 else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");   
             }
-
-            if (!primary)
-            throw new NullReferenceException();
         }
 
         /********DS To MetadataServer***********/
@@ -541,7 +488,7 @@ namespace MetaDataServer
         //registar DS no MS
         public void registarDS(string name, string id)
         {
-            if (isFailed)
+            if (isFailed || !primary)
                 throw new NullReferenceException();
 
             System.Console.WriteLine("[REGISTARDS] MS registou DS: " + name);
@@ -550,14 +497,14 @@ namespace MetaDataServer
             if (primary)
                 foreach (DictionaryEntry c in metaDataServers)
                 {
-                    IDSToMS ms = (IDSToMS)Activator.GetObject(
-                           typeof(IDSToMS),
-                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                    IMSToMS ms = (IMSToMS)Activator.GetObject(
+                           typeof(IMSToMS),
+                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
                     System.Console.WriteLine("[REGISTARDS] Vou tentar falar com: " + c.Value.ToString());
 
                     try
                     {
-                        ms.registarDS(name,id);
+                        ms.registarDS_replica(name,id);
                         System.Console.WriteLine("[REGISTARDS]: Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                        // break;
                     }
@@ -582,11 +529,20 @@ namespace MetaDataServer
                     }
 
             }
-            else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");
+            else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");               
+        }
 
-            if (!primary)
-                throw new NullReferenceException();
-                
+        /*************replicas***************/
+        public void create_replica(DadosFicheiro file, int numDS)
+        { 
+        }
+
+        public void registarDS_replica(string nome, string ID)
+        {    
+        }
+
+        public void confirmarDelete_replica(string filename, bool confirmacao)
+        {   
         }
 
         /*************Funçoes auxiliares**************/
@@ -638,45 +594,29 @@ namespace MetaDataServer
 
     }
 
-    class MetaServerMS : MarshalByRefObject, IClientToMS, IDSToMS, IMSToMS
+    class MetaServerMS : MarshalByRefObject, IMSToMS
     {
         public static MetaServer ctx;
 
-        //returns to client the contents of the metadata stored for that file
-        public DadosFicheiro open(string fileName)
-        {
-            return ctx.open(fileName);
-        }
-
-        //informs MS that client is no longer using that file - client must discard all metadata for that file
-        public void close(string fileName)
-        {
-            ctx.close(fileName);
-        }
-
         //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
-        public DadosFicheiro create(string fileName, int numDS, int rQuorum, int wQuorum)
+        public void create_replica(DadosFicheiro file, int numDS)
         {
-            return ctx.create(fileName, numDS, rQuorum, wQuorum);
-        }
-
-        //deletes the file
-        public DadosFicheiro delete(string fileName)
-        {
-            return ctx.delete(fileName);
-        }
-
-        public void respostaDS(string resposta)
-        {
-            ctx.respostaDS(resposta);
+            ctx.create_replica(file, numDS);
         }
 
         //regista o DS no MS
-        public void registarDS(string nome, string ID)
+        public void registarDS_replica(string nome, string ID)
         {
-            ctx.registarDS(nome, ID);
+            ctx.registarDS_replica(nome, ID);
         }
 
+        //confirmar o delete
+        public void confirmarDelete_replica(string filename, bool confirmacao)
+        {
+            ctx.confirmarDelete_replica(filename, confirmacao);
+        }
+
+        //gets
         public Hashtable get_dataServers()
         {
             return ctx.get_dataServers();
@@ -697,20 +637,12 @@ namespace MetaDataServer
             return ctx.get_nBDataS();
         }
 
+        //ack de confirmacao
         public bool areYouAlive()
         {
-            //
-            return true;
+            return ctx.get_failed();
         }
 
-        public void respostaMS(string resp)
-        {
-        }
-        //apagar
-        public void confirmarDelete(string filename, bool confirmacao)
-        {
-            ctx.confirmarDelete(filename, confirmacao);
-        }
     }
 
     class MetaServerPuppet : MarshalByRefObject, IPuppetToMS
