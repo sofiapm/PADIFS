@@ -945,6 +945,41 @@ namespace PuppetMaster
              metaDataServers.Clear();
 
          }
+
+         private void button1_Click_2(object sender, EventArgs e)
+         {
+             foreach( DictionaryEntry en in metaDataServers)
+             {
+                 IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                        typeof(IPuppetToMS),
+                        "tcp://localhost:808" + en.Value + "/" + en.Key + "MetaServerPuppet");
+
+                 ms.dump();
+             }
+
+             foreach( DictionaryEntry en in dataServers)
+             {
+                 IPuppetToDS ds = (IPuppetToDS)Activator.GetObject(
+                        typeof(IPuppetToDS),
+                        "tcp://localhost:809" + en.Value + "/" + en.Key + "DataServerPuppet");
+
+                 ds.dump();
+             }
+
+             foreach( DictionaryEntry en in clients)
+             {
+                 IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                     typeof(IPuppetToClient),
+                     "tcp://localhost:807" + en.Value + "/" + en.Key + "PuppetClient");
+                 client.dump();
+             }
+
+         }
+
+         private void button2_Click(object sender, EventArgs e)
+         {
+             KillAll();
+         }
      }
 
     public class PuppetMaster : MarshalByRefObject, IMSToPuppet, IClientToPuppet, IDSToPuppet
