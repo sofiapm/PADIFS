@@ -65,7 +65,7 @@ namespace CommonTypes
         DadosFicheiroDS read(string fileName, string semantics); //returns the version and content os local file
         void write(string fileName, byte[] array); //overwrites the content of file, creates new version
         bool delete(string fileName);
-        void confirmarDelete(bool confirmacao);
+        void confirmarDelete(string fileName, bool confirmacao);
     }
 
     public interface IDSToPuppet
@@ -98,6 +98,16 @@ namespace CommonTypes
     {
         void areYouAlive();
         void respostaMS(string resp);
+    }
+
+    public interface IMSToMS
+    {
+        bool areYouAlive();
+        void respostaMS(string resp);
+        Hashtable get_dataServers();
+        SortedDictionary<string, int> get_DSnum();
+        Hashtable get_files();
+        Hashtable get_nBDataS();
     }
 
     [Serializable]
