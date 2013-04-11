@@ -275,33 +275,35 @@ namespace Client
                 }
                 resetEvent.WaitOne();
 
-            //    foreach (DictionaryEntry c in dados.getPorts())
-            //    {
-            //        IClientToDS ds = (IClientToDS)Activator.GetObject(
-            //           typeof(IClientToDS),
-            //           "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
-            //        try
-            //        {
-            //            new Thread(delegate()
-            //            {
-            //                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+                resetEvent = new ManualResetEvent(false);
+                foreach (DictionaryEntry c in dados.getPorts())
+                {
+                    IClientToDS ds = (IClientToDS)Activator.GetObject(
+                       typeof(IClientToDS),
+                       "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
+                    try
+                    {
+                        new Thread(delegate()
+                        {
+                            Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 
-            //                ds.confirmarDelete(consegueApagar);
-                                
-            //                idDados++;
+                            ds.confirmarDelete(consegueApagar);
 
-            //                if (idDados == dados.getPorts().Count)
-            //                    resetEvent.Set();
+                            idDados++;
 
-            //            }).Start();
+                            if (idDados == dados.getPorts().Count)
+                                resetEvent.Set();
 
-            //            //break;
-            //        }
-            //        catch
-            //        {
-            //            System.Console.WriteLine("[READthreads]: Não conseguiu aceder ao DS");
-            //        }
-            //    }
+                        }).Start();
+
+                        //break;
+                    }
+                    catch
+                    {
+                        System.Console.WriteLine("[READthreads]: Não conseguiu aceder ao DS");
+                    }
+                }
+                resetEvent.WaitOne();
             }
                            
             
@@ -399,6 +401,8 @@ namespace Client
                         // If we're the last thread, signal
                         if (idDados == dados.getRQ())
                             resetEvent.Set();
+                        while(true)
+                            System.Console.WriteLine("[READ]: thread: " + idDados); 
                     }).Start();
 
                     //break;

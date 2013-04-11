@@ -9,6 +9,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Collections;
 using System.IO;
+using System.Threading;
 
 namespace DataServer
 {
@@ -82,6 +83,7 @@ namespace DataServer
         private int version;
         private bool isWriting;
         private bool isReading;
+        private bool isDeleting;
 
         public FileStructure(string name)
         {
@@ -101,6 +103,11 @@ namespace DataServer
             isReading = true;
         }
 
+        public void lockDelete()
+        {
+            isDeleting = true;
+        }
+
         public void unlockWrite()
         {
             isWriting = false;
@@ -109,6 +116,11 @@ namespace DataServer
         public void unlockRead()
         {
             isReading = false;
+        }
+
+        public void unlockDelete()
+        {
+            isDeleting = false;
         }
 
         public bool getLockWrite()
@@ -121,10 +133,16 @@ namespace DataServer
             return isReading;
         }
 
+        public bool getLockDelete()
+        {
+            return isDeleting;
+        }
+
         public void resetLockState()
         {
             isWriting = false;
             isReading = false;
+            isDeleting = false;
         }
 
         public int getVersion()
@@ -138,14 +156,58 @@ namespace DataServer
         }
     }
 
+    public class readParameters
+    {
+        private string fileName;
+        private string semantics;
+
+        public readParameters(string fn, string sem)
+        {
+            fileName = fn;
+            semantics = sem;
+        }
+
+        public string getFileName()
+        {
+            return fileName;
+        }
+
+        public string getSemantics()
+        {
+            return semantics;
+        }
+    }
+
+    public class writeParameters
+    {
+        private string fileName;
+        private byte[] array;
+
+        public writeParameters(string fn, byte[] arr)
+        {
+            fileName = fn;
+            array = arr;
+        }
+
+        public string getFileName()
+        {
+            return fileName;
+        }
+
+        public byte[] getArray()
+        {
+            return array;
+        }
+    }
+
     class DataServer
     {
         TcpChannel channel;
         Hashtable metaDataServers;
         Hashtable files;
-
         bool freezed;
         bool failed;
+        
 
         public DataServer(TcpChannel channel, Hashtable md)
         {
@@ -191,40 +253,89 @@ namespace DataServer
             System.Console.WriteLine("Puppet mandou o DS fazer Dump");
         }
 
-        /********Client To DataServer***********/
-
-        //returns the version and content os local file
-        public DadosFicheiroDS read(string fileName, string semantics)
+        public DadosFicheiroDS readFile(string fileName, string semantics)
         {
-            System.Console.WriteLine("Cliente está a ler ficheiro do DS");
-            if (!failed)
+            if (files.ContainsKey(fileName))
             {
-                if (files.ContainsKey(fileName))
+                FileStructure newFile = (FileStructure)files[fileName];
+                if (!newFile.getLockWrite() && !newFile.getLockDelete())
                 {
-                    FileStructure newFile = (FileStructure)files[fileName];
-                    if (!newFile.getLockWrite())
-                    {
-                        newFile.lockRead();
-
-
-                        DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(fileName));
-
-                        newFile.unlockRead();
-                        return ffds;
-                    }
-                    else
-                    {
-                        System.Console.WriteLine("O ficheiro " + fileName + " encontra-se em escrita.");
-                        return null;
-                    }
+                    newFile.lockRead();
+                    DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(fileName));
+                    newFile.unlockRead();
+                    return ffds;
                 }
                 else
                 {
-                    System.Console.WriteLine("O ficheiro " + fileName + " não existe em sistema.");
+                    System.Console.WriteLine("O ficheiro " + fileName + " encontra-se em escrita");
                     return null;
                 }
             }
-            System.Console.WriteLine("DataServer failed. Ignores clients.");
+            else
+            {
+                System.Console.WriteLine("O ficheiro " + fileName + " não existe em sistema");
+                return null;
+            }
+        }
+
+        public void writeFile(string fileName, byte[] array)
+        {
+            if (files.ContainsKey(fileName))
+            {
+                FileStructure newFile = (FileStructure)files[fileName];
+                if (!newFile.getLockRead() & !newFile.getLockWrite() & !newFile.getLockDelete())
+                {
+                    newFile.lockWrite();
+                    newFile.incrementVersion();
+
+                    //overwrites local file
+                    File.WriteAllBytes(fileName, array);
+
+                    files.Remove(fileName);
+                    newFile.unlockWrite();
+                    files.Add(fileName, newFile);
+                }
+
+            }
+            else
+            {
+                //new file
+                FileStructure newFile = new FileStructure(fileName);
+                newFile.lockWrite();
+
+                //writes local file
+                File.WriteAllBytes(fileName, array);
+
+                newFile.unlockWrite();
+                files.Add(fileName, newFile);
+            }
+        }
+
+        /********Client To DataServer***********/
+
+        //returns the version and content of local file
+        public DadosFicheiroDS read(string fileName, string semantics)
+        {
+            System.Console.WriteLine("Cliente está a ler ficheiro do DS");
+
+            if (!failed)
+            {
+                if (freezed)
+                {
+                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
+                    //invoque add to threadpool
+
+                }
+                else
+                {
+                    readFile(fileName, semantics);
+                }
+                
+            }
+            else
+            {
+                System.Console.WriteLine("DataServer está failed. Ignora pedidos de clientes");
+            }
             return null;
         }
 
@@ -232,38 +343,58 @@ namespace DataServer
         public void write(string fileName, byte[] array)
         {
             System.Console.WriteLine("Cliente está a escrever ficheiro do DS");
+
             if (!failed)
             {
-                if (files.ContainsKey(fileName))
+                if (freezed)
                 {
-                    FileStructure newFile = (FileStructure)files[fileName];
-                    if (!newFile.getLockRead() & !newFile.getLockWrite())
-                    {
-                        newFile.lockWrite();
-                        newFile.incrementVersion();
-
-                        //overwrites local file
-                        File.WriteAllBytes(fileName, array);
-
-                        files.Remove(fileName);
-                        newFile.unlockWrite();
-                        files.Add(fileName, newFile);
-                    }
+                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
+                    //invoque add to threadpool
 
                 }
                 else
                 {
-                    //new file
-                    FileStructure newFile = new FileStructure(fileName);
-                    newFile.lockWrite();
+                    writeFile(fileName, array);
+                }
+                
+            }
+            else
+            {
+                System.Console.WriteLine("DataServer está failed. Ignora pedidos de clientes");
+            }
+        }
 
-                    //writes local file
-                    File.WriteAllBytes(fileName, array);
-
-                    newFile.unlockWrite();
+        public bool delete(string fileName)
+        {
+            if (!failed && !freezed)
+            {
+                FileStructure newFile = (FileStructure)files[fileName];
+                if(!newFile.getLockRead() && !newFile.getLockWrite())
+                {
+                    newFile.lockDelete();
+                    files.Remove(fileName);
                     files.Add(fileName, newFile);
+                    return true;
                 }
             }
+            return false;
+        }
+
+        public void confirmarDelete(string fileName, bool resposta)
+        {
+            if (resposta == true)
+            {
+                File.Delete(fileName);
+                files.Remove(fileName);
+            }
+            else
+            {
+                FileStructure newFile = (FileStructure)files[fileName];
+                newFile.unlockDelete();
+                files.Remove(fileName);
+                files.Add(fileName, newFile);
+            }
+            
         }
 
         /********MS To DataServer***********/
@@ -328,6 +459,16 @@ namespace DataServer
         public void write(string fileName, byte[] array)
         {
             ctx.write(fileName, array);
+        }
+
+        public bool delete(string fileName)
+        {
+            return ctx.delete(fileName);
+        }
+
+        public void confirmarDelete(string fileName, bool resposta)
+        {
+            ctx.confirmarDelete(fileName, resposta);
         }
 
     }
