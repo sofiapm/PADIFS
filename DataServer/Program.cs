@@ -245,11 +245,10 @@ namespace DataServer
 
         public void processaQueue()
         {
-            do
+            while (queueThread.Count != 0)
             {
                 Monitor.Pulse(queueThread.Dequeue());
             }
-            while (queueThread.Count != 0);
         }
 
         //DS ignores requests from Clients or messages from MS
