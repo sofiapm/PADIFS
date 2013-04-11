@@ -217,11 +217,14 @@ namespace Client
             DadosFicheiro dados=null;
             ManualResetEvent resetEvent = new ManualResetEvent(false);
             List<IClientToDS> listDS = new List<IClientToDS>();
+            List<IClientToMS> listMS = new List<IClientToMS>();
             foreach (DictionaryEntry c in metaDataServers)
             {
                  IClientToMS ms = (IClientToMS)Activator.GetObject(
                           typeof(IClientToMS),
                            "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                 listMS.Add(ms);
+
                  try
                  {
                      dados = ms.delete(fileName);
@@ -239,13 +242,15 @@ namespace Client
             try{ dados.getPorts(); }
             catch (NullReferenceException e){ temDS = false; }
 
+            bool consegueApagar = false;
+
             if (!temDS)
             {
                 System.Console.WriteLine("[DELETE]: Nao tem DS para mandar o DELETE!");
             }
             else
             {
-                bool consegueApagar = true;
+                consegueApagar = true;
                 int idDados = 0;
                 foreach (DictionaryEntry c in dados.getPorts())
                 {
@@ -266,9 +271,10 @@ namespace Client
                            
                             if (idDados >= dados.getPorts().Count)
                                 resetEvent.Set();
-
+                            while (true)
+                                System.Console.WriteLine("[READthreads]: NO WHILE");
                         }).Start();
-
+                        
                         //break;
                     }
                     catch
@@ -308,6 +314,25 @@ namespace Client
                     }
                 }
                 resetEvent.WaitOne();
+            }
+
+            foreach (DictionaryEntry c in metaDataServers)
+            {
+                IClientToMS ms = (IClientToMS)Activator.GetObject(
+                         typeof(IClientToMS),
+                          "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                listMS.Add(ms);
+
+                try
+                {
+                    ms.confirmarDelete(fileName, consegueApagar);
+                    System.Console.WriteLine("[DELETE]:  Confirmacao para Ms apagar file: " + fileName);
+                    break;
+                }
+                catch
+                {
+                    System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
+                }
             }
                            
             
