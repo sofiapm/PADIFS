@@ -463,7 +463,7 @@ namespace PuppetMaster
                      }
                      else
                      {
-                         //lança popup
+                         //lança popup, nao cria o DS
                          System.Windows.Forms.MessageBox.Show("O DataServer " + arg[1] + " nao existe!-" + arg[0]);
                      }
 
@@ -471,7 +471,7 @@ namespace PuppetMaster
                  }
                  else if (arg[1].StartsWith("m"))
                  {
-                     if (metaDataServers[arg[1]] != null)
+                     try
                      {
                          IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
                         typeof(IPuppetToMS),
@@ -479,7 +479,7 @@ namespace PuppetMaster
 
                          ms.fail();
                      }
-                     else
+                     catch
                      {
                          //lança popup
                          System.Windows.Forms.MessageBox.Show("O MetaDataServer " + arg[1] + " nao existe!-" + arg[0]);
@@ -510,7 +510,15 @@ namespace PuppetMaster
                  }
                  else if (arg[1].StartsWith("m"))
                  {
-                     if (metaDataServers[arg[1]] == null)
+                     try
+                     {
+                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                       typeof(IPuppetToMS),
+                       "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
+
+                         ms.recover();
+                     }
+                     catch
                      {
                          //lança popup - nao existe o server
                          System.Windows.Forms.MessageBox.Show("O MetadataServer " + arg[1] + " nao existe!-" + arg[0]);
@@ -518,15 +526,15 @@ namespace PuppetMaster
                          int num = Int32.Parse(arg[1].Last().ToString());
                          num = num + 1;
                          startMS(arg[1], num + "");
-                         metaDataServers.Add(arg[1], num+"");
+                         metaDataServers.Add(arg[1], num + "");
                          listBox_metadata.Items.Add(arg[1]);
-                     }
-                     
-                     IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
-                        typeof(IPuppetToMS),
-                        "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
 
-                     ms.recover();
+                         IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
+                            typeof(IPuppetToMS),
+                            "tcp://localhost:808" + metaDataServers[arg[1]] + "/" + arg[1] + "MetaServerPuppet");
+
+                         ms.recover();
+                     }
 
                  }
              }
@@ -849,7 +857,7 @@ namespace PuppetMaster
                  }
                  else if (arg[1].StartsWith("m"))
                  {
-                    if (metaDataServers[arg[1]] != null)
+                     try
                      {
                          IPuppetToMS ms = (IPuppetToMS)Activator.GetObject(
                        typeof(IPuppetToMS),
@@ -857,8 +865,11 @@ namespace PuppetMaster
 
                          ms.dump();
                      }
-
-
+                     catch
+                     {
+                         //lança popup
+                         System.Windows.Forms.MessageBox.Show("O MetaDataServer " + arg[1] + " nao existe!-" + arg[0]);
+                     }
                  }
              }
              else if (operation.StartsWith("EXESCRIPT"))
@@ -934,10 +945,7 @@ namespace PuppetMaster
              metaDataServers.Clear();
 
          }
-         
-        
-
-    }
+     }
 
     public class PuppetMaster : MarshalByRefObject, IMSToPuppet, IClientToPuppet, IDSToPuppet
     {

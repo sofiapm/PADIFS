@@ -57,7 +57,7 @@ namespace CommonTypes
         DadosFicheiro open(string fileName);     //returns to client the contents of the metadata stored for that file
         void close(string fileName);    //informs MS that client is no longer using that file - client must discard all metadata for that file
         DadosFicheiro create(string fileName, int numDS, int rQuorum, int wQuorum);  //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
-        void delete(string fileName);   //deletes the file
+        DadosFicheiro delete(string fileName);   //deletes the file
     }
 
     public interface IClientToDS
@@ -104,8 +104,6 @@ namespace CommonTypes
         int rQ;
         int wQ;
         Hashtable ports;
-
-        public DadosFicheiro() { }
 
         public DadosFicheiro(int rQ, int wQ, Hashtable ports){
 
