@@ -93,17 +93,16 @@ namespace Client
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
                        typeof(IClientToMS),
                        "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
-                System.Console.WriteLine("Vou tentar falar com: " + c.Value.ToString());
+                System.Console.WriteLine("[OPEN] Vou tentar falar com: " + c.Value.ToString());
 
                 try
                 {
-                    
                     fileData = ms.open(fileName);
                     //break;
                 }
-                catch (Exception e)
+                catch //(Exception e)
                 {
-                    //System.Console.WriteLine(e.ToString());
+                   // System.Console.WriteLine(e.ToString());
                     System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                 }
             }
@@ -152,7 +151,7 @@ namespace Client
                 }
                 catch
                 {
-                    System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
+                    System.Console.WriteLine("[CLOSE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
                 }
             }
 
@@ -173,11 +172,13 @@ namespace Client
                 try
                 {
                     fileData = ms.create(fileName, numDS, rQuorum, wQuorum);
+                    System.Console.WriteLine("[CREATE] Contactou com sucesso " + c.Value.ToString());
                     //break;
                 }
                 catch //( Exception e)
                 {
-                    System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
+                    //System.Console.WriteLine(e.ToString());
+                    System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " - " + c.Value.ToString());
                 }
             }
 
