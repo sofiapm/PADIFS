@@ -83,12 +83,6 @@ namespace MetaDataServer
             typeof(MetaServerMS),
             args[0] + "MetaServerMS", WellKnownObjectMode.Singleton);
 
-            MetaServer meta = new MetaServer (channel, args[0], metaDataServers);
-            MetaServerPuppet.ctx = meta;
-            MetaServerClient.ctx = meta;
-            MetaServerDS.ctx = meta;
-            MetaServerMS.ctx = meta;
-
             //hash dos outros metadatas
             Hashtable metaDataServers = new Hashtable();
             if (!args[0].Equals("m-0"))
@@ -97,6 +91,12 @@ namespace MetaDataServer
                 metaDataServers.Add("2", "m-1");
             if (!args[0].Equals("m-2"))
                 metaDataServers.Add("3", "m-2");
+
+            MetaServer meta = new MetaServer (channel, args[0], metaDataServers);
+            MetaServerPuppet.ctx = meta;
+            MetaServerClient.ctx = meta;
+            MetaServerDS.ctx = meta;
+            MetaServerMS.ctx = meta;
 
             //apagar os ficheiros que existam 
             string currentDirectory = Environment.CurrentDirectory;
@@ -450,18 +450,15 @@ namespace MetaDataServer
                     IClientToMS ms = (IClientToMS)Activator.GetObject(
                            typeof(IClientToMS),
                            "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
-                    System.Console.WriteLine("[OPEN] Vou tentar falar com: " + c.Value.ToString());
+                    //System.Console.WriteLine("[OPEN] Vou tentar falar com: " + c.Value.ToString());
 
                     try
                     {
                         ms.delete(fileName);
-                       // System.Console.WriteLine("[OPEN]: Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
-                       // break;
                     }
                     catch //(Exception e)
                     {
                         // System.Console.WriteLine(e.ToString());
-                        // System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                     }
                 }
 
@@ -473,17 +470,62 @@ namespace MetaDataServer
                 df = new DadosFicheiro (((DadosFicheiro)files[fileName]).getRQ(),
                     ((DadosFicheiro)files[fileName]).getWQ(),
                     ports) ;
-                files.Remove(fileName);
-                nBDataS.Remove(fileName);
-                //decrementar todos os ds onde o file estava
-                foreach (DictionaryEntry entry in ports)
-                    --dict[(string)entry.Key];
             }
             else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
 
             if (primary)
                return df;
             else throw new NullReferenceException();
+        }
+
+        public void confirmarDelete(string fileName, bool confirmacao)
+        {
+            if (isFailed)
+                throw new NullReferenceException();
+
+            System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
+
+            //envia mensagem para outras replicas
+            if (primary)
+                foreach (DictionaryEntry c in metaDataServers)
+                {
+                    IClientToMS ms = (IClientToMS)Activator.GetObject(
+                           typeof(IClientToMS),
+                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                    //System.Console.WriteLine("[OPEN] Vou tentar falar com: " + c.Value.ToString());
+
+                    try
+                    {
+                        ms.confirmarDelete(fileName, confirmacao);
+                    }
+                    catch //(Exception e)
+                    {
+                        // System.Console.WriteLine(e.ToString());
+                    }
+                }
+
+            if (confirmacao)
+            {
+                DadosFicheiro df = new DadosFicheiro(0, 0, null);
+
+                if (files.ContainsKey(fileName))
+                {
+                    Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts().Clone();
+                    df = new DadosFicheiro(((DadosFicheiro)files[fileName]).getRQ(),
+                        ((DadosFicheiro)files[fileName]).getWQ(),
+                        ports);
+
+                    files.Remove(fileName);
+                    nBDataS.Remove(fileName);
+                    //decrementar todos os ds onde o file estava
+                    foreach (DictionaryEntry entry in ports)
+                        --dict[(string)entry.Key];
+                }
+                else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");   
+            }
+
+            if (!primary)
+            throw new NullReferenceException();
         }
 
         /********DS To MetadataServer***********/
@@ -664,6 +706,11 @@ namespace MetaDataServer
         public void respostaMS(string resp)
         {
         }
+        //apagar
+        public void confirmarDelete(string filename, bool confirmacao)
+        {
+            ctx.confirmarDelete(filename, confirmacao);
+        }
     }
 
     class MetaServerPuppet : MarshalByRefObject, IPuppetToMS
@@ -715,6 +762,12 @@ namespace MetaDataServer
         public DadosFicheiro delete(string fileName)
         {
            return ctx.delete(fileName);
+        }
+
+        //confirmar delete
+        public void confirmarDelete(string filename, bool confirmacao)
+        {
+            ctx.confirmarDelete(filename, confirmacao);
         }
     }
 
