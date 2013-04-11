@@ -29,6 +29,11 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button4 = new System.Windows.Forms.Button();
+            this.textBox9 = new System.Windows.Forms.TextBox();
+            this.textBox8 = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
             this.textBox7 = new System.Windows.Forms.TextBox();
             this.textBox6 = new System.Windows.Forms.TextBox();
@@ -71,6 +76,13 @@
             this.listBox_scripts = new System.Windows.Forms.ListBox();
             this.button_script = new System.Windows.Forms.Button();
             this.label_scripts = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.textBox10 = new System.Windows.Forms.TextBox();
+            this.textBox11 = new System.Windows.Forms.TextBox();
+            this.textBox12 = new System.Windows.Forms.TextBox();
+            this.button5 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -100,8 +112,58 @@
             this.panel1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
             this.panel1.Location = new System.Drawing.Point(12, 245);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(268, 492);
+            this.panel1.Size = new System.Drawing.Size(268, 429);
             this.panel1.TabIndex = 0;
+            // 
+            // button4
+            // 
+            this.button4.BackColor = System.Drawing.SystemColors.Control;
+            this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button4.ForeColor = System.Drawing.Color.Black;
+            this.button4.Location = new System.Drawing.Point(768, 590);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(63, 70);
+            this.button4.TabIndex = 24;
+            this.button4.Text = "Write";
+            this.button4.UseVisualStyleBackColor = false;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // textBox9
+            // 
+            this.textBox9.Location = new System.Drawing.Point(641, 634);
+            this.textBox9.Name = "textBox9";
+            this.textBox9.Size = new System.Drawing.Size(121, 20);
+            this.textBox9.TabIndex = 23;
+            // 
+            // textBox8
+            // 
+            this.textBox8.Location = new System.Drawing.Point(641, 598);
+            this.textBox8.Name = "textBox8";
+            this.textBox8.Size = new System.Drawing.Size(121, 20);
+            this.textBox8.TabIndex = 22;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label6.Location = new System.Drawing.Point(563, 637);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(69, 17);
+            this.label6.TabIndex = 21;
+            this.label6.Text = "Conteudo";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label5.Location = new System.Drawing.Point(579, 598);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(56, 17);
+            this.label5.TabIndex = 20;
+            this.label5.Text = "FileReg";
+            this.label5.Click += new System.EventHandler(this.label5_Click);
             // 
             // button3
             // 
@@ -292,7 +354,7 @@
             this.panel2.Controls.Add(this.label_metadata);
             this.panel2.Location = new System.Drawing.Point(286, 245);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(274, 492);
+            this.panel2.Size = new System.Drawing.Size(274, 338);
             this.panel2.TabIndex = 1;
             // 
             // button_start_meta2
@@ -392,7 +454,7 @@
             this.panel3.Controls.Add(this.label_data);
             this.panel3.Location = new System.Drawing.Point(566, 245);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(262, 492);
+            this.panel3.Size = new System.Drawing.Size(262, 338);
             this.panel3.TabIndex = 2;
             // 
             // button_start_data
@@ -583,11 +645,90 @@
             this.label_scripts.Text = "Scripts";
             this.label_scripts.Click += new System.EventHandler(this.label1_Click_1);
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label7.Location = new System.Drawing.Point(293, 590);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(56, 17);
+            this.label7.TabIndex = 21;
+            this.label7.Text = "FileReg";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label8.Location = new System.Drawing.Point(285, 621);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(64, 17);
+            this.label8.TabIndex = 22;
+            this.label8.Text = "semantic";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label9.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.label9.Location = new System.Drawing.Point(283, 654);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(69, 17);
+            this.label9.TabIndex = 23;
+            this.label9.Text = "stringReg";
+            // 
+            // textBox10
+            // 
+            this.textBox10.Location = new System.Drawing.Point(355, 589);
+            this.textBox10.Name = "textBox10";
+            this.textBox10.Size = new System.Drawing.Size(121, 20);
+            this.textBox10.TabIndex = 25;
+            // 
+            // textBox11
+            // 
+            this.textBox11.Location = new System.Drawing.Point(355, 620);
+            this.textBox11.Name = "textBox11";
+            this.textBox11.Size = new System.Drawing.Size(121, 20);
+            this.textBox11.TabIndex = 26;
+            // 
+            // textBox12
+            // 
+            this.textBox12.Location = new System.Drawing.Point(355, 654);
+            this.textBox12.Name = "textBox12";
+            this.textBox12.Size = new System.Drawing.Size(121, 20);
+            this.textBox12.TabIndex = 27;
+            // 
+            // button5
+            // 
+            this.button5.BackColor = System.Drawing.SystemColors.Control;
+            this.button5.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button5.ForeColor = System.Drawing.Color.Black;
+            this.button5.Location = new System.Drawing.Point(482, 588);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(63, 86);
+            this.button5.TabIndex = 25;
+            this.button5.Text = "Read";
+            this.button5.UseVisualStyleBackColor = false;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(840, 749);
+            this.Controls.Add(this.button4);
+            this.Controls.Add(this.button5);
+            this.Controls.Add(this.textBox9);
+            this.Controls.Add(this.textBox12);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.textBox8);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.textBox11);
+            this.Controls.Add(this.textBox10);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
@@ -604,6 +745,7 @@
             this.panel4.ResumeLayout(false);
             this.panel4.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -652,5 +794,17 @@
         private System.Windows.Forms.TextBox textBox6;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.TextBox textBox9;
+        private System.Windows.Forms.TextBox textBox8;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox textBox10;
+        private System.Windows.Forms.TextBox textBox11;
+        private System.Windows.Forms.TextBox textBox12;
+        private System.Windows.Forms.Button button5;
     }
 }

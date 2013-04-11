@@ -207,8 +207,16 @@ namespace Client
                 }
 
                 ficheiroInfo.Add(fileName, fileData);
+
+                if (fileRegister.Contains(keyFileRegister))
+                {
+                    fileRegister.Remove(keyFileRegister);
+                }
+                fileRegister.Add(keyFileRegister, fileName);
+                keyFileRegister++;
             }
 
+            
             //System.Console.WriteLine("Mandou Ms criar file");
         }
 

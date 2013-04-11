@@ -1065,6 +1065,60 @@ namespace PuppetMaster
          {
 
          }
+
+         private void label5_Click(object sender, EventArgs e)
+         {
+
+         }
+
+         private void button4_Click(object sender, EventArgs e)
+         {
+             String fileRegister = textBox8.Text;
+             String conteudo = textBox9.Text;
+             //try
+             //{
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
+
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                     {
+                         client.writeS(Int32.Parse(fileRegister), conteudo);
+                     }
+                 }
+             //}
+             //catch { 
+             
+             //}
+         }
+
+         private void button5_Click(object sender, EventArgs e)
+         {
+             String fileRegister = textBox10.Text;
+             String semantics = textBox11.Text;
+             String stringReg = textBox12.Text;
+             try
+             {
+                 string nomeClientSeleccionado = listBox_clients.SelectedItem.ToString();
+
+                 if (clients.Contains(nomeClientSeleccionado))
+                 {
+                     IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
+                    typeof(IPuppetToClient),
+                    "tcp://localhost:807" + clients[nomeClientSeleccionado] + "/" + nomeClientSeleccionado + "PuppetClient");
+
+                     if (client != null)
+                     {
+                         client.read(Int32.Parse(fileRegister), semantics, Int32.Parse(stringReg));
+                     }
+                 }
+             }
+             catch { }
+         }
      }
 
     public class PuppetMaster : MarshalByRefObject, IMSToPuppet, IClientToPuppet, IDSToPuppet
