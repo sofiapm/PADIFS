@@ -11,6 +11,7 @@ using System.Collections;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace MetaDataServer
 {
@@ -335,6 +336,28 @@ namespace MetaDataServer
 
             return ports;
         }
+
+        //public void backupThread ()
+        //{
+        //    ManualResetEvent resetEvent = new ManualResetEvent(false);
+
+        //    try
+        //    {
+        //        new Thread(delegate()
+        //        {
+        //            writeToDisc();
+        //            resetEvent.Set();
+        //        }).Start();
+
+        //        //break;
+        //    }
+        //    catch
+        //    {
+        //        System.Console.WriteLine("[READ]: Não conseguiu aceder ao DS");
+        //    }
+            
+        //    resetEvent.WaitOne();
+        //}
 
     }
 
