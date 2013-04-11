@@ -105,6 +105,7 @@ namespace CommonTypes
     {
         //MS
         bool areYouAlive();
+        void fail();
         Hashtable get_dataServers();
         SortedDictionary<string, int> get_DSnum();
         Hashtable get_files();
