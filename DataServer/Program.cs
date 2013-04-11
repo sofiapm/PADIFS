@@ -432,6 +432,17 @@ namespace DataServer
             ctx.write(fileName, array);
         }
 
+        public bool delete(string fileName)
+        {
+            //return ctx.delete(fileName);
+            return true;
+        }
+
+        public void confirmarDelete(bool reposta)
+        {
+            //ctx.write(fileName, array);
+        }
+
     }
 
     class DataServerMS : MarshalByRefObject, IMSToDS
