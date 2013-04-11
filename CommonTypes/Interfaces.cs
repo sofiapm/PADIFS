@@ -58,6 +58,7 @@ namespace CommonTypes
         void close(string fileName);    //informs MS that client is no longer using that file - client must discard all metadata for that file
         DadosFicheiro create(string fileName, int numDS, int rQuorum, int wQuorum);  //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
         DadosFicheiro delete(string fileName);   //deletes the file
+        void confirmarDelete(string fileName, bool confirmacao);
     }
 
     public interface IClientToDS
@@ -102,12 +103,19 @@ namespace CommonTypes
 
     public interface IMSToMS
     {
+        //MS
         bool areYouAlive();
-        void respostaMS(string resp);
         Hashtable get_dataServers();
         SortedDictionary<string, int> get_DSnum();
         Hashtable get_files();
         Hashtable get_nBDataS();
+       
+        //DS
+        void registarDS_replica(string nome, string id);
+
+        //client
+        void create_replica(DadosFicheiro file, int numDS);  //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
+        void confirmarDelete_replica(string fileName, bool confirmacao);
     }
 
     [Serializable]
