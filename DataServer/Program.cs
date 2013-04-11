@@ -262,7 +262,7 @@ namespace DataServer
             {
                 FileStructure aux;
                 aux = (FileStructure)entry.Value;
-                Console.WriteLine("DataServer id: {0}, File name: {1}, Version: {2}, Write lock: {3}, Read lock: {4}, Delete lock: {5}", dataServerID, aux.getFileName(), aux.getVersion(), aux.getLockWrite(), aux.getLockRead(), aux.getLockDelete());
+                System.Console.WriteLine("DataServer id: {0}, File name: {1}, Version: {2}, Write lock: {3}, Read lock: {4}, Delete lock: {5}", dataServerID, aux.getFileName(), aux.getVersion(), aux.getLockWrite(), aux.getLockRead(), aux.getLockDelete());
             }
         }
 
