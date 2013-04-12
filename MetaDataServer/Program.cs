@@ -585,7 +585,7 @@ namespace MetaDataServer
             if (isFailed || primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[CREATE] Cliente mandou MS criar ficheiro: " + file.getName());
+            //System.Console.WriteLine("[CREATE] Cliente mandou MS criar ficheiro: " + file.getName());
 
             if (!files.ContainsKey(file.getName()))
             {
@@ -595,14 +595,14 @@ namespace MetaDataServer
                 //actualizar valores na dic dos ds
                 foreach (DictionaryEntry entry in file.getPorts())
                     ++dict[(string)entry.Key];
-                           
-                System.Console.WriteLine("[CREATE]********Stored in DS********");
-                foreach (DictionaryEntry c in file.getPorts())
-                    System.Console.WriteLine("[CREATE] Nome: " + c.Key + " ID: " + c.Value);
-                System.Console.WriteLine("[CREATE]***********DS-END***********");
+
+                //System.Console.WriteLine("[CREATE]********Stored in DS********");
+                //foreach (DictionaryEntry c in file.getPorts())
+                //    System.Console.WriteLine("[CREATE] Nome: " + c.Key + " ID: " + c.Value);
+                // System.Console.WriteLine("[CREATE]***********DS-END***********");
             }
-            else
-                System.Console.WriteLine("[CREATE] O ficheiro " + file.getName() + " já existe!");
+            //else
+                //System.Console.WriteLine("[CREATE] O ficheiro " + file.getName() + " já existe!");
         }
 
         public void registarDS_replica(string name, string id)
@@ -610,7 +610,7 @@ namespace MetaDataServer
             if (isFailed || primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[REGISTARDS] MS registou DS: " + name);
+            //System.Console.WriteLine("[REGISTARDS] MS registou DS: " + name);
 
             if (!dataServers.ContainsKey(name))
             {
@@ -622,11 +622,11 @@ namespace MetaDataServer
                     {
                         ((DadosFicheiro)entry.Value).getPorts().Add(name, id);
                         ++dict[name];
-                        System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
+                        //System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
                     }
 
             }
-            else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");  
+            //else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");  
         }
 
         public void confirmarDelete_replica(string fileName, bool confirmacao)
@@ -634,7 +634,7 @@ namespace MetaDataServer
             if (isFailed || primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
+            //System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
 
             if (confirmacao)
             {
@@ -654,7 +654,7 @@ namespace MetaDataServer
                     foreach (DictionaryEntry entry in ports)
                         --dict[(string)entry.Key];
                 }
-                else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
+               // else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
             }
         }
 
