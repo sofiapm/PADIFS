@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace DataServer
 {
-    class Program 
+    class Program
     {
 
         Program()
@@ -60,7 +60,7 @@ namespace DataServer
 
                 try
                 {
-                    ms.registarDS(args[0],args[1].Last().ToString());
+                    ms.registarDS(args[0], args[1].Last().ToString());
                     break;
                 }
                 catch (Exception e)
@@ -160,56 +160,12 @@ namespace DataServer
         }
     }
 
-    public class readParameters
-    {
-        private string fileName;
-        private string semantics;
-
-        public readParameters(string fn, string sem)
-        {
-            fileName = fn;
-            semantics = sem;
-        }
-
-        public string getFileName()
-        {
-            return fileName;
-        }
-
-        public string getSemantics()
-        {
-            return semantics;
-        }
-    }
-
-    public class writeParameters
-    {
-        private string fileName;
-        private byte[] array;
-
-        public writeParameters(string fn, byte[] arr)
-        {
-            fileName = fn;
-            array = arr;
-        }
-
-        public string getFileName()
-        {
-            return fileName;
-        }
-
-        public byte[] getArray()
-        {
-            return array;
-        }
-    }
-
     class DataServer
     {
         TcpChannel channel;
         Hashtable metaDataServers;
         Hashtable files;
-        Queue queueThread;
+        Queue<Action> actionQueue;
         bool freezed;
         bool failed;
         string dataServerID;
@@ -219,7 +175,7 @@ namespace DataServer
             this.channel = channel;
             metaDataServers = md;
             files = new Hashtable();
-            queueThread = new Queue();
+            actionQueue = new Queue<Action>();
             freezed = true;
             failed = false;
             dataServerID = id;
@@ -231,11 +187,7 @@ namespace DataServer
         public void freeze()
         {
             System.Console.WriteLine("Puppet mandou o DS freeze");
-            lock (this)
-            {
-                freezed = true;
-                Monitor.Wait(this);
-            }
+            freezed = true;
         }
 
         //responds to all buffered requests from clients and restarts replying new requests
@@ -248,12 +200,10 @@ namespace DataServer
 
         public void processaQueue()
         {
-            while (queueThread.Count != 0)
+            while (actionQueue.Count != 0)
             {
-                lock (this)
-                {
-                    Monitor.Pulse(queueThread.Dequeue());
-                }
+                Action action = actionQueue.Dequeue();
+                action();
             }
         }
 
@@ -354,27 +304,21 @@ namespace DataServer
             {
                 if (freezed)
                 {
-                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a queueThread");
-                    //invoque add to threadpool
-                    queueThread.Enqueue(this);
+                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
+                    actionQueue.Enqueue(() => readFile(fileName, semantics));
                 }
                 else
                 {
-                    if (queueThread.Count != 0)
+                    if (actionQueue.Count > 0)
                     {
-                        lock (this)
-                        {
-                            Monitor.Wait(this);
-                            queueThread.Enqueue(this);
-                            Monitor.Pulse(this);
-                        }
+                        actionQueue.Enqueue(() => readFile(fileName, semantics));
                     }
                     else
                     {
                         return readFile(fileName, semantics);
                     }
                 }
-                
+
             }
             else
             {
@@ -392,27 +336,21 @@ namespace DataServer
             {
                 if (freezed)
                 {
-                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a queueThread");
-                    //invoque add to threadpool
-                    queueThread.Enqueue(this);
+                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
+                    actionQueue.Enqueue(() => writeFile(fileName, array));
                 }
                 else
                 {
-                    if (queueThread.Count != 0)
+                    if (actionQueue.Count > 0)
                     {
-                        lock (this)
-                        {
-                            Monitor.Wait(this);
-                            queueThread.Enqueue(this);
-                            Monitor.Pulse(this);
-                        }
+                        actionQueue.Enqueue(() => writeFile(fileName, array));
                     }
                     else
                     {
                         writeFile(fileName, array);
                     }
                 }
-                
+
             }
             else
             {
@@ -460,7 +398,7 @@ namespace DataServer
                     files.Add(fileName, newFile);
                 }
             }
-            
+
         }
 
         /********MS To DataServer***********/
