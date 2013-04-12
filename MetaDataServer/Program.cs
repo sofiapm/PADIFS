@@ -487,8 +487,6 @@ namespace MetaDataServer
             if (isFailed || !primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine(confirmacao);
-
             System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
 
             //envia mensagem para outras replicas
