@@ -699,22 +699,28 @@ namespace Client
                        "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
                 try
                 {
-                    
                     new Thread(delegate()
                     {
-                        ds.write(fileName, array);
-                        idWrite++;
-                        // If we're the last thread, signal
-                        if (idWrite >= dados.getWQ())
-                            resetEvent.Set();
+                        try
+                        {
+                            ds.write(fileName, array);
+                            idWrite++;
+                            // If we're the last thread, signal
+                            if (idWrite >= dados.getWQ())
+                                resetEvent.Set();
+                        }
+                        catch (Exception e)
+                        {
+                            System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                        }
                     }).Start();
                 }
-                catch
+                catch (Exception e)
                 {
+                    System.Console.WriteLine(e.ToString());
                     System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
                 }
             }
-
             resetEvent.WaitOne();
 
             System.Console.WriteLine("[WRITE]: DS escrever file");
