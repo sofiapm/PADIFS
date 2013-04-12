@@ -245,6 +245,7 @@ namespace DataServer
 
         public DadosFicheiroDS readFile(string fileName, string semantics)
         {
+            System.Console.WriteLine("DataServer readFile");
             if (files.ContainsKey(fileName))
             {
                 FileStructure newFile = (FileStructure)files[fileName];
@@ -270,6 +271,7 @@ namespace DataServer
 
         public void writeFile(string fileName, byte[] array)
         {
+            System.Console.WriteLine("DataServer readFile");
             if (files.ContainsKey(fileName))
             {
                 FileStructure newFile = (FileStructure)files[fileName];
