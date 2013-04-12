@@ -231,8 +231,11 @@ namespace DataServer
         public void freeze()
         {
             System.Console.WriteLine("Puppet mandou o DS freeze");
-            freezed = true;
-            Monitor.Wait(this);
+            lock (this)
+            {
+                freezed = true;
+                Monitor.Wait(this);
+            }
         }
 
         //responds to all buffered requests from clients and restarts replying new requests
@@ -247,7 +250,10 @@ namespace DataServer
         {
             while (queueThread.Count != 0)
             {
-                Monitor.Pulse(queueThread.Dequeue());
+                lock (this)
+                {
+                    Monitor.Pulse(queueThread.Dequeue());
+                }
             }
         }
 
@@ -356,10 +362,17 @@ namespace DataServer
                 {
                     if (queueThread.Count != 0)
                     {
-                        Monitor.Wait(this);
-                        queueThread.Enqueue(this);
+                        lock (this)
+                        {
+                            Monitor.Wait(this);
+                            queueThread.Enqueue(this);
+                            Monitor.Pulse(this);
+                        }
                     }
-                    return readFile(fileName, semantics);
+                    else
+                    {
+                        return readFile(fileName, semantics);
+                    }
                 }
                 
             }
@@ -387,10 +400,17 @@ namespace DataServer
                 {
                     if (queueThread.Count != 0)
                     {
-                        Monitor.Wait(this);
-                        queueThread.Enqueue(this);
+                        lock (this)
+                        {
+                            Monitor.Wait(this);
+                            queueThread.Enqueue(this);
+                            Monitor.Pulse(this);
+                        }
                     }
-                    writeFile(fileName, array);
+                    else
+                    {
+                        writeFile(fileName, array);
+                    }
                 }
                 
             }
