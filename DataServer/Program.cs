@@ -70,7 +70,7 @@ namespace DataServer
                 }
             }
 
-            System.Console.WriteLine(args[0] + ": <enter> para sair...");
+            System.Console.WriteLine(args[0] + " DataServer no port: " + args[1]);
             System.Console.ReadLine();
         }
 
