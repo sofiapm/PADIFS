@@ -137,7 +137,7 @@ namespace MetaDataServer
             File.Delete(strpathNBDS);
             File.Delete(strpathDSnum);
 
-            System.Console.WriteLine(args[0] + " MetaDataServer no porto: " + args[1]);
+            System.Console.WriteLine(args[0] + " MetaDataServer no port: " + args[1]);
 
             //thread de backup para disco
             ManualResetEvent resetEvent = new ManualResetEvent(false);
