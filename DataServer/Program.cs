@@ -65,8 +65,8 @@ namespace DataServer
                 }
                 catch (Exception e)
                 {
-                    System.Console.WriteLine(e.ToString());
-                    //System.Console.WriteLine("[REGISTARDS]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
+                    //System.Console.WriteLine(e.ToString());
+                    System.Console.WriteLine("[REGISTARDS]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                 }
             }
 
