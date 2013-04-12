@@ -225,12 +225,20 @@ namespace DataServer
         {
             System.Console.WriteLine("Puppet mandou o DS fazer Dump");
             System.Console.WriteLine("---------------------BEGIN DUMP DataServer: " + dataServerID + " ------------------------");
+            System.Console.WriteLine("---------------------Hashtable Files------------------------");
             foreach (DictionaryEntry entry in files)
             {
                 FileStructure aux;
                 aux = (FileStructure)entry.Value;
                 System.Console.WriteLine("DataServer id: {0}, File name: {1}, Version: {2}, Write lock: {3}, Read lock: {4}, Delete lock: {5}", dataServerID, aux.getFileName(), aux.getVersion(), aux.getLockWrite(), aux.getLockRead(), aux.getLockDelete());
             }
+
+            System.Console.WriteLine("---------------------Priority Action Queue------------------------");
+            foreach (Action action in actionQueue)
+            {
+                System.Console.WriteLine("DataServer id: {0}, Method: {1}", dataServerID, action.Method.Name);
+            }
+
             System.Console.WriteLine("--------------------END DUMP DataServer: " + dataServerID + " ------------------------");
 
         }
