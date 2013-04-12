@@ -338,6 +338,7 @@ namespace DataServer
                 {
                     System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
                     actionQueue.Enqueue(() => writeFile(fileName, array));
+                    throw new NullReferenceException();
                 }
                 else
                 {
@@ -355,6 +356,7 @@ namespace DataServer
             else
             {
                 System.Console.WriteLine("DataServer está failed. Ignora pedidos de clientes");
+                throw new NullReferenceException();
             }
         }
 
