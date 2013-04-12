@@ -200,6 +200,7 @@ namespace DataServer
 
         public void processaQueue()
         {
+            System.Console.WriteLine("DataServer processaQueue");
             while (actionQueue.Count != 0)
             {
                 Action action = actionQueue.Dequeue();
@@ -315,13 +316,17 @@ namespace DataServer
                 if (freezed)
                 {
                     System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
-                    actionQueue.Enqueue(() => readFile(fileName, semantics));
+                    string aux1 = fileName;
+                    string aux2 = semantics;
+                    actionQueue.Enqueue(() => readFile(aux1, aux2));
                 }
                 else
                 {
                     if (actionQueue.Count > 0)
                     {
-                        actionQueue.Enqueue(() => readFile(fileName, semantics));
+                        string aux1 = fileName;
+                        string aux2 = semantics;
+                        actionQueue.Enqueue(() => readFile(aux1, aux2));
                     }
                     else
                     {
@@ -347,14 +352,18 @@ namespace DataServer
                 if (freezed)
                 {
                     System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
-                    actionQueue.Enqueue(() => writeFile(fileName, array));
+                    string auxi1 = fileName;
+                    byte[] auxi2 = array;
+                    actionQueue.Enqueue(() => writeFile(auxi1, auxi2));
                     throw new NullReferenceException();
                 }
                 else
                 {
                     if (actionQueue.Count > 0)
                     {
-                        actionQueue.Enqueue(() => writeFile(fileName, array));
+                        string auxi1 = fileName;
+                        byte[] auxi2 = array;
+                        actionQueue.Enqueue(() => writeFile(auxi1, auxi2));
                     }
                     else
                     {
