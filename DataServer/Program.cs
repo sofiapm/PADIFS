@@ -271,7 +271,7 @@ namespace DataServer
 
         public void writeFile(string fileName, byte[] array)
         {
-            System.Console.WriteLine("DataServer readFile");
+            System.Console.WriteLine("DataServer writeFile");
             if (files.ContainsKey(fileName))
             {
                 FileStructure newFile = (FileStructure)files[fileName];
