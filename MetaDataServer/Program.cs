@@ -137,7 +137,7 @@ namespace MetaDataServer
             File.Delete(strpathNBDS);
             File.Delete(strpathDSnum);
 
-            System.Console.WriteLine(args[0] + ": <enter> para sair..." + args[1]);
+            System.Console.WriteLine(args[0] + " MetaDataServer no porto: " + args[1]);
 
             //thread de backup para disco
             ManualResetEvent resetEvent = new ManualResetEvent(false);
@@ -296,7 +296,7 @@ namespace MetaDataServer
             }
             catch
             {
-                System.Console.WriteLine("[RECOVER] Não existe nenhum ficheiro em disco.");
+                //System.Console.WriteLine("[RECOVER] Não existe nenhum ficheiro em disco.");
             }
 
             //envia mensagem para outras replicas
@@ -323,7 +323,7 @@ namespace MetaDataServer
                         ms_falhados = true;
 
                         if (primary)
-                            System.Console.WriteLine("[RECOVER]: PRIMARY MS");
+                            System.Console.WriteLine("[RECOVER] PRIMARY MS");
                        
                     }
                 }
@@ -557,7 +557,7 @@ namespace MetaDataServer
                     try
                     {
                         ms.registarDS_replica(name,id);
-                        System.Console.WriteLine("[REGISTARDS]: Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
+                        System.Console.WriteLine("[REGISTARDS] Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                     }
                     catch //(Exception e)
                     {

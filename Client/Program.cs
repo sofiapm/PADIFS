@@ -98,7 +98,8 @@ namespace Client
                 try
                 {
                     fileData = ms.open(fileName);
-                    System.Console.WriteLine("[OPEN]: Cliente contctou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
+                    System.Console.WriteLine("[OPEN]: Cliente contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
+                    System.Console.WriteLine("[OPEN]: Cliente abriu o ficheiro: " + fileName);
                     break;
                 }
                 catch //(Exception e)
@@ -200,12 +201,13 @@ namespace Client
                 {
                     fileData = ms.create(fileName, numDS, rQuorum, wQuorum);
                     System.Console.WriteLine("[CREATE] Contactou com sucesso " + c.Value.ToString());
+                    System.Console.WriteLine("[CREATE] Cliente criou o ficheiro: " + fileName);
                     break;
                 }
                 catch //( Exception e)
                 {
                     //System.Console.WriteLine(e.ToString());
-                    System.Console.WriteLine("[CREATE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " - " + c.Value.ToString());
+                    System.Console.WriteLine("[CREATE] Não conseguiu aceder ao MS: " + c.Key.ToString() + " - " + c.Value.ToString());
                 }
             }
 
@@ -669,6 +671,15 @@ namespace Client
             Hashtable dataServers = dados.getPorts();
             int idWrite = 0;
 
+            if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
+            {
+                open(fileName);
+                if (dataServers.Count < dados.getWQ())
+                {
+                    System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
+                }
+            }
+
             foreach (DictionaryEntry c in dataServers)
             {
                 //System.Console.WriteLine("[WRITE]: DS-key: " + c.Key + " DS-value " + c.Value);
@@ -712,7 +723,15 @@ namespace Client
                 System.Buffer.BlockCopy(file1, 0, resultado, 0, file1.Length);
                 System.Buffer.BlockCopy(file2, 0, resultado, file1.Length, file2.Length);
 
-                string nameFile2 = (string)fileRegister[fileRegister1];
+                string nameFile2 = (string)fileRegister[fileRegister2];
+
+                string nameFile = (string)fileRegister[fileRegister1];
+                DadosFicheiro d = (DadosFicheiro)ficheiroInfo[nameFile];
+
+                dump();
+                System.Console.WriteLine("[COPY]: Nome Novo File: " + nameFile2);
+
+                //create (nameFile + nameFile2, 1, 1, 1);
                 write(nameFile2, resultado);
                 System.Console.WriteLine("[COPY]: Cliente fez copy");
             }
