@@ -505,6 +505,9 @@ namespace Client
                 if (dataServers.Count < dados.getRQ() || dataServers.Count < dados.getNumDS())
                 {
                     open(fileName);
+                    dados = (DadosFicheiro)ficheiroInfo[fileName];
+                    dataServers = dados.getPorts();
+
                     if (dataServers.Count < dados.getRQ())
                     {
                         System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura"); 
@@ -611,6 +614,9 @@ namespace Client
             if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
             {
                 open(nameFile);
+                dados = (DadosFicheiro)ficheiroInfo[nameFile];
+                dataServers = dados.getPorts();
+
                 if (dataServers.Count < dados.getWQ())
                 {
                     System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
@@ -647,6 +653,9 @@ namespace Client
                 if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
                 {
                     open(nameFile);
+                    dados = (DadosFicheiro)ficheiroInfo[nameFile];
+                    dataServers = dados.getPorts();
+
                     if (dataServers.Count < dados.getWQ())
                     {
                         System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
@@ -666,14 +675,16 @@ namespace Client
         public void write(string fileName, byte[] array)
         {
             ManualResetEvent resetEvent = new ManualResetEvent(false);
+            int idWrite = 0;
 
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             Hashtable dataServers = dados.getPorts();
-            int idWrite = 0;
-
+           
             if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
             {
                 open(fileName);
+                dados = (DadosFicheiro)ficheiroInfo[fileName];
+                dataServers = dados.getPorts();
                 if (dataServers.Count < dados.getWQ())
                 {
                     System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
