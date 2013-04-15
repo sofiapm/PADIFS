@@ -127,10 +127,10 @@ namespace Client
 
                 ficheiroInfo.Add(fileName, fileData);
 
-                if (fileRegister.Contains(keyFileRegister))
-                {
-                    fileRegister.Remove(keyFileRegister);
-                }
+                //if (fileRegister.Contains(keyFileRegister))
+                //{
+                //    fileRegister.Remove(keyFileRegister);
+                //}
 
                 int key=-1;
                 bool existia=false;
@@ -229,10 +229,10 @@ namespace Client
 
                 ficheiroInfo.Add(fileName, fileData);
 
-                if (fileRegister.Contains(keyFileRegister))
-                {
-                    fileRegister.Remove(keyFileRegister);
-                }
+                //if (fileRegister.Contains(keyFileRegister))
+                //{
+                //    fileRegister.Remove(keyFileRegister);
+                //}
 
                 int key = -1;
                 bool existia = false;
@@ -402,6 +402,21 @@ namespace Client
                 //arg[1] e sempre o processo, que e ignorado
                 if (arg[0].Equals("OPEN")) open(arg[2]);
                 else if (arg[0].Equals("CLOSE")) close(arg[2]);
+                else if (arg[0].Equals("READ")) read(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]));
+                else if (arg[0].Equals("WRITE"))
+                {
+                    if (arg[3].Length > 1)
+                    {
+                        //ex: WRITE c-1, 0, "Text contents of the file. Contents are a string delimited by double quotes as this one"
+                        writeS(Int32.Parse(arg[2]), arg[3]);
+                    }
+                    else
+                    {
+                        //ex: WRITE c-1, 0, 0
+                        writeR(Int32.Parse(arg[2]), Int32.Parse(arg[3]));
+                    }
+                }
+                else if (arg[0].Equals("COPY")) copy(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]), arg[4]);
                 else if (arg[0].Equals("CREATE")) create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
                 else if (arg[0].Equals("DELETE")) delete(arg[2]);
                 else if (arg[0].Equals("DUMP")) dump();
@@ -438,15 +453,16 @@ namespace Client
             System.Console.WriteLine("\n-----------------------------Array Register-----------------------------");
             foreach (DictionaryEntry c in arrayRegister)
             {
-                System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+               
                 byte[] b = (byte [])c.Value;
-                String str = enc.GetString(b);
-                System.Console.WriteLine("ArrayRegister: " + c.Key + " Nome Ficheiro: " + str);
+              
+                string str = Encoding.UTF8.GetString(b, 0, b.Length);
+                System.Console.WriteLine("ArrayRegister: " + c.Key + " Ficheiro: " + str);
             }
             System.Console.WriteLine("\n-----------------------------File Version-----------------------------");
             foreach (DictionaryEntry c in versao)
             {
-                System.Console.WriteLine("FileRegister: " + c.Key + " Nome Ficheiro: " + c.Value);
+                System.Console.WriteLine("Nome Ficheiro: " + c.Key + " Versao: " + c.Value);
             }
 
             System.Console.WriteLine("\n*************************************************************************\n\n");
@@ -472,6 +488,7 @@ namespace Client
                 {
                     new Thread(delegate()
                     {
+                        
                         dadosDS.Add(idDados, ds.read(fileName, semantics));
                         idDados++;
                         // If we're the last thread, signal
@@ -489,6 +506,15 @@ namespace Client
             }
 
             resetEvent.WaitOne();
+
+            foreach (DictionaryEntry c in dadosDS) {
+                if (c.Value == null)
+                {
+                    dadosDS = null;
+                    break;
+                }
+            }
+
             return dadosDS;
         }
 
@@ -507,76 +533,82 @@ namespace Client
                     open(fileName);
                     dados = (DadosFicheiro)ficheiroInfo[fileName];
                     dataServers = dados.getPorts();
+                }
 
-                    if (dataServers.Count < dados.getRQ())
-                    {
-                        System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura"); 
-                    }
-                    else
-                    {
+                if (dataServers.Count < dados.getRQ())
+                {
+                    System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura"); 
+                }
+                else
+                {
                         Hashtable dadosDS = readthreads(fileName, semantics);
-
-                        if (semantics.Equals("default"))
+                        if (dadosDS != null)
                         {
-                            int v = 0;
-
-                            foreach (DictionaryEntry e in dadosDS)
+                            if (semantics.Equals("default"))
                             {
-                                DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
-                                if (d.getVersion() >= v)
-                                {
-                                    v = d.getVersion();
-                                    file = d.getFile();
-                                    if (versao.Contains(fileName))
-                                    {
-                                        if (v > (int)versao[fileName])
-                                        {
-                                            versao.Remove(fileName);
-                                            versao.Add(fileName, d.getVersion());
-                                        }
-                                    }
-                                    else
-                                        versao.Add(fileName, d.getVersion());
-                                    break;
-                                }
-                            }
-                        }
-                        else //monotonic
-                        {
-                            //ultima versao que li
-                            int v = 0;
-                            if (versao.Contains(fileName))
+                                int v = 0;
 
-                                v = (int)versao[fileName];
-                            while (true)
-                            {
-
-                                DadosFicheiroDS d = new DadosFicheiroDS(-1, null);
-                                //percorre todos os files que leu
                                 foreach (DictionaryEntry e in dadosDS)
                                 {
-                                    d = (DadosFicheiroDS)e.Value;
-                                    //se a versao deste file e maior ou igual a que tinha lido anteriormente
-                                    //entao é este o file que vai ler e actualiza a versao
+                                    DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
                                     if (d.getVersion() >= v)
                                     {
                                         v = d.getVersion();
                                         file = d.getFile();
-                                        versao.Remove(fileName);
-                                        versao.Add(fileName, d.getVersion());
+                                        if (versao.Contains(fileName))
+                                        {
+                                            if (v > (int)versao[fileName])
+                                            {
+                                                versao.Remove(fileName);
+                                                versao.Add(fileName, d.getVersion());
+                                            }
+                                        }
+                                        else
+                                            versao.Add(fileName, d.getVersion());
                                         break;
                                     }
-                                    else
-                                    {
-                                        //caso contrario continua a ler
-                                        dadosDS = readthreads(fileName, semantics);
-                                    }
                                 }
-                                if (d.getVersion() >= v) break;
+                            }
+                            else //monotonic
+                            {
+                                //ultima versao que li
+                                int v = 0;
+                                if (versao.Contains(fileName))
+
+                                    v = (int)versao[fileName];
+                                while (true)
+                                {
+
+                                    DadosFicheiroDS d = new DadosFicheiroDS(-1, null);
+                                    //percorre todos os files que leu
+                                    foreach (DictionaryEntry e in dadosDS)
+                                    {
+                                        d = (DadosFicheiroDS)e.Value;
+                                        //se a versao deste file e maior ou igual a que tinha lido anteriormente
+                                        //entao é este o file que vai ler e actualiza a versao
+                                        if (d.getVersion() >= v)
+                                        {
+                                            v = d.getVersion();
+                                            file = d.getFile();
+                                            versao.Remove(fileName);
+                                            versao.Add(fileName, d.getVersion());
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            //caso contrario continua a ler
+                                            dadosDS = readthreads(fileName, semantics);
+                                        }
+                                    }
+                                    if (d.getVersion() >= v) break;
+                                }
                             }
                         }
+                        else
+                        {
+                            System.Console.WriteLine("[READ]: Nao existe o file no DS.");
+                        }
                     }
-                }
             }
             else
             {
@@ -594,8 +626,8 @@ namespace Client
 
             if (arrayRegister.ContainsKey(strinRegister))
                 arrayRegister.Remove(strinRegister);
-            else
-                keyArrayRegister++;
+            //else
+            //    keyArrayRegister++;
 
             arrayRegister.Add(strinRegister, file);
             
@@ -616,15 +648,15 @@ namespace Client
                 open(nameFile);
                 dados = (DadosFicheiro)ficheiroInfo[nameFile];
                 dataServers = dados.getPorts();
-
-                if (dataServers.Count < dados.getWQ())
-                {
-                    System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
-                }
-                else
-                {
-                    write(nameFile, conteudo);
-                }
+            }
+             
+            if (dataServers.Count < dados.getWQ())
+            {
+               System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
+            }
+            else
+            {
+               write(nameFile, conteudo);
             }
             
         }
@@ -635,10 +667,8 @@ namespace Client
             {
                 string nameFile = (string)fileRegister[fileReg];
                 //string to byte[]
-                byte[] bytes = new byte[conteudo.Length * sizeof(char)];
-                System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
-
-
+                byte[] bytes = Encoding.ASCII.GetBytes(conteudo);
+                
                 //E suposto aqui tambem guardar??????????????
                 if (arrayRegister.ContainsKey(keyArrayRegister))
                     arrayRegister.Remove(keyArrayRegister);
@@ -655,16 +685,17 @@ namespace Client
                     open(nameFile);
                     dados = (DadosFicheiro)ficheiroInfo[nameFile];
                     dataServers = dados.getPorts();
-
-                    if (dataServers.Count < dados.getWQ())
-                    {
-                        System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
-                    }
-                    else
-                    {
-                        write(nameFile, bytes);
-                    }
                 }
+                 
+                if (dataServers.Count < dados.getWQ())
+                {
+                    System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
+                }
+                else
+                {
+                    write(nameFile, bytes);
+                }
+                
             }
             else
             {
@@ -685,45 +716,50 @@ namespace Client
                 open(fileName);
                 dados = (DadosFicheiro)ficheiroInfo[fileName];
                 dataServers = dados.getPorts();
-                if (dataServers.Count < dados.getWQ())
-                {
-                    System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
-                }
             }
 
-            foreach (DictionaryEntry c in dataServers)
+            if (dataServers.Count < dados.getWQ())
             {
-                //System.Console.WriteLine("[WRITE]: DS-key: " + c.Key + " DS-value " + c.Value);
-                IClientToDS ds = (IClientToDS)Activator.GetObject(
-                       typeof(IClientToDS),
-                       "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
-                try
-                {
-                    new Thread(delegate()
-                    {
-                        try
-                        {
-                            ds.write(fileName, array);
-                            idWrite++;
-                            // If we're the last thread, signal
-                            if (idWrite >= dados.getWQ())
-                                resetEvent.Set();
-                        }
-                        catch (Exception e)
-                        {
-                            System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
-                        }
-                    }).Start();
-                }
-                catch (Exception e)
-                {
-                    System.Console.WriteLine(e.ToString());
-                    System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
-                }
+                System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
             }
-            resetEvent.WaitOne();
+            else
+            {
 
-            System.Console.WriteLine("[WRITE]: DS escrever file");
+
+                foreach (DictionaryEntry c in dataServers)
+                {
+                    //System.Console.WriteLine("[WRITE]: DS-key: " + c.Key + " DS-value " + c.Value);
+                    IClientToDS ds = (IClientToDS)Activator.GetObject(
+                           typeof(IClientToDS),
+                           "tcp://localhost:809" + c.Value.ToString() + "/" + c.Key.ToString() + "dataServerClient");
+                    try
+                    {
+                        new Thread(delegate()
+                        {
+                            try
+                            {
+                                ds.write(fileName, array);
+                                idWrite++;
+                                // If we're the last thread, signal
+                                if (idWrite >= dados.getWQ())
+                                    resetEvent.Set();
+                            }
+                            catch (Exception e)
+                            {
+                                System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                            }
+                        }).Start();
+                    }
+                    catch (Exception e)
+                    {
+                        System.Console.WriteLine(e.ToString());
+                        System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                    }
+                }
+                resetEvent.WaitOne();
+
+                System.Console.WriteLine("[WRITE]: DS escrever file");
+            }
         }
 
         public void copy(int fileRegister1, string semantics, int fileRegister2, string salt)
@@ -830,7 +866,6 @@ namespace Client
         public void read(int fileRegister, string semantics, int stringRegister)
         {
             ctx.read(fileRegister, semantics, stringRegister);
-
 
         }
     }
