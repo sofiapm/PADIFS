@@ -48,7 +48,7 @@ namespace Client
             
             Hashtable dataServers = new Hashtable();
 
-            Cliente cliente = new Cliente(channel, metaDataServers, dataServers);
+            Cliente cliente = new Cliente(channel, metaDataServers, dataServers, args[0]);
             PuppetClient.ctx = cliente;
             DSClient.ctx = cliente;
             MSClient.ctx = cliente;
@@ -72,14 +72,16 @@ namespace Client
         public Hashtable arrayRegister = new Hashtable();
         //string nome, int versao
         public Hashtable versao = new Hashtable();
+        String idCliente;
 
         int keyArrayRegister = 0;
         int keyFileRegister = 0;
 
-        public Cliente (TcpChannel canal, Hashtable metaServers, Hashtable dataServer)
+        public Cliente (TcpChannel canal, Hashtable metaServers, Hashtable dataServer, String id)
         {
             channel=canal;
             this.metaDataServers = metaServers;
+            idCliente = id;
             //this.dataServers = dataServer;
         }
         
@@ -424,11 +426,12 @@ namespace Client
             }
         }
 
-        public void dump()
+        public string dump()
         {
-            System.Console.WriteLine("*******************************Client DUMP*******************************\n");
+            String st = "*******************************Client" + idCliente + "DUMP*******************************\n";
 
-            System.Console.WriteLine("------------------------Informacao de Ficheiros------------------------");
+
+            st +="------------------------Informacao de Ficheiros------------------------\n";
             foreach (DictionaryEntry c in ficheiroInfo)
             {
                 DadosFicheiro dados = (DadosFicheiro) c.Value;
@@ -437,35 +440,39 @@ namespace Client
                 {
                     foreach (DictionaryEntry d in dados.getPorts())
                     {
-                        System.Console.WriteLine(d.Key + "");
+                        st += d.Key + "\n";
                     }
                 }
                 catch { }
 
-                System.Console.WriteLine("");
+                st += "\n";
             }
-            System.Console.WriteLine("\n-----------------------------File Register-----------------------------");
+            st += "\n-----------------------------File Register-----------------------------\n";
             foreach (DictionaryEntry c in fileRegister)
             {
-                System.Console.WriteLine("FileRegister: " + c.Key + " Nome Ficheiro: " + c.Value);
+                st += "FileRegister: " + c.Key + " Nome Ficheiro: " + c.Value + "\n";
             }
 
-            System.Console.WriteLine("\n-----------------------------Array Register-----------------------------");
+            st += "\n-----------------------------Array Register-----------------------------\n";
             foreach (DictionaryEntry c in arrayRegister)
             {
                
                 byte[] b = (byte [])c.Value;
               
                 string str = Encoding.UTF8.GetString(b, 0, b.Length);
-                System.Console.WriteLine("ArrayRegister: " + c.Key + " Ficheiro: " + str);
+                st += "ArrayRegister: " + c.Key + " Ficheiro: " + str +"\n";
             }
-            System.Console.WriteLine("\n-----------------------------File Version-----------------------------");
+            st +="\n-----------------------------File Version-----------------------------\n";
             foreach (DictionaryEntry c in versao)
             {
-                System.Console.WriteLine("Nome Ficheiro: " + c.Key + " Versao: " + c.Value);
+                st += "Nome Ficheiro: " + c.Key + " Versao: " + c.Value + "\n";
             }
 
-            System.Console.WriteLine("\n*************************************************************************\n\n");
+           st += "\n*************************************************************************\n\n";
+
+           System.Console.WriteLine(st);
+
+           return st;
             
 
         }
@@ -489,8 +496,8 @@ namespace Client
                     new Thread(delegate()
                     {
                         
-                        dadosDS.Add(idDados, ds.read(fileName, semantics));
-                        idDados++;
+                        dadosDS.Add(idDados++, ds.read(fileName, semantics));
+                        //idDados++;
                         // If we're the last thread, signal
                         if (idDados >= dados.getRQ())
                             resetEvent.Set();
@@ -781,7 +788,6 @@ namespace Client
                 string nameFile = (string)fileRegister[fileRegister1];
                 DadosFicheiro d = (DadosFicheiro)ficheiroInfo[nameFile];
 
-                dump();
                 System.Console.WriteLine("[COPY]: Nome Novo File: " + nameFile2);
 
                 //create (nameFile + nameFile2, 1, 1, 1);
@@ -855,9 +861,9 @@ namespace Client
             ctx.copy(fileRegister1, semantics, fileRegister2, salt);
         }
 
-        public void dump()
+        public string dump()
         {
-            ctx.dump();
+            return ctx.dump();
 
         }
 

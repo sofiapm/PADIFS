@@ -331,7 +331,7 @@ namespace MetaDataServer
         }
 
         //imprimir o estado do MS
-        public void dump()
+        public string dump()
         {
             if (isFailed)
                 throw new NullReferenceException();
@@ -369,6 +369,8 @@ namespace MetaDataServer
             }
 
             System.Console.WriteLine(result);
+
+            return result;
         }
         
         /********Client To MetaDataServer***********/
@@ -780,9 +782,9 @@ namespace MetaDataServer
         }
 
         //imprime o estado do MS
-        public void dump()
+        public string dump()
         {
-            ctx.dump();
+            return ctx.dump();
         }
     }
 

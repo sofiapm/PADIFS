@@ -222,26 +222,28 @@ namespace DataServer
             failed = false;
         }
 
-        public void dump()
+        public string dump()
         {
-            System.Console.WriteLine("Puppet mandou o DS fazer Dump");
-            System.Console.WriteLine("---------------------BEGIN DUMP DataServer: " + dataServerID + " ------------------------");
-            System.Console.WriteLine("---------------------Hashtable Files------------------------");
+            string st="Puppet mandou o DS fazer Dump\n";
+            st = "---------------------BEGIN DUMP DataServer: " + dataServerID + " ------------------------\n";
+            st = "---------------------Hashtable Files------------------------\n";
             foreach (DictionaryEntry entry in files)
             {
                 FileStructure aux;
                 aux = (FileStructure)entry.Value;
-                System.Console.WriteLine("DataServer id: {0}, File name: {1}, Version: {2}, Write lock: {3}, Read lock: {4}, Delete lock: {5}", dataServerID, aux.getFileName(), aux.getVersion(), aux.getLockWrite(), aux.getLockRead(), aux.getLockDelete());
+                st = "DataServer id: " + dataServerID + ", File name: " + aux.getFileName() + ", Version: " + aux.getVersion() + 
+                    ", Write lock: " + aux.getLockWrite() + ", Read lock: " + aux.getLockRead() + ", Delete lock: " + aux.getLockDelete() + "\n";
             }
 
-            System.Console.WriteLine("---------------------Priority Action Queue------------------------");
+            st = "---------------------Priority Action Queue------------------------\n";
             foreach (Action action in actionQueue)
             {
-                System.Console.WriteLine("DataServer id: {0}, Method: {1}", dataServerID, action.Method.Name);
+                st = "DataServer id: " + dataServerID + ", Method: "+ action.Method.Name + "\n";
             }
 
-            System.Console.WriteLine("--------------------END DUMP DataServer: " + dataServerID + " ------------------------");
+            st = "--------------------END DUMP DataServer: " + dataServerID + " ------------------------\n";
 
+            return st;
         }
 
         public DadosFicheiroDS readFile(string fileName, string semantics)
@@ -462,9 +464,9 @@ namespace DataServer
             ctx.recover();
         }
 
-        public void dump()
+        public string dump()
         {
-            ctx.dump();
+           return ctx.dump();
         }
 
     }

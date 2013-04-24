@@ -11,7 +11,7 @@ namespace CommonTypes
     {
         //puppet manda o Cliente executar accoes
         void runScript(List<string> operations);
-        void dump();
+        string dump();
         
         //puppet manda o cliente enviar pedidos ao MS
         void open(string fileName);     
@@ -33,14 +33,14 @@ namespace CommonTypes
         void unfreeze(); //responds to all buffered requests from clients and restarts replying new requests
         void fail();     //DS ignores requests from Clients or messages from MS
         void recover();  //DS starts receiving requests from Clients and MS
-        void dump();
+        string dump();
     }
 
     public interface IPuppetToMS
     {
         void fail();    //the MS stops processing requests from clients or others MS
         void recover(); //MS starts receiving requests from clients and others MS
-        void dump();
+        string dump();
 
     }
 
