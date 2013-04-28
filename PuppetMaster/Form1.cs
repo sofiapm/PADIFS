@@ -71,7 +71,7 @@ namespace PuppetMaster
 
         public void dumpClient(String d)
         {
-            listBox_dump_client.Items.Clear();
+            //listBox_dump_client.Items.Clear();
 
             string[] words = d.Split('\n');
             foreach (string word in words)
@@ -82,7 +82,7 @@ namespace PuppetMaster
 
         public void dumpDS(String d)
         {
-            listBox_dump_client.Items.Clear();
+            //listBox_dump_client.Items.Clear();
 
             string[] words = d.Split('\n');
             foreach (string word in words)
@@ -93,7 +93,7 @@ namespace PuppetMaster
 
         public void dumpMS(String d)
         {
-            listBox_dump_client.Items.Clear();
+            //listBox_dump_client.Items.Clear();
 
             string[] words = d.Split('\n');
             foreach (string word in words)
@@ -793,7 +793,7 @@ namespace PuppetMaster
                         typeof(IPuppetToMS),
                         "tcp://localhost:808" + en.Value + "/" + en.Key + "MetaServerPuppet");
 
-                 ms.dump();
+                 dumpMS(ms.dump());
              }
 
              foreach( DictionaryEntry en in dataServers)
@@ -802,7 +802,7 @@ namespace PuppetMaster
                         typeof(IPuppetToDS),
                         "tcp://localhost:809" + en.Value + "/" + en.Key + "DataServerPuppet");
 
-                 ds.dump();
+                 dumpDS(ds.dump());
              }
 
              foreach( DictionaryEntry en in clients)
@@ -810,7 +810,7 @@ namespace PuppetMaster
                  IPuppetToClient client = (IPuppetToClient)Activator.GetObject(
                      typeof(IPuppetToClient),
                      "tcp://localhost:807" + en.Value + "/" + en.Key + "PuppetClient");
-                 client.dump();
+                 dumpClient(client.dump());
              }
 
          }

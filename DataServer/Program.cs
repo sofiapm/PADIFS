@@ -225,24 +225,26 @@ namespace DataServer
         public string dump()
         {
             string st="Puppet mandou o DS fazer Dump\n";
-            st = "---------------------BEGIN DUMP DataServer: " + dataServerID + " ------------------------\n";
-            st = "---------------------Hashtable Files------------------------\n";
+            st += "---------------------BEGIN DUMP DataServer: " + dataServerID + " ------------------------\n";
+            st += "---------------------Hashtable Files------------------------\n";
             foreach (DictionaryEntry entry in files)
             {
                 FileStructure aux;
                 aux = (FileStructure)entry.Value;
-                st = "DataServer id: " + dataServerID + ", File name: " + aux.getFileName() + ", Version: " + aux.getVersion() + 
+                st += "DataServer id: " + dataServerID + ", File name: " + aux.getFileName() + ", Version: " + aux.getVersion() + 
                     ", Write lock: " + aux.getLockWrite() + ", Read lock: " + aux.getLockRead() + ", Delete lock: " + aux.getLockDelete() + "\n";
             }
 
-            st = "---------------------Priority Action Queue------------------------\n";
+            st += "---------------------Priority Action Queue------------------------\n";
             foreach (Action action in actionQueue)
             {
-                st = "DataServer id: " + dataServerID + ", Method: "+ action.Method.Name + "\n";
+                st += "DataServer id: " + dataServerID + ", Method: "+ action.Method.Name + "\n";
             }
 
-            st = "--------------------END DUMP DataServer: " + dataServerID + " ------------------------\n";
+            st += "--------------------END DUMP DataServer: " + dataServerID + " ------------------------\n";
 
+            System.Console.WriteLine(st);
+            
             return st;
         }
 

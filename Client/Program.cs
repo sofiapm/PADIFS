@@ -435,7 +435,7 @@ namespace Client
             foreach (DictionaryEntry c in ficheiroInfo)
             {
                 DadosFicheiro dados = (DadosFicheiro) c.Value;
-                System.Console.WriteLine("Ficheiro: " + c.Key + " tem readQuorum=" + dados.getRQ() + " e writeQuorum=" + dados.getWQ() + "e esta guardado nos DS: ");
+                st += "Ficheiro: " + c.Key + " tem readQuorum=" + dados.getRQ() + " e writeQuorum=" + dados.getWQ() + "e esta guardado nos DS: \n";
                 try
                 {
                     foreach (DictionaryEntry d in dados.getPorts())
@@ -468,7 +468,7 @@ namespace Client
                 st += "Nome Ficheiro: " + c.Key + " Versao: " + c.Value + "\n";
             }
 
-           st += "\n*************************************************************************\n\n";
+            st += "****************************END -- Client" + idCliente + "DUMP***************************\n\n";
 
            System.Console.WriteLine(st);
 
@@ -633,11 +633,9 @@ namespace Client
 
             if (arrayRegister.ContainsKey(strinRegister))
                 arrayRegister.Remove(strinRegister);
-            //else
-            //    keyArrayRegister++;
-
+                
             arrayRegister.Add(strinRegister, file);
-            
+
             return file;
 
         }
@@ -678,11 +676,17 @@ namespace Client
                 
                 //E suposto aqui tambem guardar??????????????
                 if (arrayRegister.ContainsKey(keyArrayRegister))
+                {
                     arrayRegister.Remove(keyArrayRegister);
+                    arrayRegister.Add(keyArrayRegister, bytes);
+                }
                 else
+                {
+                    arrayRegister.Add(keyArrayRegister, bytes);
                     keyArrayRegister++;
+                }
 
-                arrayRegister.Add(keyArrayRegister, bytes);
+                
 
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
                 Hashtable dataServers = dados.getPorts();
