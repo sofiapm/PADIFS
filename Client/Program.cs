@@ -496,7 +496,17 @@ namespace Client
                     new Thread(delegate()
                     {
                         
-                        dadosDS.Add(idDados++, ds.read(fileName, semantics));
+                        try
+                        {
+                            DadosFicheiroDS d = ds.read(fileName, semantics);
+                            dadosDS.Add(idDados++, d);
+                        }
+                        catch
+                        {
+                            System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
+                        }
+                        
+
                         //idDados++;
                         // If we're the last thread, signal
                         if (idDados >= dados.getRQ())
@@ -759,6 +769,7 @@ namespace Client
                             {
                                 System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
                             }
+
                         }).Start();
                     }
                     catch (Exception e)
