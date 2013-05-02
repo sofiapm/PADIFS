@@ -323,6 +323,7 @@ namespace DataServer
                     string aux1 = fileName;
                     string aux2 = semantics;
                     actionQueue.Enqueue(() => readFile(aux1, aux2));
+                    throw new NullReferenceException();
                 }
                 else
                 {
