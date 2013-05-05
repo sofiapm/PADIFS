@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Client
 {   
-    class Program //: MarshalByRefObject, IDSToClient, IMSToClient
+    class Program
     {
 
         static void Main(string[] args)
@@ -45,10 +45,8 @@ namespace Client
             metaDataServers.Add("1", "m-0");
             metaDataServers.Add("2", "m-1");
             metaDataServers.Add("3", "m-2");
-            
-            Hashtable dataServers = new Hashtable();
 
-            Cliente cliente = new Cliente(channel, metaDataServers, dataServers, args[0]);
+            Cliente cliente = new Cliente(channel, metaDataServers, args[0]);
             PuppetClient.ctx = cliente;
             DSClient.ctx = cliente;
             MSClient.ctx = cliente;
@@ -64,29 +62,28 @@ namespace Client
         private static TcpChannel channel;
         public Hashtable metaDataServers;
         //public Hashtable dataServers;
-        //string nome, DadosFicheiro
+        //string nomeFicheiro, DadosFicheiro
         public Hashtable ficheiroInfo = new Hashtable();
-        //string id, string nome
+        //int id-keyFileRegister, string nome
         public Hashtable fileRegister = new Hashtable();
-        //string id, string conteudo
+        //int id-keyArrayRegister, string conteudo
         public Hashtable arrayRegister = new Hashtable();
-        //string nome, int versao
+        //string nomeFicheiro, int versao
         public Hashtable versao = new Hashtable();
         String idCliente;
 
         int keyArrayRegister = 0;
         int keyFileRegister = 0;
 
-        public Cliente (TcpChannel canal, Hashtable metaServers, Hashtable dataServer, String id)
+        public Cliente (TcpChannel canal, Hashtable metaServers, String id)
         {
             channel=canal;
             this.metaDataServers = metaServers;
             idCliente = id;
-            //this.dataServers = dataServer;
         }
         
         /********Puppet To Client***********/
-        //puppet manda o cliente enviar pedidos ao MS
+        //puppet manda o cliente fazer open de um ficheiro ao MS
         public void open(string fileName)
         {
             DadosFicheiro fileData = null;
@@ -122,6 +119,7 @@ namespace Client
             }
             else
             {
+                //se o ficheiro já estava aberto, actualiza os seus metadados
                 if (ficheiroInfo.Contains(fileName))
                 {
                     ficheiroInfo.Remove(fileName);
@@ -129,29 +127,31 @@ namespace Client
 
                 ficheiroInfo.Add(fileName, fileData);
 
-                //if (fileRegister.Contains(keyFileRegister))
-                //{
-                //    fileRegister.Remove(keyFileRegister);
-                //}
-
                 int key=-1;
                 bool existia=false;
+                //verifica se ja existe um fileRegister para aquele ficheiro
                 foreach (DictionaryEntry en in fileRegister)
                 {
                     if (en.Value.ToString().Equals(fileName))
                     {
                         key = (int)en.Key;
                         existia = true;
+                        break;
                     }
                 }
 
-                if (existia)
+                if (existia)//se ja existia, actualiza
                 {
                     fileRegister.Remove(key);
                     fileRegister.Add(key, fileName);
                 }
-                else
+                else//se nao existia, cria novo fileRegister
                 {
+                    if (keyFileRegister >= 10)
+                    {
+                        keyFileRegister = 0;
+                        fileRegister.Remove(keyFileRegister);
+                    }
                     fileRegister.Add(keyFileRegister, fileName);
                     keyFileRegister++;
                 }               
@@ -160,8 +160,10 @@ namespace Client
    
         }
 
+        //Puppet mando Cliente fazer close do ficheiro
         public void close(string fileName)
         {
+            //verifica se o ficheiro está aberto
             if (ficheiroInfo.Contains(fileName))
             {
                 foreach (DictionaryEntry c in metaDataServers)
@@ -183,6 +185,26 @@ namespace Client
 
                 ficheiroInfo.Remove(fileName);
 
+                //int key = -1;
+                //bool existia = false;
+                ////verifica se ja existe um fileRegister para aquele ficheiro
+                //foreach (DictionaryEntry en in fileRegister)
+                //{
+                //    if (en.Value.ToString().Equals(fileName))
+                //    {
+                //        key = (int)en.Key;
+                //        existia = true;
+                //        break;
+                //    }
+                //}
+
+                //if (existia)//se ja existia, actualiza
+                //{
+                //    fileRegister.Remove(key);
+                //    keyFileRegister--;
+                    
+                //}
+
                 System.Console.WriteLine("[CLOSE]: Mandou Ms fechar file: " + fileName);
             }
             else
@@ -191,6 +213,7 @@ namespace Client
             }
         }
 
+        //puppet manda o cliente criar um novo ficheiro no MS
         public void create(string fileName, int numDS, int rQuorum, int wQuorum)
         {
             DadosFicheiro fileData = null;
@@ -224,11 +247,14 @@ namespace Client
             }
             else
             {
+                
+                //verifica se ja tinha metadados do ficheiro
                 if (ficheiroInfo.Contains(fileName))
                 {
                     ficheiroInfo.Remove(fileName);
                 }
 
+                //actualiza os metadados do ficheiro
                 ficheiroInfo.Add(fileName, fileData);
 
                 //if (fileRegister.Contains(keyFileRegister))
@@ -238,6 +264,7 @@ namespace Client
 
                 int key = -1;
                 bool existia = false;
+                //verifica se ja existia um fileRegister para este ficheiro
                 foreach (DictionaryEntry en in fileRegister)
                 {
                     if (en.Value.ToString().Equals(fileName))
@@ -247,28 +274,37 @@ namespace Client
                     }
                 }
 
-                if (existia)
+                if (existia)//se existia, actuliza
                 {
                     fileRegister.Remove(key);
                     fileRegister.Add(key, fileName);
                 }
-                else
+                else//se nao existia, cria novo
                 {
+                    if (keyFileRegister >= 10)
+                    {
+                        keyFileRegister = 0;
+                        fileRegister.Remove(keyFileRegister);
+                    }
                     fileRegister.Add(keyFileRegister, fileName);
                     keyFileRegister++;
-                } 
+                }
             }
 
             
             //System.Console.WriteLine("Mandou Ms criar file");
         }
 
+        //puppet manda Cliente apagar o ficheiro
         public void delete(string fileName)
         {
             DadosFicheiro dados=null;
             ManualResetEvent resetEvent = new ManualResetEvent(false);
             List<IClientToDS> listDS = new List<IClientToDS>();
             List<IClientToMS> listMS = new List<IClientToMS>();
+            
+            //Cliente pede ao MS para apagar o ficheiro
+            //recebe metadados do ficheiro, para comonicar com DS
             foreach (DictionaryEntry c in metaDataServers)
             {
                  IClientToMS ms = (IClientToMS)Activator.GetObject(
@@ -303,6 +339,9 @@ namespace Client
             {
                 consegueApagar = true;
                 int idDados = 0;
+
+                //Cliente vai a todos os DS onde o ficheiro esta replicado e pede para apagar
+                //se todos os Ds conseguirem apagar, a flag consegueApagar mantem-se a true
                 foreach (DictionaryEntry c in dados.getPorts())
                 {
                     IClientToDS ds = (IClientToDS)Activator.GetObject(
@@ -334,6 +373,9 @@ namespace Client
 
                 resetEvent = new ManualResetEvent(false);
                 idDados = 0;
+
+                //como todos os DS podem apagar a sua replica do ficheiro, o Cliente envia
+                //a confirmação aos DS, para que apaguem efectivamente o ficheiro
                 foreach (IClientToDS c in listDS)
                 {
                     //IClientToDS ds = (IClientToDS)Activator.GetObject(
@@ -362,6 +404,8 @@ namespace Client
                 resetEvent.WaitOne();
             }
 
+            //como o delete foi efectuado por todos os DS, o cliente envia confirmaçao ao MS
+            //para que este possa também apagar o ficehiro dos seus metadados
             foreach (DictionaryEntry c in metaDataServers)
             {
                 IClientToMS ms = (IClientToMS)Activator.GetObject(
@@ -380,15 +424,35 @@ namespace Client
                     System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
                 }
             }
-
+            
+            //Cliente apaga os metadados do ficheiro
             if (consegueApagar)
             {
                 ficheiroInfo.Remove(fileName);
+                //key = -1;
+                //existia = false;
+                ////verifica se ja existe um fileRegister para aquele ficheiro
+                //foreach (DictionaryEntry en in fileRegister)
+                //{
+                //    if (en.Value.ToString().Equals(fileName))
+                //    {
+                //        key = (int)en.Key;
+                //        existia = true;
+                //        break;
+                //    }
+                //}
+
+                //if (existia)//se ja existia, actualiza
+                //{
+                //    fileRegister.Remove(key);
+                //    keyFileRegister--;
+                //}
             }
                            
             
         }
 
+        //corre um novo script assincrono
         public void runScript(List<string> operations)
         {
             //corre as instrucoes do script
@@ -398,8 +462,6 @@ namespace Client
             {
                 string[] token = new string[] { " ", ", " };
                 string[] arg = operation.Split(token, StringSplitOptions.None);
-
-                //O cliente recebe mais??
 
                 //arg[1] e sempre o processo, que e ignorado
                 if (arg[0].Equals("OPEN")) open(arg[2]);
@@ -477,6 +539,9 @@ namespace Client
 
         }
 
+        //funcao que lança uma thread para cada leitura num DS diferente
+        //devolve uma hashtable com todos os retornos de cada DS
+        //porque na funcao read tanto o default como o monotonic espera pelo quorum
         public Hashtable readthreads(string fileName, string semantics)
         {
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
@@ -524,17 +589,21 @@ namespace Client
 
             resetEvent.WaitOne();
 
+            int numNaoNull = 0;
             foreach (DictionaryEntry c in dadosDS) {
-                if (c.Value == null)
+                if (c.Value != null)
                 {
-                    dadosDS = null;
-                    break;
+                    numNaoNull++;   
                 }
             }
+
+            if (numNaoNull < dados.getRQ())
+                dadosDS = null;
 
             return dadosDS;
         }
 
+        //funcao Read onde e verificada a semantica - versao
         public byte[] read(int fileReg, string semantics) 
         {
             byte[] file = new byte[0];
@@ -545,6 +614,9 @@ namespace Client
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
 
                 Hashtable dataServers = dados.getPorts();
+                
+                //verifica se tem DS para o quorum ou replicas
+                //se nao tiver, actualiza metadados
                 if (dataServers.Count < dados.getRQ() || dataServers.Count < dados.getNumDS())
                 {
                     open(fileName);
@@ -552,47 +624,53 @@ namespace Client
                     dataServers = dados.getPorts();
                 }
 
+                //se ainda nao tiver DS para o quorum, nao consegue LER
                 if (dataServers.Count < dados.getRQ())
                 {
                     System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura"); 
                 }
                 else
                 {
+                        //faz read, recebe a hashtable com todas as respostas dos DS
                         Hashtable dadosDS = readthreads(fileName, semantics);
-                        if (dadosDS != null)
+                        
+                        if (dadosDS != null)//consegue fazer read
                         {
                             if (semantics.Equals("default"))
                             {
                                 int v = 0;
 
+                                //percorre todas as respostas dos DS
+                                
                                 foreach (DictionaryEntry e in dadosDS)
                                 {
-                                    DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
-                                    if (d.getVersion() >= v)
+                                    if (!e.Equals(null))
                                     {
-                                        v = d.getVersion();
-                                        file = d.getFile();
-                                        if (versao.Contains(fileName))
+                                        DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
+                                        //versao lida por este DS é superior à anterior
+                                        if (d.getVersion() >= v)
                                         {
-                                            if (v > (int)versao[fileName])
-                                            {
-                                                versao.Remove(fileName);
-                                                versao.Add(fileName, d.getVersion());
-                                            }
+                                            v = d.getVersion();
+                                            file = d.getFile();
                                         }
-                                        else
-                                            versao.Add(fileName, d.getVersion());
-                                        break;
                                     }
                                 }
+
+                                //le-guarda a versao mais recente dessas respostas
+                                if (versao.Contains(fileName))
+                                {
+                                    versao.Remove(fileName);
+                                }
+                                
+                                versao.Add(fileName, v);
                             }
                             else //monotonic
                             {
                                 //ultima versao que li
                                 int v = 0;
                                 if (versao.Contains(fileName))
-
                                     v = (int)versao[fileName];
+                               
                                 while (true)
                                 {
 
@@ -601,6 +679,7 @@ namespace Client
                                     foreach (DictionaryEntry e in dadosDS)
                                     {
                                         d = (DadosFicheiroDS)e.Value;
+                                        
                                         //se a versao deste file e maior ou igual a que tinha lido anteriormente
                                         //entao é este o file que vai ler e actualiza a versao
                                         if (d.getVersion() >= v)
@@ -611,13 +690,16 @@ namespace Client
                                             versao.Add(fileName, d.getVersion());
                                             break;
                                         }
-                                        else
-                                        {
-                                            //caso contrario continua a ler
-                                            dadosDS = readthreads(fileName, semantics);
-                                        }
+                                       
                                     }
+                                    
                                     if (d.getVersion() >= v) break;
+                                    else
+                                    {
+                                        //se nao havia nenhuma versao superior a anterior lida
+                                        //volta a ler
+                                        dadosDS = readthreads(fileName, semantics);
+                                    }
                                 }
                             }
                         }
@@ -633,7 +715,9 @@ namespace Client
             }
             return file;
         }
-        //puppet mandou o cliente enviar pedidos ao DS
+
+        //puppet mandou o cliente fazer READ
+        //actualiza os registers
         public byte [] read(int fileReg, string semantics, int strinRegister)
         {
             
@@ -650,6 +734,7 @@ namespace Client
 
         }
 
+        //Funcao de Write que recebe o byteArrayRegister
         public void writeR(int fileReg, int ByteArrayRegister)
         {
             string nameFile = (string)fileRegister[fileReg];
@@ -658,24 +743,28 @@ namespace Client
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
             Hashtable dataServers = dados.getPorts();
 
-            if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
-            {
-                open(nameFile);
-                dados = (DadosFicheiro)ficheiroInfo[nameFile];
-                dataServers = dados.getPorts();
-            }
+            //se os metadados do ficheiro nao tiverem DS suficientes para o 
+            //quorum ou com o numero suficiente de replicas, volta a pedir os metadados
+            //if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
+            //{
+            //    open(nameFile);
+            //    dados = (DadosFicheiro)ficheiroInfo[nameFile];
+            //    dataServers = dados.getPorts();
+            //}
              
-            if (dataServers.Count < dados.getWQ())
-            {
-               System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
-            }
-            else
-            {
+            ////se ainda nao existirem DS suficientes para o quorum, nao consegue fazer a escrita
+            //if (dataServers.Count < dados.getWQ())
+            //{
+            //   System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
+            //}
+            //else
+            //{
                write(nameFile, conteudo);
-            }
+            //}
             
         }
 
+        //Funcao de Write que recebe a string
         public void writeS(int fileReg, string conteudo)
         {
             if (fileRegister.Contains(fileReg))
@@ -684,7 +773,7 @@ namespace Client
                 //string to byte[]
                 byte[] bytes = Encoding.ASCII.GetBytes(conteudo);
                 
-                //E suposto aqui tambem guardar??????????????
+                //actualiza arrayRegister
                 if (arrayRegister.ContainsKey(keyArrayRegister))
                 {
                     arrayRegister.Remove(keyArrayRegister);
@@ -692,6 +781,11 @@ namespace Client
                 }
                 else
                 {
+                    if (keyArrayRegister >= 10)
+                    {
+                        keyArrayRegister = 0;
+                        arrayRegister.Remove(keyArrayRegister);
+                    }
                     arrayRegister.Add(keyArrayRegister, bytes);
                     keyArrayRegister++;
                 }
@@ -701,21 +795,24 @@ namespace Client
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
                 Hashtable dataServers = dados.getPorts();
 
-                if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
-                {
-                    open(nameFile);
-                    dados = (DadosFicheiro)ficheiroInfo[nameFile];
-                    dataServers = dados.getPorts();
-                }
+                //verifica se tem o numero de Ds para o quorum ou para o num de replicas
+                //se nao tiver, actualiza metadados
+                //if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
+                //{
+                //    open(nameFile);
+                //    dados = (DadosFicheiro)ficheiroInfo[nameFile];
+                //    dataServers = dados.getPorts();
+                //}
                  
-                if (dataServers.Count < dados.getWQ())
-                {
-                    System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
-                }
-                else
-                {
+                ////se ainda nao tiver o quorum, nao consegue fazer a escrita
+                //if (dataServers.Count < dados.getWQ())
+                //{
+                //    System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
+                //}
+                //else
+                //{
                     write(nameFile, bytes);
-                }
+                //}
                 
             }
             else
@@ -724,6 +821,7 @@ namespace Client
             }
         }
 
+        //funcao de escrita que comunica com os DS
         public void write(string fileName, byte[] array)
         {
             ManualResetEvent resetEvent = new ManualResetEvent(false);
@@ -784,6 +882,7 @@ namespace Client
             }
         }
 
+        //puppet manda o Cliente fazer copy  um ficheiro
         public void copy(int fileRegister1, string semantics, int fileRegister2, string salt)
         {
             try
