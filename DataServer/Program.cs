@@ -165,7 +165,7 @@ namespace DataServer
         TcpChannel channel;
         Hashtable metaDataServers;
         Hashtable files;
-        Queue<Action> actionQueue;
+        Queue<object> priorityQueue;
         bool freezed;
         bool failed;
         string dataServerID;
@@ -175,7 +175,7 @@ namespace DataServer
             this.channel = channel;
             metaDataServers = md;
             files = new Hashtable();
-            actionQueue = new Queue<Action>();
+            priorityQueue = new Queue<object>();
             freezed = true;
             failed = false;
             dataServerID = id;
@@ -186,39 +186,44 @@ namespace DataServer
         //starts buffering read and write requests, without answering
         public void freeze()
         {
-            System.Console.WriteLine("Puppet mandou o DS freeze");
+            System.Console.WriteLine("DS: " + dataServerID + " - PuppetMaster: enviou comando freeze");
             freezed = true;
         }
 
         //responds to all buffered requests from clients and restarts replying new requests
         public void unfreeze()
         {
-            System.Console.WriteLine("Puppet mandou o DS unfreeze");
+            System.Console.WriteLine("DS: " + dataServerID + " - PuppetMaster: enviou comando unfreeze");
             freezed = false;
             processaQueue();
         }
 
         public void processaQueue()
         {
-            System.Console.WriteLine("DataServer processaQueue");
-            while (actionQueue.Count != 0)
-            {
-                Action action = actionQueue.Dequeue();
-                action();
-            }
+            System.Console.WriteLine("DS: " + dataServerID + " - processaQueue()");
+           
+                while (priorityQueue.Count != 0)
+                {
+                    lock (priorityQueue)
+                    {
+                        object remoteObject = new object();
+                        remoteObject = priorityQueue.Dequeue();
+                        Monitor.Pulse(remoteObject);
+                    }
+                }
         }
 
         //DS ignores requests from Clients or messages from MS
         public void fail()
         {
-            System.Console.WriteLine("Puppet mandou o DS falhar");
+            System.Console.WriteLine("DS: " + dataServerID + " - PuppetMaster: enviou comando fail");
             failed = true;
         }
 
         //DS starts receiving requests from Clients and MS
         public void recover()
         {
-            System.Console.WriteLine("Puppet mandou o DS recuperar");
+            System.Console.WriteLine("DS: " + dataServerID + " - PuppetMaster: enviou comando recover");
             failed = false;
         }
 
@@ -236,10 +241,8 @@ namespace DataServer
             }
 
             st += "---------------------Priority Action Queue------------------------\n";
-            foreach (Action action in actionQueue)
-            {
-                st += "DataServer id: " + dataServerID + ", Method: "+ action.Method.Name + "\n";
-            }
+
+            st += "DataServer id: " + dataServerID + ", Número total de objectos na fila de prioridades: " + priorityQueue.Count() + "\n";
 
             st += "--------------------END DUMP DataServer: " + dataServerID + " ------------------------\n";
 
@@ -248,101 +251,132 @@ namespace DataServer
             return st;
         }
 
-        public DadosFicheiroDS readFile(string fileName, string semantics)
-        {
-            System.Console.WriteLine("DataServer readFile");
-            if (files.ContainsKey(fileName))
-            {
-                FileStructure newFile = (FileStructure)files[fileName];
-                if (!newFile.getLockWrite() && !newFile.getLockDelete())
-                {
-                    newFile.lockRead();
-                    DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(fileName));
-                    newFile.unlockRead();
-                    return ffds;
-                }
-                else
-                {
-                    System.Console.WriteLine("O ficheiro " + fileName + " encontra-se em escrita");
-                    return null;
-                }
-            }
-            else
-            {
-                System.Console.WriteLine("O ficheiro " + fileName + " não existe em sistema");
-                return null;
-            }
-        }
+        //public DadosFicheiroDS readFile(string fileName, string semantics)
+        //{
+        //    System.Console.WriteLine("DataServer readFile");
+        //    if (files.ContainsKey(fileName))
+        //    {
+        //        FileStructure newFile = (FileStructure)files[fileName];
+        //        if (!newFile.getLockWrite() && !newFile.getLockDelete())
+        //        {
+        //            newFile.lockRead();
+        //            DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(fileName));
+        //            newFile.unlockRead();
+        //            return ffds;
+        //        }
+        //        else
+        //        {
+        //            System.Console.WriteLine("O ficheiro " + fileName + " encontra-se em escrita");
+        //            return null;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        System.Console.WriteLine("O ficheiro " + fileName + " não existe em sistema");
+        //        return null;
+        //    }
+        //}
 
-        public void writeFile(string fileName, byte[] array)
-        {
-            System.Console.WriteLine("DataServer writeFile");
-            if (files.ContainsKey(fileName))
-            {
-                FileStructure newFile = (FileStructure)files[fileName];
-                if (!newFile.getLockRead() & !newFile.getLockWrite() & !newFile.getLockDelete())
-                {
-                    newFile.lockWrite();
-                    newFile.incrementVersion();
+        //public void writeFile(string fileName, byte[] array)
+        //{
+        //    System.Console.WriteLine("DataServer writeFile");
+        //    if (files.ContainsKey(fileName))
+        //    {
+        //        FileStructure newFile = (FileStructure)files[fileName];
+        //        if (!newFile.getLockRead() & !newFile.getLockWrite() & !newFile.getLockDelete())
+        //        {
+        //            newFile.lockWrite();
+        //            newFile.incrementVersion();
 
-                    //overwrites local file
-                    File.WriteAllBytes(fileName, array);
+        //            //overwrites local file
+        //            File.WriteAllBytes(fileName, array);
 
-                    files.Remove(fileName);
-                    newFile.unlockWrite();
-                    files.Add(fileName, newFile);
-                }
+        //            files.Remove(fileName);
+        //            newFile.unlockWrite();
+        //            files.Add(fileName, newFile);
+        //        }
 
-            }
-            else
-            {
-                //new file
-                FileStructure newFile = new FileStructure(fileName);
-                newFile.lockWrite();
+        //    }
+        //    else
+        //    {
+        //        //new file
+        //        FileStructure newFile = new FileStructure(fileName);
+        //        newFile.lockWrite();
 
-                //writes local file
-                File.WriteAllBytes(fileName, array);
+        //        //writes local file
+        //        File.WriteAllBytes(fileName, array);
 
-                newFile.unlockWrite();
-                files.Add(fileName, newFile);
-            }
-        }
+        //        newFile.unlockWrite();
+        //        files.Add(fileName, newFile);
+        //    }
+        //}
 
         /********Client To DataServer***********/
 
         //returns the version and content of local file
         public DadosFicheiroDS read(string fileName, string semantics)
         {
-            System.Console.WriteLine("Cliente está a ler ficheiro do DS");
-
+            System.Console.WriteLine("DS: " + dataServerID + " - Client: enviou comando READ - ficheiro: " + fileName);
             if (!failed)
             {
                 if (freezed)
                 {
-                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
-                    string aux1 = fileName;
-                    string aux2 = semantics;
-                    actionQueue.Enqueue(() => readFile(aux1, aux2));
-                    throw new NullReferenceException();
+                    System.Console.WriteLine("DS: " + dataServerID + " - READ: encontra-se no modo freeze");
+                    object remoteObject = new object();
+                    lock (this)
+                    {
+                        priorityQueue.Enqueue(remoteObject);
+                    }
+                    lock (remoteObject)
+                    {
+                        Monitor.Wait(remoteObject);
+                    }
+                   // throw new NullReferenceException();
                 }
                 else
                 {
-                    if (actionQueue.Count > 0)
+                    if (priorityQueue.Count > 0)
                     {
-                        string aux1 = fileName;
-                        string aux2 = semantics;
-                        actionQueue.Enqueue(() => readFile(aux1, aux2));
+                        object remoteObject = new object();
+                        lock (this)
+                        {
+                            priorityQueue.Enqueue(remoteObject);
+                        }
+                        lock (remoteObject)
+                        {
+                            Monitor.Wait(remoteObject);
+                        }
+                    }
+
+                }
+
+                System.Console.WriteLine("DS: " + dataServerID + " - READ: inicia leitura do ficheiro: " + fileName);
+                if (files.ContainsKey(fileName))
+                {
+                    FileStructure newFile = (FileStructure)files[fileName];
+                    if (!newFile.getLockWrite() && !newFile.getLockDelete())
+                    {
+                        newFile.lockRead();
+                        DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(fileName));
+                        newFile.unlockRead();
+                        return ffds;
                     }
                     else
                     {
-                        return readFile(fileName, semantics);
+                        System.Console.WriteLine("DS: " + dataServerID + " - READ: o ficheiro: " + fileName + " encontra-se em modo de escrita");
+                        return null;
                     }
+                }
+                else
+                {
+                    System.Console.WriteLine("DS: " + dataServerID + " - READ: o ficheiro: " + fileName + " não existe em sistema");
+                    return null;
                 }
 
             }
             else
             {
-                System.Console.WriteLine("DataServer está failed. Ignora pedidos de clientes");
+                System.Console.WriteLine("DS: " + dataServerID + " - READ: está em modo failed. Ignora pedidos de clientes");
             }
             return null;
         }
@@ -350,52 +384,109 @@ namespace DataServer
         //overwrites the content of file, creates new version
         public void write(string fileName, byte[] array)
         {
-            System.Console.WriteLine("Cliente está a escrever ficheiro do DS");
-
+            System.Console.WriteLine("DS: " + dataServerID + " - Client: enviou comando WRITE - ficheiro: " + fileName);
             if (!failed)
             {
                 if (freezed)
                 {
-                    System.Console.WriteLine("DS está freezed. Adiciona pedidos a threadpool");
-                    string auxi1 = fileName;
-                    byte[] auxi2 = array;
-                    actionQueue.Enqueue(() => writeFile(auxi1, auxi2));
-                    throw new NullReferenceException();
+                    System.Console.WriteLine("DS: " + dataServerID + " - WRITE: encontra-se no modo freeze");
+                    object remoteObject = new object();
+                    lock(this)
+                    {
+                        priorityQueue.Enqueue(remoteObject);
+                    }
+                    lock(remoteObject){
+                        Monitor.Wait(remoteObject);
+                    }
+                   // throw new NullReferenceException();
                 }
                 else
                 {
-                    if (actionQueue.Count > 0)
+                    if (priorityQueue.Count > 0)
                     {
-                        string auxi1 = fileName;
-                        byte[] auxi2 = array;
-                        actionQueue.Enqueue(() => writeFile(auxi1, auxi2));
+                        object remoteObject = new object();
+                        lock (this)
+                        {
+                            priorityQueue.Enqueue(remoteObject);
+                        }
+                        lock (remoteObject)
+                        {
+                            Monitor.Wait(remoteObject);
+                        }
+                    }
+
+                }
+
+                System.Console.WriteLine("DS: " + dataServerID + " - WRITE: inicia escrita do ficheiro: " + fileName);
+                if (files.ContainsKey(fileName))
+                {
+                    System.Console.WriteLine("DS: " + dataServerID + " - WRITE: o ficheiro: " + fileName + " existe em sistema. Inicia processo de overwrite do ficheiro");
+                    FileStructure newFile = (FileStructure)files[fileName];
+                    if (!newFile.getLockRead() & !newFile.getLockWrite() & !newFile.getLockDelete())
+                    {
+                        newFile.lockWrite();
+                        newFile.incrementVersion();
+
+                        //overwrites local file
+                        File.WriteAllBytes(fileName, array);
+                        lock (files)
+                        {
+                            files.Remove(fileName);
+                            newFile.unlockWrite();
+                            files.Add(fileName, newFile);
+                        }
                     }
                     else
                     {
-                        writeFile(fileName, array);
+                        System.Console.WriteLine("DS: " + dataServerID + " - WRITE: o ficheiro: " + fileName + " encontra-se em modo de escrita");
+                        throw new NullReferenceException();
+                    }
+
+                }
+                else
+                {
+                    System.Console.WriteLine("DS: " + dataServerID + " - WRITE: o ficheiro: " + fileName + " não existe em sistema. Criação de novo ficheiro");
+                    //new file
+                    FileStructure newFile = new FileStructure(fileName);
+                    newFile.lockWrite();
+
+                    //writes local file
+                    File.WriteAllBytes(fileName, array);
+
+                    newFile.unlockWrite();
+                    lock (files)
+                    {
+                        files.Add(fileName, newFile);
                     }
                 }
+
 
             }
             else
             {
-                System.Console.WriteLine("DataServer está failed. Ignora pedidos de clientes");
+                System.Console.WriteLine("DS: " + dataServerID + " - WRITE: está em modo failed. Ignora pedidos de clientes");
                 throw new NullReferenceException();
             }
+
         }
 
         public bool delete(string fileName)
         {
+            System.Console.WriteLine("DS: " + dataServerID + " - Client: enviou comando delete - ficheiro: " + fileName);
             if (!failed && !freezed)
             {
                 if (files.ContainsKey(fileName))
                 {
+                    System.Console.WriteLine("DS: " + dataServerID + " - DELETE: inicia o processo de apagar o ficheiro: " + fileName);
                     FileStructure newFile = (FileStructure)files[fileName];
                     if (!newFile.getLockRead() && !newFile.getLockWrite())
                     {
                         newFile.lockDelete();
-                        files.Remove(fileName);
-                        files.Add(fileName, newFile);
+                        lock (files)
+                        {
+                            files.Remove(fileName);
+                            files.Add(fileName, newFile);
+                        }
                         return true;
                     }
                 }
@@ -408,20 +499,28 @@ namespace DataServer
         {
             if (resposta == true)
             {
+                System.Console.WriteLine("DS: " + dataServerID + " - DELETE: apaga o ficheiro: " + fileName);
                 if (files.ContainsKey(fileName))
                 {
-                    File.Delete(fileName);
-                    files.Remove(fileName);
+                    lock(files)
+                    {
+                        File.Delete(fileName);
+                        files.Remove(fileName);
+                    }
                 }
             }
             else
             {
+                System.Console.WriteLine("DS: " + dataServerID + " - DELETE: reverte o processo de apagar o ficheiro: " + fileName);
                 if (files.ContainsKey(fileName))
                 {
                     FileStructure newFile = (FileStructure)files[fileName];
                     newFile.unlockDelete();
-                    files.Remove(fileName);
-                    files.Add(fileName, newFile);
+                    lock (files)
+                    {
+                        files.Remove(fileName);
+                        files.Add(fileName, newFile);
+                    }
                 }
             }
 
