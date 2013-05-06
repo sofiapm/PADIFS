@@ -618,25 +618,22 @@ namespace Client
                 {
                     new Thread(delegate()
                     {
+
                         try
                         {
                             DadosFicheiroDS d = ds.read(fileName, semantics);
-
-                            if (d != null)
-                                dadosDS.Add(idDados++, d);
-                            else
-                                idDados++;
-
+                            dadosDS.Add(idDados++, d);
                         }
                         catch
                         {
                             System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
                         }
 
+
+                        //idDados++;
                         // If we're the last thread, signal
                         if (idDados >= dados.getRQ())
                             resetEvent.Set();
-
 
                     }).Start();
 
@@ -829,6 +826,7 @@ namespace Client
         //Funcao de Write que recebe a string
         public void writeS(int fileReg, string conteudo)
         {
+            System.Console.WriteLine("CONTEUDOOOOOO: " + conteudo);
             if (fileRegister.Contains(fileReg))
             {
                 string nameFile = (string)fileRegister[fileReg];
@@ -918,23 +916,18 @@ namespace Client
                     {
                         new Thread(delegate()
                         {
-
                             try
                             {
                                 ds.write(fileName, array);
                                 idWrite++;
-
-
+                                // If we're the last thread, signal
+                                if (idWrite >= dados.getWQ())
+                                    resetEvent.Set();
                             }
                             catch (Exception e)
                             {
                                 System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
                             }
-                            // If we're the last thread, signal
-                            if (idWrite >= dados.getWQ())
-                                resetEvent.Set();
-
-
 
                         }).Start();
                     }
