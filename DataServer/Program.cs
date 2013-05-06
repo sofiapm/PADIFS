@@ -366,7 +366,7 @@ namespace DataServer
 
                         string currentDirectory = Environment.CurrentDirectory;
                         string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-                        string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID + fileName;
+                        string strpathFiles = newDirectory[0] + "Disk\\" + fileName;
                         DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(strpathFiles));
                         newFile.unlockRead();
                         return ffds;
@@ -438,7 +438,7 @@ namespace DataServer
                         //overwrites local file
                         string currentDirectory = Environment.CurrentDirectory;
                         string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-                        string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID + fileName;
+                        string strpathFiles = newDirectory[0] + "Disk\\" + fileName;
                         File.WriteAllBytes(strpathFiles, array);
                         lock (files)
                         {
