@@ -374,7 +374,7 @@ namespace DataServer
                     else
                     {
                         System.Console.WriteLine("DS: " + dataServerID + " - READ: o ficheiro: " + fileName + " encontra-se em modo de escrita");
-                        throw new NullReferenceException();
+                        return null;
                     }
                 }
                 else
