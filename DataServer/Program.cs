@@ -203,7 +203,7 @@ namespace DataServer
             System.Console.WriteLine("DS: " + dataServerID + " - processaQueue()");
             lock (priorityQueue)
             {
-                while (priorityQueue.Count > 0)
+                while (priorityQueue.Count() > 0)
                 {
                         object remoteObject;
                         remoteObject = priorityQueue.Dequeue();
