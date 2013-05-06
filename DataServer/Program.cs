@@ -339,7 +339,6 @@ namespace DataServer
                     {
                         Monitor.Wait(remoteObject);
                     }
-                    // throw new NullReferenceException();
                 }
                 else
                 {
@@ -355,7 +354,6 @@ namespace DataServer
                             Monitor.Wait(remoteObject);
                         }
                     }
-
                 }
 
                 System.Console.WriteLine("DS: " + dataServerID + " - WRITE: inicia escrita do ficheiro: " + fileName);
@@ -556,5 +554,26 @@ namespace DataServer
         {
             ctx.respostaMS(resp);
         }
+
+        public DadosFicheiroDS readMS(string fileName)
+        {
+            return ctx.read(fileName, "");
+        }
+
+        public void writeMS(string fileName, byte[] array)
+        {
+            ctx.write(fileName, array);
+        }
+
+        public bool deleteMS(string fileName)
+        {
+            return ctx.delete(fileName);
+        }
+
+        public void confirmarDeleteMS(string fileName, bool confirmacao)
+        {
+            ctx.confirmarDelete(fileName, confirmacao);
+        }
+
     }
 }
