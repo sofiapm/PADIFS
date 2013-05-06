@@ -206,9 +206,7 @@ namespace DataServer
             {
                 while (priorityQueue.Count() > 0)
                 {
-
                     remoteObject = priorityQueue.Dequeue();
-
                     lock (remoteObject)
                     {
                         Monitor.Pulse(remoteObject);
@@ -234,14 +232,14 @@ namespace DataServer
 
         public string dump()
         {
-            string st="Puppet mandou o DS fazer Dump\n";
+            string st = "Puppet mandou o DS fazer Dump\n";
             st += "---------------------BEGIN DUMP DataServer: " + dataServerID + " ------------------------\n";
             st += "---------------------Hashtable Files------------------------\n";
             foreach (DictionaryEntry entry in files)
             {
                 FileStructure aux;
                 aux = (FileStructure)entry.Value;
-                st += "DataServer id: " + dataServerID + ", File name: " + aux.getFileName() + ", Version: " + aux.getVersion() + 
+                st += "DataServer id: " + dataServerID + ", File name: " + aux.getFileName() + ", Version: " + aux.getVersion() +
                     ", Write lock: " + aux.getLockWrite() + ", Read lock: " + aux.getLockRead() + ", Delete lock: " + aux.getLockDelete() + "\n";
             }
 
@@ -252,69 +250,9 @@ namespace DataServer
             st += "--------------------END DUMP DataServer: " + dataServerID + " ------------------------\n";
 
             System.Console.WriteLine(st);
-            
+
             return st;
         }
-
-        //public DadosFicheiroDS readFile(string fileName, string semantics)
-        //{
-        //    System.Console.WriteLine("DataServer readFile");
-        //    if (files.ContainsKey(fileName))
-        //    {
-        //        FileStructure newFile = (FileStructure)files[fileName];
-        //        if (!newFile.getLockWrite() && !newFile.getLockDelete())
-        //        {
-        //            newFile.lockRead();
-        //            DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(fileName));
-        //            newFile.unlockRead();
-        //            return ffds;
-        //        }
-        //        else
-        //        {
-        //            System.Console.WriteLine("O ficheiro " + fileName + " encontra-se em escrita");
-        //            return null;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        System.Console.WriteLine("O ficheiro " + fileName + " não existe em sistema");
-        //        return null;
-        //    }
-        //}
-
-        //public void writeFile(string fileName, byte[] array)
-        //{
-        //    System.Console.WriteLine("DataServer writeFile");
-        //    if (files.ContainsKey(fileName))
-        //    {
-        //        FileStructure newFile = (FileStructure)files[fileName];
-        //        if (!newFile.getLockRead() & !newFile.getLockWrite() & !newFile.getLockDelete())
-        //        {
-        //            newFile.lockWrite();
-        //            newFile.incrementVersion();
-
-        //            //overwrites local file
-        //            File.WriteAllBytes(fileName, array);
-
-        //            files.Remove(fileName);
-        //            newFile.unlockWrite();
-        //            files.Add(fileName, newFile);
-        //        }
-
-        //    }
-        //    else
-        //    {
-        //        //new file
-        //        FileStructure newFile = new FileStructure(fileName);
-        //        newFile.lockWrite();
-
-        //        //writes local file
-        //        File.WriteAllBytes(fileName, array);
-
-        //        newFile.unlockWrite();
-        //        files.Add(fileName, newFile);
-        //    }
-        //}
 
         /********Client To DataServer***********/
 
@@ -336,7 +274,6 @@ namespace DataServer
                     {
                         Monitor.Wait(remoteObject);
                     }
-                   // throw new NullReferenceException();
                 }
                 else
                 {
@@ -352,7 +289,6 @@ namespace DataServer
                             Monitor.Wait(remoteObject);
                         }
                     }
-
                 }
 
                 System.Console.WriteLine("DS: " + dataServerID + " - READ: inicia leitura do ficheiro: " + fileName);
@@ -377,7 +313,6 @@ namespace DataServer
                     System.Console.WriteLine("DS: " + dataServerID + " - READ: o ficheiro: " + fileName + " não existe em sistema");
                     return null;
                 }
-
             }
             else
             {
@@ -396,14 +331,15 @@ namespace DataServer
                 {
                     System.Console.WriteLine("DS: " + dataServerID + " - WRITE: encontra-se no modo freeze");
                     object remoteObject = new object();
-                    lock(this)
+                    lock (this)
                     {
                         priorityQueue.Enqueue(remoteObject);
                     }
-                    lock(remoteObject){
+                    lock (remoteObject)
+                    {
                         Monitor.Wait(remoteObject);
                     }
-                   // throw new NullReferenceException();
+                    // throw new NullReferenceException();
                 }
                 else
                 {
@@ -507,7 +443,7 @@ namespace DataServer
                 System.Console.WriteLine("DS: " + dataServerID + " - DELETE: apaga o ficheiro: " + fileName);
                 if (files.ContainsKey(fileName))
                 {
-                    lock(files)
+                    lock (files)
                     {
                         File.Delete(fileName);
                         files.Remove(fileName);
@@ -573,7 +509,7 @@ namespace DataServer
 
         public string dump()
         {
-           return ctx.dump();
+            return ctx.dump();
         }
 
     }
