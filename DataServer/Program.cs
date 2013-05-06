@@ -201,12 +201,11 @@ namespace DataServer
         public void processaQueue()
         {
             System.Console.WriteLine("DS: " + dataServerID + " - processaQueue()");
-           
-                while (priorityQueue.Count != 0)
+            lock (priorityQueue)
+            {
+                while (priorityQueue.Count > 0)
                 {
-                    lock (priorityQueue)
-                    {
-                        object remoteObject = new object();
+                        object remoteObject;
                         remoteObject = priorityQueue.Dequeue();
                         Monitor.Pulse(remoteObject);
                     }
