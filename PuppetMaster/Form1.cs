@@ -578,7 +578,19 @@ namespace PuppetMaster
                      if (arg[3].Length > 1)
                      {
                          //ex: WRITE c-1, 0, "Text contents of the file. Contents are a string delimited by double quotes as this one"
-                         client.writeS(Int32.Parse(arg[2]), arg[3]);
+                         string s = arg[3];
+                         int i = 4;
+                         while (true)
+                         {
+                             try{
+                                 s = s + " " + arg[i];
+                                 i++;
+                             }catch{
+                                break;
+                             }
+                            
+                         }
+                         client.writeS(Int32.Parse(arg[2]), s);
                      }
                      else
                      {
@@ -626,8 +638,23 @@ namespace PuppetMaster
                     typeof(IPuppetToClient),
                     "tcp://localhost:807" + clients[arg[1]] + "/" + arg[1] + "PuppetClient");
 
+                     string s = arg[5];
+                     int i = 6;
+                     while (true)
+                     {
+                         try
+                         {
+                             s = s + " " + arg[i];
+                             i++;
+                         }
+                         catch
+                         {
+                             break;
+                         }
 
-                     client.copy(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]), arg[4]);
+                     }
+
+                     client.copy(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]), s);
                  }
                  else
                  {

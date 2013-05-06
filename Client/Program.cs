@@ -11,7 +11,7 @@ using System.Collections;
 using System.Threading;
 
 namespace Client
-{   
+{
     class Program
     {
 
@@ -75,13 +75,13 @@ namespace Client
         int keyArrayRegister = 0;
         int keyFileRegister = 0;
 
-        public Cliente (TcpChannel canal, Hashtable metaServers, String id)
+        public Cliente(TcpChannel canal, Hashtable metaServers, String id)
         {
-            channel=canal;
+            channel = canal;
             this.metaDataServers = metaServers;
             idCliente = id;
         }
-        
+
         /********Puppet To Client***********/
         //puppet manda o cliente fazer open de um ficheiro ao MS
         public void open(string fileName)
@@ -103,15 +103,15 @@ namespace Client
                 }
                 catch //(Exception e)
                 {
-                   // System.Console.WriteLine(e.ToString());
+                    // System.Console.WriteLine(e.ToString());
                     System.Console.WriteLine("[OPEN]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                 }
             }
 
             bool temDS = true;
 
-            try{fileData.getPorts();}
-            catch (NullReferenceException e){temDS = false;}
+            try { fileData.getPorts(); }
+            catch (NullReferenceException e) { temDS = false; }
 
             if (!temDS)
             {
@@ -127,8 +127,8 @@ namespace Client
 
                 ficheiroInfo.Add(fileName, fileData);
 
-                int key=-1;
-                bool existia=false;
+                int key = -1;
+                bool existia = false;
                 //verifica se ja existe um fileRegister para aquele ficheiro
                 foreach (DictionaryEntry en in fileRegister)
                 {
@@ -154,10 +154,10 @@ namespace Client
                     }
                     fileRegister.Add(keyFileRegister, fileName);
                     keyFileRegister++;
-                }               
+                }
 
             }
-   
+
         }
 
         //Puppet mando Cliente fazer close do ficheiro
@@ -202,7 +202,7 @@ namespace Client
                 //{
                 //    fileRegister.Remove(key);
                 //    keyFileRegister--;
-                    
+
                 //}
 
                 System.Console.WriteLine("[CLOSE]: Mandou Ms fechar file: " + fileName);
@@ -238,8 +238,8 @@ namespace Client
 
             bool temDS = true;
 
-            try{ fileData.getPorts(); }
-            catch (NullReferenceException e){ temDS = false; }
+            try { fileData.getPorts(); }
+            catch (NullReferenceException e) { temDS = false; }
 
             if (!temDS)
             {
@@ -247,7 +247,7 @@ namespace Client
             }
             else
             {
-                
+
                 //verifica se ja tinha metadados do ficheiro
                 if (ficheiroInfo.Contains(fileName))
                 {
@@ -291,43 +291,43 @@ namespace Client
                 }
             }
 
-            
+
             //System.Console.WriteLine("Mandou Ms criar file");
         }
 
         //puppet manda Cliente apagar o ficheiro
         public void delete(string fileName)
         {
-            DadosFicheiro dados=null;
+            DadosFicheiro dados = null;
             ManualResetEvent resetEvent = new ManualResetEvent(false);
             List<IClientToDS> listDS = new List<IClientToDS>();
             List<IClientToMS> listMS = new List<IClientToMS>();
-            
+
             //Cliente pede ao MS para apagar o ficheiro
             //recebe metadados do ficheiro, para comonicar com DS
             foreach (DictionaryEntry c in metaDataServers)
             {
-                 IClientToMS ms = (IClientToMS)Activator.GetObject(
-                          typeof(IClientToMS),
-                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
-                 listMS.Add(ms);
+                IClientToMS ms = (IClientToMS)Activator.GetObject(
+                         typeof(IClientToMS),
+                          "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerClient");
+                listMS.Add(ms);
 
-                 try
-                 {
-                     dados = ms.delete(fileName);
-                     System.Console.WriteLine("[DELETE]:  Mandou Ms apagar file: " + fileName);
-                     break;
-                 }
-                 catch
-                 {
-                     System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
-                 }
-             }
+                try
+                {
+                    dados = ms.delete(fileName);
+                    System.Console.WriteLine("[DELETE]:  Mandou Ms apagar file: " + fileName);
+                    break;
+                }
+                catch
+                {
+                    System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
+                }
+            }
 
             bool temDS = true;
 
-            try{ dados.getPorts(); }
-            catch (NullReferenceException e){ temDS = false; }
+            try { dados.getPorts(); }
+            catch (NullReferenceException e) { temDS = false; }
 
             bool consegueApagar = false;
 
@@ -356,12 +356,12 @@ namespace Client
                             if (b.Equals(false))
                                 consegueApagar = false;
                             idDados++;
-                           
+
                             if (idDados >= dados.getPorts().Count)
                                 resetEvent.Set();
 
                         }).Start();
-                        
+
                         //break;
                     }
                     catch
@@ -424,7 +424,7 @@ namespace Client
                     System.Console.WriteLine("[DELETE]: Não conseguiu aceder ao MS: " + c.Key.ToString() + " E " + c.Value.ToString());
                 }
             }
-            
+
             //Cliente apaga os metadados do ficheiro
             if (consegueApagar)
             {
@@ -448,8 +448,8 @@ namespace Client
                 //    keyFileRegister--;
                 //}
             }
-                           
-            
+
+
         }
 
         //corre um novo script assincrono
@@ -457,35 +457,89 @@ namespace Client
         {
             //corre as instrucoes do script
             System.Console.WriteLine("[RUNSCRIPT]: Puppet mandou o Client correr script");
-
+            new Thread(delegate(){
             foreach (string operation in operations)
             {
                 string[] token = new string[] { " ", ", " };
                 string[] arg = operation.Split(token, StringSplitOptions.None);
 
                 //arg[1] e sempre o processo, que e ignorado
-                if (arg[0].Equals("OPEN")) open(arg[2]);
-                else if (arg[0].Equals("CLOSE")) close(arg[2]);
-                else if (arg[0].Equals("READ")) read(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]));
+                if (arg[0].Equals("OPEN")) 
+                    
+                        open(arg[2]);
+                    
+                else if (arg[0].Equals("CLOSE"))
+                    
+                        close(arg[2]);
+                    
+                else if (arg[0].Equals("READ")) 
+                        read(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]));
+                   
                 else if (arg[0].Equals("WRITE"))
                 {
                     if (arg[3].Length > 1)
                     {
+                        string s = arg[3];
+                        int i = 4;
+                        while (true)
+                        {
+                            try
+                            {
+                                s = s + " " + arg[i];
+                                i++;
+                            }
+                            catch
+                            {
+                                break;
+                            }
+
+                        }
                         //ex: WRITE c-1, 0, "Text contents of the file. Contents are a string delimited by double quotes as this one"
-                        writeS(Int32.Parse(arg[2]), arg[3]);
+                            writeS(Int32.Parse(arg[2]), s);
+                        
                     }
                     else
                     {
                         //ex: WRITE c-1, 0, 0
                         writeR(Int32.Parse(arg[2]), Int32.Parse(arg[3]));
+                        
                     }
                 }
-                else if (arg[0].Equals("COPY")) copy(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]), arg[4]);
-                else if (arg[0].Equals("CREATE")) create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
-                else if (arg[0].Equals("DELETE")) delete(arg[2]);
-                else if (arg[0].Equals("DUMP")) dump();
+                else if (arg[0].Equals("COPY"))
+                {
+                    string s = arg[5];
+                    int i = 6;
+                    while (true)
+                    {
+                        try
+                        {
+                            s = s + " " + arg[i];
+                            i++;
+                        }
+                        catch
+                        {
+                            break;
+                        }
+
+                    }
+                    copy(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]), s);
+                }
+
+                else if (arg[0].Equals("CREATE"))
+
+                    create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
+
+                else if (arg[0].Equals("DELETE"))
+
+                    delete(arg[2]);
+
+                else if (arg[0].Equals("DUMP"))
+
+                    dump();
+                    
 
             }
+            }).Start();
         }
 
         public string dump()
@@ -493,10 +547,10 @@ namespace Client
             String st = "*******************************Client" + idCliente + "DUMP*******************************\n";
 
 
-            st +="------------------------Informacao de Ficheiros------------------------\n";
+            st += "------------------------Informacao de Ficheiros------------------------\n";
             foreach (DictionaryEntry c in ficheiroInfo)
             {
-                DadosFicheiro dados = (DadosFicheiro) c.Value;
+                DadosFicheiro dados = (DadosFicheiro)c.Value;
                 st += "Ficheiro: " + c.Key + " tem readQuorum=" + dados.getRQ() + " e writeQuorum=" + dados.getWQ() + "e esta guardado nos DS: \n";
                 try
                 {
@@ -518,13 +572,16 @@ namespace Client
             st += "\n-----------------------------Array Register-----------------------------\n";
             foreach (DictionaryEntry c in arrayRegister)
             {
-               
-                byte[] b = (byte [])c.Value;
-              
-                string str = Encoding.UTF8.GetString(b, 0, b.Length);
-                st += "ArrayRegister: " + c.Key + " Ficheiro: " + str +"\n";
+
+                byte[] b = (byte[])c.Value;
+
+                char[] chars = new char[b.Length / sizeof(char)];
+                System.Buffer.BlockCopy(b, 0, chars, 0, b.Length);
+                string str =  new string(chars);
+
+                st += "ArrayRegister: " + c.Key + " Ficheiro: " + str + "\n";
             }
-            st +="\n-----------------------------File Version-----------------------------\n";
+            st += "\n-----------------------------File Version-----------------------------\n";
             foreach (DictionaryEntry c in versao)
             {
                 st += "Nome Ficheiro: " + c.Key + " Versao: " + c.Value + "\n";
@@ -532,10 +589,10 @@ namespace Client
 
             st += "****************************END -- Client" + idCliente + "DUMP***************************\n\n";
 
-           System.Console.WriteLine(st);
+            System.Console.WriteLine(st);
 
-           return st;
-            
+            return st;
+
 
         }
 
@@ -560,7 +617,7 @@ namespace Client
                 {
                     new Thread(delegate()
                     {
-                        
+
                         try
                         {
                             DadosFicheiroDS d = ds.read(fileName, semantics);
@@ -570,13 +627,13 @@ namespace Client
                         {
                             System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
                         }
-                        
+
 
                         //idDados++;
                         // If we're the last thread, signal
                         if (idDados >= dados.getRQ())
                             resetEvent.Set();
-                       
+
                     }).Start();
 
                     //break;
@@ -590,10 +647,11 @@ namespace Client
             resetEvent.WaitOne();
 
             int numNaoNull = 0;
-            foreach (DictionaryEntry c in dadosDS) {
+            foreach (DictionaryEntry c in dadosDS)
+            {
                 if (c.Value != null)
                 {
-                    numNaoNull++;   
+                    numNaoNull++;
                 }
             }
 
@@ -604,7 +662,7 @@ namespace Client
         }
 
         //funcao Read onde e verificada a semantica - versao
-        public byte[] read(int fileReg, string semantics) 
+        public byte[] read(int fileReg, string semantics)
         {
             byte[] file = new byte[0];
 
@@ -614,7 +672,7 @@ namespace Client
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
 
                 Hashtable dataServers = dados.getPorts();
-                
+
                 //verifica se tem DS para o quorum ou replicas
                 //se nao tiver, actualiza metadados
                 if (dataServers.Count < dados.getRQ() || dataServers.Count < dados.getNumDS())
@@ -627,87 +685,87 @@ namespace Client
                 //se ainda nao tiver DS para o quorum, nao consegue LER
                 if (dataServers.Count < dados.getRQ())
                 {
-                    System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura"); 
+                    System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
                 }
                 else
                 {
-                        //faz read, recebe a hashtable com todas as respostas dos DS
-                        Hashtable dadosDS = readthreads(fileName, semantics);
-                        
-                        if (dadosDS != null)//consegue fazer read
-                        {
-                            if (semantics.Equals("default"))
-                            {
-                                int v = 0;
+                    //faz read, recebe a hashtable com todas as respostas dos DS
+                    Hashtable dadosDS = readthreads(fileName, semantics);
 
-                                //percorre todas as respostas dos DS
-                                
+                    if (dadosDS != null)//consegue fazer read
+                    {
+                        if (semantics.Equals("default"))
+                        {
+                            int v = 0;
+
+                            //percorre todas as respostas dos DS
+
+                            foreach (DictionaryEntry e in dadosDS)
+                            {
+                                if (!e.Equals(null))
+                                {
+                                    DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
+                                    //versao lida por este DS é superior à anterior
+                                    if (d.getVersion() >= v)
+                                    {
+                                        v = d.getVersion();
+                                        file = d.getFile();
+                                    }
+                                }
+                            }
+
+                            //le-guarda a versao mais recente dessas respostas
+                            if (versao.Contains(fileName))
+                            {
+                                versao.Remove(fileName);
+                            }
+
+                            versao.Add(fileName, v);
+                        }
+                        else //monotonic
+                        {
+                            //ultima versao que li
+                            int v = 0;
+                            if (versao.Contains(fileName))
+                                v = (int)versao[fileName];
+
+                            while (true)
+                            {
+
+                                DadosFicheiroDS d = new DadosFicheiroDS(-1, null);
+                                //percorre todos os files que leu
                                 foreach (DictionaryEntry e in dadosDS)
                                 {
-                                    if (!e.Equals(null))
+                                    d = (DadosFicheiroDS)e.Value;
+
+                                    //se a versao deste file e maior ou igual a que tinha lido anteriormente
+                                    //entao é este o file que vai ler e actualiza a versao
+                                    if (d.getVersion() >= v)
                                     {
-                                        DadosFicheiroDS d = (DadosFicheiroDS)e.Value;
-                                        //versao lida por este DS é superior à anterior
-                                        if (d.getVersion() >= v)
-                                        {
-                                            v = d.getVersion();
-                                            file = d.getFile();
-                                        }
+                                        v = d.getVersion();
+                                        file = d.getFile();
+                                        versao.Remove(fileName);
+                                        versao.Add(fileName, d.getVersion());
+                                        break;
                                     }
+
                                 }
 
-                                //le-guarda a versao mais recente dessas respostas
-                                if (versao.Contains(fileName))
+                                if (d.getVersion() >= v) break;
+                                else
                                 {
-                                    versao.Remove(fileName);
-                                }
-                                
-                                versao.Add(fileName, v);
-                            }
-                            else //monotonic
-                            {
-                                //ultima versao que li
-                                int v = 0;
-                                if (versao.Contains(fileName))
-                                    v = (int)versao[fileName];
-                               
-                                while (true)
-                                {
-
-                                    DadosFicheiroDS d = new DadosFicheiroDS(-1, null);
-                                    //percorre todos os files que leu
-                                    foreach (DictionaryEntry e in dadosDS)
-                                    {
-                                        d = (DadosFicheiroDS)e.Value;
-                                        
-                                        //se a versao deste file e maior ou igual a que tinha lido anteriormente
-                                        //entao é este o file que vai ler e actualiza a versao
-                                        if (d.getVersion() >= v)
-                                        {
-                                            v = d.getVersion();
-                                            file = d.getFile();
-                                            versao.Remove(fileName);
-                                            versao.Add(fileName, d.getVersion());
-                                            break;
-                                        }
-                                       
-                                    }
-                                    
-                                    if (d.getVersion() >= v) break;
-                                    else
-                                    {
-                                        //se nao havia nenhuma versao superior a anterior lida
-                                        //volta a ler
-                                        dadosDS = readthreads(fileName, semantics);
-                                    }
+                                    //se nao havia nenhuma versao superior a anterior lida
+                                    //volta a ler
+                                    dadosDS = readthreads(fileName, semantics);
                                 }
                             }
-                        }
-                        else
-                        {
-                            System.Console.WriteLine("[READ]: Nao existe o file no DS.");
                         }
                     }
+                    else
+                    {
+                        System.Console.WriteLine("[READ]: Nao existe o file no DS.");
+                    }
+                }
             }
             else
             {
@@ -718,16 +776,16 @@ namespace Client
 
         //puppet mandou o cliente fazer READ
         //actualiza os registers
-        public byte [] read(int fileReg, string semantics, int strinRegister)
+        public byte[] read(int fileReg, string semantics, int strinRegister)
         {
-            
+
             byte[] file = read(fileReg, semantics);
 
             System.Console.WriteLine("[READ]: Mandou Read ao DS");
 
             if (arrayRegister.ContainsKey(strinRegister))
                 arrayRegister.Remove(strinRegister);
-                
+
             arrayRegister.Add(strinRegister, file);
 
             return file;
@@ -751,7 +809,7 @@ namespace Client
             //    dados = (DadosFicheiro)ficheiroInfo[nameFile];
             //    dataServers = dados.getPorts();
             //}
-             
+
             ////se ainda nao existirem DS suficientes para o quorum, nao consegue fazer a escrita
             //if (dataServers.Count < dados.getWQ())
             //{
@@ -759,20 +817,22 @@ namespace Client
             //}
             //else
             //{
-               write(nameFile, conteudo);
+            write(nameFile, conteudo);
             //}
-            
+
         }
 
         //Funcao de Write que recebe a string
         public void writeS(int fileReg, string conteudo)
         {
+            System.Console.WriteLine("CONTEUDOOOOOO: " + conteudo);
             if (fileRegister.Contains(fileReg))
             {
                 string nameFile = (string)fileRegister[fileReg];
                 //string to byte[]
-                byte[] bytes = Encoding.ASCII.GetBytes(conteudo);
-                
+                byte[] bytes = new byte[conteudo.Length * sizeof(char)];
+                System.Buffer.BlockCopy(conteudo.ToCharArray(), 0, bytes, 0, bytes.Length);
+
                 //actualiza arrayRegister
                 if (arrayRegister.ContainsKey(keyArrayRegister))
                 {
@@ -790,7 +850,7 @@ namespace Client
                     keyArrayRegister++;
                 }
 
-                
+
 
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
                 Hashtable dataServers = dados.getPorts();
@@ -803,7 +863,7 @@ namespace Client
                 //    dados = (DadosFicheiro)ficheiroInfo[nameFile];
                 //    dataServers = dados.getPorts();
                 //}
-                 
+
                 ////se ainda nao tiver o quorum, nao consegue fazer a escrita
                 //if (dataServers.Count < dados.getWQ())
                 //{
@@ -811,9 +871,9 @@ namespace Client
                 //}
                 //else
                 //{
-                    write(nameFile, bytes);
+                write(nameFile, bytes);
                 //}
-                
+
             }
             else
             {
@@ -829,7 +889,7 @@ namespace Client
 
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             Hashtable dataServers = dados.getPorts();
-           
+
             if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
             {
                 open(fileName);
@@ -912,7 +972,7 @@ namespace Client
             {
                 System.Console.WriteLine("[COPY]: Cliente FALHOU a fazer copy");
             }
-            
+
         }
 
         /********DS To Client***********/
@@ -937,7 +997,7 @@ namespace Client
         {
             ctx.writeR(fileReg, ByteArrayRegister);
         }
-        
+
         public void writeS(int fileRegister, string conteudo)
         {
             ctx.writeS(fileRegister, conteudo);
