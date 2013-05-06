@@ -108,10 +108,13 @@ namespace CommonTypes
         bool areYouAlive();
         void fail();
         Hashtable get_dataServers();
+        Hashtable get_dataServersFiles();
         SortedDictionary<string, int> get_DSnum();
         Hashtable get_files();
         Hashtable get_nBDataS();
-       
+        bool get_Primary();
+
+
         //DS
         void registarDS_replica(string nome, string id);
 
