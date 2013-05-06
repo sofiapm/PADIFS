@@ -457,30 +457,59 @@ namespace Client
         {
             //corre as instrucoes do script
             System.Console.WriteLine("[RUNSCRIPT]: Puppet mandou o Client correr script");
-            new Thread(delegate(){
-            foreach (string operation in operations)
+            new Thread(delegate()
             {
-                string[] token = new string[] { " ", ", " };
-                string[] arg = operation.Split(token, StringSplitOptions.None);
-
-                //arg[1] e sempre o processo, que e ignorado
-                if (arg[0].Equals("OPEN")) 
-                    
-                        open(arg[2]);
-                    
-                else if (arg[0].Equals("CLOSE"))
-                    
-                        close(arg[2]);
-                    
-                else if (arg[0].Equals("READ")) 
-                        read(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]));
-                   
-                else if (arg[0].Equals("WRITE"))
+                foreach (string operation in operations)
                 {
-                    if (arg[3].Length > 1)
+                    string[] token = new string[] { " ", ", " };
+                    string[] arg = operation.Split(token, StringSplitOptions.None);
+
+                    //arg[1] e sempre o processo, que e ignorado
+                    if (arg[0].Equals("OPEN"))
+
+                        open(arg[2]);
+
+                    else if (arg[0].Equals("CLOSE"))
+
+                        close(arg[2]);
+
+                    else if (arg[0].Equals("READ"))
+                        read(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]));
+
+                    else if (arg[0].Equals("WRITE"))
                     {
-                        string s = arg[3];
-                        int i = 4;
+                        if (arg[3].Length > 1)
+                        {
+                            string s = arg[3];
+                            int i = 4;
+                            while (true)
+                            {
+                                try
+                                {
+                                    s = s + " " + arg[i];
+                                    i++;
+                                }
+                                catch
+                                {
+                                    break;
+                                }
+
+                            }
+                            //ex: WRITE c-1, 0, "Text contents of the file. Contents are a string delimited by double quotes as this one"
+                            writeS(Int32.Parse(arg[2]), s);
+
+                        }
+                        else
+                        {
+                            //ex: WRITE c-1, 0, 0
+                            writeR(Int32.Parse(arg[2]), Int32.Parse(arg[3]));
+
+                        }
+                    }
+                    else if (arg[0].Equals("COPY"))
+                    {
+                        string s = arg[5];
+                        int i = 6;
                         while (true)
                         {
                             try
@@ -494,51 +523,23 @@ namespace Client
                             }
 
                         }
-                        //ex: WRITE c-1, 0, "Text contents of the file. Contents are a string delimited by double quotes as this one"
-                            writeS(Int32.Parse(arg[2]), s);
-                        
+                        copy(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]), s);
                     }
-                    else
-                    {
-                        //ex: WRITE c-1, 0, 0
-                        writeR(Int32.Parse(arg[2]), Int32.Parse(arg[3]));
-                        
-                    }
+
+                    else if (arg[0].Equals("CREATE"))
+
+                        create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
+
+                    else if (arg[0].Equals("DELETE"))
+
+                        delete(arg[2]);
+
+                    else if (arg[0].Equals("DUMP"))
+
+                        dump();
+
+
                 }
-                else if (arg[0].Equals("COPY"))
-                {
-                    string s = arg[5];
-                    int i = 6;
-                    while (true)
-                    {
-                        try
-                        {
-                            s = s + " " + arg[i];
-                            i++;
-                        }
-                        catch
-                        {
-                            break;
-                        }
-
-                    }
-                    copy(Int32.Parse(arg[2]), arg[3], Int32.Parse(arg[4]), s);
-                }
-
-                else if (arg[0].Equals("CREATE"))
-
-                    create(arg[2], Int32.Parse(arg[3]), Int32.Parse(arg[4]), Int32.Parse(arg[5]));
-
-                else if (arg[0].Equals("DELETE"))
-
-                    delete(arg[2]);
-
-                else if (arg[0].Equals("DUMP"))
-
-                    dump();
-                    
-
-            }
             }).Start();
         }
 
@@ -577,7 +578,7 @@ namespace Client
 
                 char[] chars = new char[b.Length / sizeof(char)];
                 System.Buffer.BlockCopy(b, 0, chars, 0, b.Length);
-                string str =  new string(chars);
+                string str = new string(chars);
 
                 st += "ArrayRegister: " + c.Key + " Ficheiro: " + str + "\n";
             }
@@ -617,18 +618,15 @@ namespace Client
                 {
                     new Thread(delegate()
                     {
-                        while (true)
+
+                        try
                         {
-                            try
-                            {
-                                DadosFicheiroDS d = ds.read(fileName, semantics);
-                                dadosDS.Add(idDados++, d);
-                                break;
-                            }
-                            catch
-                            {
-                                System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
-                            }
+                            DadosFicheiroDS d = ds.read(fileName, semantics);
+                            dadosDS.Add(idDados++, d);
+                        }
+                        catch
+                        {
+                            System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
                         }
 
 
@@ -918,24 +916,18 @@ namespace Client
                     {
                         new Thread(delegate()
                         {
-                            while (true)
+                            try
                             {
-                                try
-                                {
-                                    ds.write(fileName, array);
-                                    idWrite++;
-                                    break;
-                                    
-                                }
-                                catch (Exception e)
-                                {
-                                    System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
-                                }
+                                ds.write(fileName, array);
+                                idWrite++;
                                 // If we're the last thread, signal
-                                
+                                if (idWrite >= dados.getWQ())
+                                    resetEvent.Set();
                             }
-                            if (idWrite >= dados.getWQ())
-                                resetEvent.Set();
+                            catch (Exception e)
+                            {
+                                System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                            }
 
                         }).Start();
                     }
