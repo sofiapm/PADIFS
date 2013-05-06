@@ -201,15 +201,21 @@ namespace DataServer
         public void processaQueue()
         {
             System.Console.WriteLine("DS: " + dataServerID + " - processaQueue()");
+            object remoteObject;
             lock (priorityQueue)
             {
                 while (priorityQueue.Count() > 0)
                 {
-                        object remoteObject;
-                        remoteObject = priorityQueue.Dequeue();
+
+                    remoteObject = priorityQueue.Dequeue();
+
+                    lock (remoteObject)
+                    {
                         Monitor.Pulse(remoteObject);
                     }
+
                 }
+            }
         }
 
         //DS ignores requests from Clients or messages from MS
