@@ -9,7 +9,9 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Collections;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace DataServer
 {
@@ -18,6 +20,33 @@ namespace DataServer
 
         Program()
         {
+        }
+
+        public static void writeToDisk(string dataServerName, Hashtable fs, Queue<object> pQ)
+        {
+            while (true)
+            {
+                try
+                {
+                    string currentDirectory = Environment.CurrentDirectory;
+                    string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                    string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + dataServerName + ".xml";
+                    string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + dataServerName + ".xml";
+
+                    BinaryFormatter bfw = new BinaryFormatter();
+                    StreamWriter ws = new StreamWriter(@"" + strpathDSFiles);
+                    bfw.Serialize(ws.BaseStream, fs);
+                    ws.Close();
+
+                    BinaryFormatter bfw2 = new BinaryFormatter();
+                    StreamWriter ws2 = new StreamWriter(@"" + strpathDSPq);
+                    bfw2.Serialize(ws2.BaseStream, pQ);
+                    ws2.Close();
+                }
+                catch
+                {
+                }
+            }
         }
 
         static void Main(string[] args)
@@ -51,6 +80,14 @@ namespace DataServer
             DataServerMS.ctx = ds;
             DataServerPuppet.ctx = ds;
 
+            //delete files if they exists
+            string currentDirectory = Environment.CurrentDirectory;
+            string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+            string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + args[0] + ".xml";
+            string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + args[0] + ".xml";
+            File.Delete(strpathDSFiles);
+            File.Delete(strpathDSPq);
+
             foreach (DictionaryEntry c in metaDataServers)
             {
                 IDSToMS ms = (IDSToMS)Activator.GetObject(
@@ -71,6 +108,17 @@ namespace DataServer
             }
 
             System.Console.WriteLine(args[0] + " DataServer no port: " + args[1]);
+
+            //thread de backup para disco
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
+            new Thread(delegate()
+            {
+                String d = args[0];
+                Hashtable fs = ds.getFiles();
+                Queue<object> pq = ds.getPriorityQueue();
+                writeToDisk(d, fs, pq);
+            }).Start();
+
             System.Console.ReadLine();
         }
 
@@ -181,6 +229,16 @@ namespace DataServer
             dataServerID = id;
         }
 
+        public Hashtable getFiles()
+        {
+            return files;
+        }
+
+        public Queue<object> getPriorityQueue()
+        {
+            return priorityQueue;
+        }
+
         /********Puppet To DataServer***********/
 
         //starts buffering read and write requests, without answering
@@ -194,8 +252,8 @@ namespace DataServer
         public void unfreeze()
         {
             System.Console.WriteLine("DS: " + dataServerID + " - PuppetMaster: enviou comando unfreeze");
-            freezed = false;
             processaQueue();
+            freezed = false;
         }
 
         public void processaQueue()
@@ -227,6 +285,13 @@ namespace DataServer
         public void recover()
         {
             System.Console.WriteLine("DS: " + dataServerID + " - PuppetMaster: enviou comando recover");
+            try
+            {
+                readFromDisk();
+            }
+            catch
+            {
+            }
             failed = false;
         }
 
@@ -298,14 +363,18 @@ namespace DataServer
                     if (!newFile.getLockWrite() && !newFile.getLockDelete())
                     {
                         newFile.lockRead();
-                        DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(fileName));
+
+                        string currentDirectory = Environment.CurrentDirectory;
+                        string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                        string strpathFiles = newDirectory[0] + "Disk\\" + fileName;
+                        DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(strpathFiles));
                         newFile.unlockRead();
                         return ffds;
                     }
                     else
                     {
                         System.Console.WriteLine("DS: " + dataServerID + " - READ: o ficheiro: " + fileName + " encontra-se em modo de escrita");
-                        return null;
+                        throw new NullReferenceException();
                     }
                 }
                 else
@@ -367,7 +436,10 @@ namespace DataServer
                         newFile.incrementVersion();
 
                         //overwrites local file
-                        File.WriteAllBytes(fileName, array);
+                        string currentDirectory = Environment.CurrentDirectory;
+                        string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                        string strpathFiles = newDirectory[0] + "Disk\\" + fileName;
+                        File.WriteAllBytes(strpathFiles, array);
                         lock (files)
                         {
                             files.Remove(fileName);
@@ -390,7 +462,10 @@ namespace DataServer
                     newFile.lockWrite();
 
                     //writes local file
-                    File.WriteAllBytes(fileName, array);
+                    string currentDirectory = Environment.CurrentDirectory;
+                    string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                    string strpathFiles = newDirectory[0] + "Disk\\" + fileName;
+                    File.WriteAllBytes(strpathFiles, array);
 
                     newFile.unlockWrite();
                     lock (files)
@@ -463,6 +538,22 @@ namespace DataServer
                 }
             }
 
+        }
+
+        public void readFromDisk()
+        {
+            string currentDirectory = Environment.CurrentDirectory;
+            string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+            string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + dataServerID + ".xml";
+            string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + dataServerID + ".xml";
+
+            StreamReader readMap = new StreamReader(@"" + strpathDSFiles);
+            BinaryFormatter bf = new BinaryFormatter();
+            files = (Hashtable)bf.Deserialize(readMap.BaseStream);
+
+            StreamReader readMap2 = new StreamReader(@"" + strpathDSPq);
+            BinaryFormatter bf2 = new BinaryFormatter();
+            priorityQueue = (Queue<object>)bf2.Deserialize(readMap2.BaseStream);
         }
 
         /********MS To DataServer***********/
