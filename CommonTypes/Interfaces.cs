@@ -96,6 +96,10 @@ namespace CommonTypes
     {
         void areYouAlive();
         void respostaMS(string resp);
+        DadosFicheiroDS readMS(string fileName);
+        void writeMS(string fileName, byte[] array);
+        bool deleteMS(string fileName);
+        void confirmarDeleteMS(string fileName, bool confirmacao);
     }
 
     public interface IMSToMS
