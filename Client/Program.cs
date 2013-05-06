@@ -617,15 +617,18 @@ namespace Client
                 {
                     new Thread(delegate()
                     {
-
-                        try
+                        while (true)
                         {
-                            DadosFicheiroDS d = ds.read(fileName, semantics);
-                            dadosDS.Add(idDados++, d);
-                        }
-                        catch
-                        {
-                            System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
+                            try
+                            {
+                                DadosFicheiroDS d = ds.read(fileName, semantics);
+                                dadosDS.Add(idDados++, d);
+                                break;
+                            }
+                            catch
+                            {
+                                System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
+                            }
                         }
 
 
@@ -915,18 +918,24 @@ namespace Client
                     {
                         new Thread(delegate()
                         {
-                            try
+                            while (true)
                             {
-                                ds.write(fileName, array);
-                                idWrite++;
+                                try
+                                {
+                                    ds.write(fileName, array);
+                                    idWrite++;
+                                    break;
+                                    
+                                }
+                                catch (Exception e)
+                                {
+                                    System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                                }
                                 // If we're the last thread, signal
-                                if (idWrite >= dados.getWQ())
-                                    resetEvent.Set();
+                                
                             }
-                            catch (Exception e)
-                            {
-                                System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
-                            }
+                            if (idWrite >= dados.getWQ())
+                                resetEvent.Set();
 
                         }).Start();
                     }
