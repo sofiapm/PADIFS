@@ -556,16 +556,6 @@ namespace DataServer
             priorityQueue = (Queue<object>)bf2.Deserialize(readMap2.BaseStream);
         }
 
-        /********MS To DataServer***********/
-        public void areYouAlive()
-        {
-            System.Console.WriteLine("MS pergunta se DS esta vivo.");
-        }
-
-        public void respostaMS(string resp)
-        {
-            System.Console.WriteLine("MS diz: " + resp);
-        }
     }
 
     class DataServerPuppet : MarshalByRefObject, IPuppetToDS
@@ -635,16 +625,6 @@ namespace DataServer
     class DataServerMS : MarshalByRefObject, IMSToDS
     {
         public static DataServer ctx;
-
-        public void areYouAlive()
-        {
-            ctx.areYouAlive();
-        }
-
-        public void respostaMS(string resp)
-        {
-            ctx.respostaMS(resp);
-        }
 
         public DadosFicheiroDS readMS(string fileName)
         {

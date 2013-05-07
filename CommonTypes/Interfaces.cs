@@ -77,25 +77,13 @@ namespace CommonTypes
         void registarDS(string nome, string id);
     }
 
-    public interface IDSToClient
-    {
-        void respostaDS(string resposta);
-    }
-
     public interface IMSToPuppet
-    {
-        void respostaMS(string resposta);
-    }
-
-    public interface IMSToClient
     {
         void respostaMS(string resposta);
     }
 
     public interface IMSToDS
     {
-        void areYouAlive();
-        void respostaMS(string resp);
         DadosFicheiroDS readMS(string fileName);
         void writeMS(string fileName, byte[] array);
         bool deleteMS(string fileName);

@@ -18,27 +18,15 @@ namespace Client
         static void Main(string[] args)
         {
             TcpChannel channel;
-
-
+            
             channel = new TcpChannel(Int32.Parse(args[1]));
             ChannelServices.RegisterChannel(channel, false);
 
             System.Console.WriteLine("************Cliente " + args[0] + " no port: " + args[1] + "************");
-
-
+            
             RemotingConfiguration.RegisterWellKnownServiceType(
             typeof(PuppetClient),
             args[0] + "PuppetClient",
-            WellKnownObjectMode.Singleton);
-
-            RemotingConfiguration.RegisterWellKnownServiceType(
-            typeof(DSClient),
-            args[0] + "DSClient",
-            WellKnownObjectMode.Singleton);
-
-            RemotingConfiguration.RegisterWellKnownServiceType(
-            typeof(MSClient),
-            args[0] + "MSClient",
             WellKnownObjectMode.Singleton);
 
             Hashtable metaDataServers = new Hashtable();
@@ -48,8 +36,6 @@ namespace Client
 
             Cliente cliente = new Cliente(channel, metaDataServers, args[0]);
             PuppetClient.ctx = cliente;
-            DSClient.ctx = cliente;
-            MSClient.ctx = cliente;
 
             System.Console.ReadLine();
         }
@@ -1041,33 +1027,12 @@ namespace Client
             return ctx.dump();
 
         }
-
-
+        
         //puppet mandou o cliente enviar pedidos ao DS
         public void read(int fileRegister, string semantics, int stringRegister)
         {
             ctx.read(fileRegister, semantics, stringRegister);
 
-        }
-    }
-
-    class DSClient : MarshalByRefObject, IDSToClient
-    {
-        public static Cliente ctx;
-
-        public void respostaDS(string resposta)
-        {
-            ctx.respostaDS(resposta);
-        }
-    }
-
-    class MSClient : MarshalByRefObject, IMSToClient
-    {
-        public static Cliente ctx;
-
-        public void respostaMS(string resposta)
-        {
-            ctx.respostaMS(resposta);
         }
     }
 }
