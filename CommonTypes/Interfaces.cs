@@ -101,7 +101,7 @@ namespace CommonTypes
         Hashtable get_files();
         Hashtable get_nBDataS();
         bool get_Primary();
-
+        void migrar(string d1, string d2, string file);
 
         //DS
         void registarDS_replica(string nome, string id);
