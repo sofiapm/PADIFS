@@ -73,7 +73,6 @@ namespace CommonTypes
 
     public interface IDSToMS
     {
-        void respostaDS(string resposta);
         void registarDS(string nome, string id);
     }
 
@@ -106,7 +105,7 @@ namespace CommonTypes
         void close_replica(string file);
 
         //DS
-        void registarDS_replica(string nome, string id);
+        void registarDS_replica(string nome, string id, ArrayList f);
 
         //client
         void create_replica(DadosFicheiro file, int numDS);  //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
@@ -165,6 +164,11 @@ namespace CommonTypes
         public void setOpen(bool o)
         {
             open = o;
+        }
+
+        public void setPorts(Hashtable p)
+        {
+            ports = p;
         }
     }
 

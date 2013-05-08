@@ -18,9 +18,17 @@ namespace MetaDataServer
     class Program
     {
         //escrever a informação para disco
-        public static void writeToDisk(string nomeMeta, Hashtable dataServers, Hashtable files, Hashtable nBDataS, SortedDictionary<string, int> dataServersNum, Hashtable dsF)
+        public static void writeToDisk(string nomeMeta, MetaServer meta)
         {
             while (true)
+            {
+
+                Hashtable dataServers = meta.get_dataServers2();
+                Hashtable files = meta.get_files2();
+                Hashtable nBDataS = meta.get_nBDataS2();
+                SortedDictionary<string, int> dataServersNum = meta.get_DSnum2();
+                Hashtable dsF = meta.get_dataServersFiles2();
+
                 try
                 {
                     //System.Console.WriteLine("O ms está a escrever para o disco!");
@@ -59,11 +67,12 @@ namespace MetaDataServer
                     ws5.Close();
 
                 }
-                catch (Exception)
+                catch //(Exception)
                 {
                     //System.Console.WriteLine("[WRITETODISK] O MS está a ler do disco!");
                     //System.Console.WriteLine(e.ToString());
                 }
+            }
         }
 
         public static void isAlive(MetaServer meta, Hashtable metaDataServers)
@@ -94,6 +103,123 @@ namespace MetaDataServer
             }
         }
 
+        public static void migracao(MetaServer meta, Hashtable metaDataServers)
+        {
+            while (true)
+            {
+                SortedDictionary<string, int> dict = meta.get_DSnum2();
+                Hashtable dataServersFiles = meta.get_dataServersFiles2();
+                Hashtable dataServers = meta.get_dataServers2();
+
+                if (meta.get_migracao() > 0)
+                {
+                    System.Console.WriteLine("[MIGRACAO] MS entrou na migração de ficheiros...");
+
+                    lock (dict)
+                    {
+                        foreach (DictionaryEntry entry2 in dataServers)
+                        {
+                            foreach (DictionaryEntry entry1 in dataServers)
+                            {
+                                while (dict[(string)entry2.Key] < meta.get_minFiles() &&
+                                    dict[(string)entry1.Key] > meta.get_maxFiles())
+                                {
+                                    System.Console.WriteLine("[MIGRACAO] Fazer migração de " + (string)entry1.Key + " para " + (string)entry2.Key);
+
+                                    IMSToDS ds1 = (IMSToDS)Activator.GetObject(
+                                           typeof(IMSToDS),
+                                           "tcp://localhost:809" + dataServers[(string)entry1.Key] + "/" + entry1.Key.ToString() + "DataServerMS");
+
+                                    IMSToDS ds2 = (IMSToDS)Activator.GetObject(
+                                           typeof(IMSToDS),
+                                           "tcp://localhost:809" + dataServers[(string)entry2.Key] + "/" + entry2.Key.ToString() + "DataServerMS");
+
+
+                                    //ficheiros de entry1
+                                    ArrayList auxj = (ArrayList)dataServersFiles[(string)entry1.Key];
+                                    ArrayList aux = (ArrayList) auxj.Clone();
+
+                                    //ficheiros de entry2
+                                    ArrayList auxi;
+                                    try
+                                    {
+                                        auxi = (ArrayList)dataServersFiles[(string)entry2.Key];
+                                        string s = (string)auxi[0];
+                                    }
+                                    catch
+                                    {
+                                        auxi = new ArrayList();
+                                    }
+
+                                    //para cada ficheiro de entry1
+                                    foreach (string file in aux)
+                                    {
+                                        //se não existir no ds2 e se não estiver open
+                                        if (!auxi.Contains(file) && !(((DadosFicheiro)meta.get_files2()[file]).getOpen()))
+                                        {
+                                            try
+                                            {
+                                                DadosFicheiroDS f = ds1.readMS(file);
+                                                ds2.writeMS(file, f.getFile());
+                                                ds1.confirmarDeleteMS(file, true);
+                                            }
+                                            catch
+                                            {
+                                                //o ficheiro ainda não foi escrito no DS
+                                            }
+
+                                            //retirar de entry1
+                                            if (auxj.Contains(file))
+                                                auxj.Remove(file);
+                                            if (dataServersFiles.ContainsKey(entry1.Key))
+                                                dataServersFiles.Remove(entry1.Key);
+                                            dataServersFiles.Add(entry1.Key, auxj);
+                                            --dict[(string)entry1.Key];
+
+                                            //colocar em entry2
+                                            auxi.Add(file);
+                                            if (dataServersFiles.ContainsKey(entry2.Key))
+                                                dataServersFiles.Remove(entry2.Key);
+                                            dataServersFiles.Add(entry2.Key, auxi);
+                                            ++dict[(string)entry2.Key];
+
+                                            //propagar a migracao para as replicas
+                                            foreach (DictionaryEntry c in metaDataServers)
+                                            {
+                                                IMSToMS ms = (IMSToMS)Activator.GetObject(
+                                                       typeof(IMSToMS),
+                                                       "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
+
+                                                try
+                                                {
+                                                    ms.migrar((string)entry1.Key, (string)entry2.Key, file);
+                                                }
+                                                catch
+                                                {
+                                                }
+                                            }
+
+                                            System.Console.WriteLine("[MIGRACAO] MS migrou o ficheiro " + file
+                                               + " de " + (string)entry1.Key
+                                               + " para " + (string)entry2.Key);
+
+                                            //break;
+                                        }
+                                    }
+                                }
+                                //break;
+                            }
+                            //break;
+                        }
+                        meta.set_migracao(meta.get_migracao() - 1);
+                        meta.balancing();
+
+                        System.Console.WriteLine("[MIGRACAO] MS terminou migracao");
+                    }
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
             TcpChannel channel;
@@ -119,6 +245,7 @@ namespace MetaDataServer
 
             //hash dos outros metadatas
             Hashtable metaDataServers = new Hashtable();
+
             if (!args[0].Equals("m-0"))
                 metaDataServers.Add("1", "m-0");
             if (!args[0].Equals("m-1"))
@@ -152,19 +279,20 @@ namespace MetaDataServer
             ManualResetEvent resetEvent = new ManualResetEvent(false);
             new Thread(delegate()
             {
-                String m = args[0];
-                Hashtable ds = meta.get_dataServers2();
-                Hashtable f = meta.get_files2();
-                Hashtable nDS = meta.get_nBDataS2();
-                SortedDictionary<string, int> DSn = meta.get_DSnum2();
-                Hashtable dsF = meta.get_dataServersFiles2();
-                writeToDisk(m, ds, f, nDS, DSn, dsF);
+                writeToDisk(args[0], meta);
             }).Start();
 
             ManualResetEvent resetEvent2 = new ManualResetEvent(false);
             new Thread(delegate()
             {
                 isAlive(meta, metaDataServers);
+            }).Start();
+
+            ManualResetEvent resetEvent3 = new ManualResetEvent(false);
+            new Thread(delegate()
+            {
+                migracao(meta, metaDataServers);
+
             }).Start();
 
             System.Console.ReadLine();
@@ -203,6 +331,9 @@ namespace MetaDataServer
 
         //flag que indica se é ou não o primario
         public bool primary = false;
+
+        //flag que indica se é necessário haver migraçao de ficheiros
+        public int migracao = 0;
 
         //numero maximo de ficheiros em cada DS
         public int maxFiles = 0;
@@ -298,19 +429,38 @@ namespace MetaDataServer
             return primary;
         }
 
+        public int get_maxFiles()
+        {
+            return maxFiles;
+        }
+
+        public int get_minFiles()
+        {
+            return minFiles;
+        }
+
+        public int get_migracao()
+        {
+            return migracao;
+        }
+
+        public void set_migracao(int m)
+        {
+            migracao = m;
+        }
+
         /********Puppet To MetaDataServer***********/
         //the MS stops processing requests from clients or others MS
         public void fail()
         {
-            System.Console.WriteLine("[FAIL] Puppet mandou MS falhar!");
+            System.Console.WriteLine("[FAIL] MS vai falhar!");
             isFailed = true;
-            //primary = false;
         }
 
         //MS starts receiving requests from clients and others MS
         public void recover()
         {
-            System.Console.WriteLine("[RECOVER] Puppet mandou MS recuperar!");
+            System.Console.WriteLine("[RECOVER] MS vai recuperar!");
             isFailed = false;
             bool ms_falhados = false;
             primary = false;
@@ -356,6 +506,7 @@ namespace MetaDataServer
 
                 }
             }
+            System.Console.WriteLine("[RECOVER] MS recuperado");
 
         }
 
@@ -365,40 +516,41 @@ namespace MetaDataServer
             if (isFailed)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[DUMP] Puppet mandou o MS fazer Dump");
+            System.Console.WriteLine("[DUMP] MS vai fazer Dump");
             String result = "";
 
-            result = result + "[DUMP]***************M-" + nomeMeta + "***************";
+            result = result + "[DUMP]***************" + nomeMeta + "***************";
             try
             {
-                result = result + "[DUMP]***************DS Registados***************";
+                result = result + "\n[DUMP]---------------DS Registados---------------";
                 foreach (DictionaryEntry entry in dataServers)
                     result = result + "\n[DUMP]Nome: " + entry.Key +
                         " NumFiles: " + dict[(string)entry.Key];
-                result = result + "\n[DUMP]******************END DS*******************";
+                result = result + "\n[DUMP]---------------END DS---------------";
 
-                result = result + "\n[DUMP]*****************Ficheiros*****************";
+                result = result + "\n[DUMP]--------------Ficheiros--------------";
 
                 foreach (DictionaryEntry entry in files)
                 {
                     string aux = "";
                     foreach (DictionaryEntry ds in ((DadosFicheiro)entry.Value).getPorts())
-                        aux = aux + "\n[DUMP]NomeDS: " + ds.Key + " IDDS: " + ds.Value;
+                        aux = aux + "\n[DUMP]NomeDS: " + ds.Key;
 
                     result = result + "\n[DUMP]Nome: " + entry.Key
                         + " ReadQuórum: " + ((DadosFicheiro)entry.Value).getRQ()
                         + " WriteQuórum: " + ((DadosFicheiro)entry.Value).getWQ()
                         + aux + "\n--------------";
                 }
-                result = result + "\n[DUMP]***************END Ficheiros***************";
+                result = result + "\n[DUMP]------------END Ficheiros------------";
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
-                System.Console.WriteLine("[DUMP] " + e.ToString());
+                //System.Console.WriteLine("[DUMP] " + e.ToString());
             }
 
             System.Console.WriteLine(result);
 
+            System.Console.WriteLine("[DUMP] MS fez Dump");
             return result;
         }
 
@@ -409,11 +561,29 @@ namespace MetaDataServer
             if (isFailed || !primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[OPEN] Cliente mandou MS abrir ficheiro: " + fileName);
+            System.Console.WriteLine("[OPEN] MS vai abrir ficheiro: " + fileName);
 
             try
             {
-                return (DadosFicheiro)files[fileName];
+                DadosFicheiro ds = (DadosFicheiro)files[fileName];
+                ds.setOpen(true);
+
+                //envia mensagem para outras replicas
+                foreach (DictionaryEntry c in metaDataServers)
+                {
+                    IMSToMS ms = (IMSToMS)Activator.GetObject(
+                            typeof(IMSToMS),
+                            "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
+                    try
+                    {
+                        ms.open_replica(fileName);
+                    }
+                    catch //(Exception e)
+                    {
+                    }
+                }
+                System.Console.WriteLine("[OPEN] MS abriu ficheiro: " + fileName);
+                return ds;
             }
             catch
             {
@@ -428,10 +598,32 @@ namespace MetaDataServer
             if (isFailed || !primary)
                 throw new NullReferenceException();
 
-            if (files.ContainsKey(fileName))
-                System.Console.WriteLine("[CLOSE] Cliente mandou MS fechar ficheiro: " + fileName);
-            else
-                System.Console.WriteLine("[CLOSE] O ficheiro: " + fileName + " não existe!");
+            try
+            {
+                System.Console.WriteLine("[CLOSE] MS vai fechar ficheiro: " + fileName);
+                ((DadosFicheiro)files[fileName]).setOpen(false);
+
+                //envia mensagem para outras replicas
+                foreach (DictionaryEntry c in metaDataServers)
+                {
+                    IMSToMS ms = (IMSToMS)Activator.GetObject(
+                            typeof(IMSToMS),
+                            "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
+                    try
+                    {
+                        ms.close_replica(fileName);
+                    }
+                    catch //(Exception e)
+                    {
+                    }
+                }
+            }
+            catch
+            {
+                System.Console.WriteLine("[CLOSE] O Ficheiro " + fileName + " não existe.");
+            }
+
+            System.Console.WriteLine("[CLOSE] MS fechou ficheiro: " + fileName);
         }
 
         //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
@@ -440,10 +632,11 @@ namespace MetaDataServer
             if (isFailed || !primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[CREATE] Cliente mandou MS criar ficheiro: " + fileName);
+            System.Console.WriteLine("[CREATE] MS vai criar ficheiro: " + fileName);
 
             Hashtable ports = new Hashtable();
             DadosFicheiro df = new DadosFicheiro(0, 0, null, "", 0);
+
             if (!files.ContainsKey(fileName))
             {
                 System.Console.WriteLine("[CREATE] Numero de DS registados: " + dict.Count + ", Numero de replicas que o cliente quer: " + numDS);
@@ -455,35 +648,38 @@ namespace MetaDataServer
                     ports = bestDS(numDS);
 
                 //actualizar valores na dic dos ds
-                foreach (DictionaryEntry entry in ports)
-                    ++dict[(string)entry.Key];
-
                 df = new DadosFicheiro(rQuorum, wQuorum, ports, fileName, numDS);
                 files.Add(fileName, df);
                 nBDataS.Add(fileName, numDS);
 
-               foreach (DictionaryEntry entry in ports)
+                foreach (DictionaryEntry entry in ports)
                 {
+                    ++dict[(string)entry.Key];
                     ArrayList aux;
                     try
                     {
-                        aux = (ArrayList) dataServersFiles[entry.Key];
-                        string f = (string)aux[0];
+                        aux = (ArrayList)dataServersFiles[entry.Key];
                         dataServersFiles.Remove(entry.Key);
+                        string f = (string)aux[0];
                     }
-                    catch (NullReferenceException)
+                    catch// (Exception)
                     {
                         aux = new ArrayList();
+                    }
+                    aux.Add(fileName);
 
+                    try
+                    {
+                        dataServersFiles.Add(entry.Key, aux);
+                    }
+                    catch (Exception e)
+                    {
+                        System.Console.WriteLine(e.ToString());
                     }
 
-                    aux.Add(fileName);
-                    dataServersFiles.Add(entry.Key, aux);
-               }
-                
+                }
 
                 //envia mensagem para outras replicas
-                //if (primary)
                 foreach (DictionaryEntry c in metaDataServers)
                 {
                     IMSToMS ms = (IMSToMS)Activator.GetObject(
@@ -496,19 +692,22 @@ namespace MetaDataServer
                     }
                     catch //(Exception e)
                     {
+                        //System.Console.WriteLine(e.ToString());
                     }
                 }
 
                 this.balancing();
 
-                System.Console.WriteLine("[CREATE]********Stored in DS********");
+                String s = "[CREATE] " + fileName + " guardado no DS: ";
                 foreach (DictionaryEntry c in df.getPorts())
-                    System.Console.WriteLine("[CREATE] Nome: " + c.Key + " ID: " + c.Value);
-                System.Console.WriteLine("[CREATE]***********DS-END***********");
+                    s = s + " " + c.Key;
+
+                System.Console.WriteLine(s);
             }
             else
                 System.Console.WriteLine("[CREATE] O ficheiro " + fileName + " já existe!");
 
+            System.Console.WriteLine("[CREATE] MS criou ficheiro: " + fileName);
             return df;
         }
 
@@ -518,19 +717,22 @@ namespace MetaDataServer
             if (isFailed || !primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[DELETE] Cliente mandou MS apagar ficheiro: " + fileName);
+            System.Console.WriteLine("[DELETE] MS vai apagar ficheiro: " + fileName);
 
             DadosFicheiro df = new DadosFicheiro(0, 0, null, "", 0);
 
             if (files.ContainsKey(fileName))
             {
-                Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts().Clone();
-                df = new DadosFicheiro(((DadosFicheiro)files[fileName]).getRQ(),
-                    ((DadosFicheiro)files[fileName]).getWQ(),
-                    ports, fileName, ((DadosFicheiro)files[fileName]).getNumDS());
+                df = (DadosFicheiro)files[fileName];
+
+                // Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts();
+                // df = new DadosFicheiro(((DadosFicheiro)files[fileName]).getRQ(),
+                //    ((DadosFicheiro)files[fileName]).getWQ(),
+                //    ports, fileName, ((DadosFicheiro)files[fileName]).getNumDS());
             }
             else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
 
+            System.Console.WriteLine("[DELETE] MS apagou ficheiro: " + fileName);
             return df;
         }
 
@@ -539,7 +741,7 @@ namespace MetaDataServer
             if (isFailed || !primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
+            System.Console.WriteLine("[DELETE] MS vai confirmar apagar ficheiro: " + fileName);
 
             //envia mensagem para outras replicas
             foreach (DictionaryEntry c in metaDataServers)
@@ -558,14 +760,9 @@ namespace MetaDataServer
 
             if (confirmacao)
             {
-                DadosFicheiro df = new DadosFicheiro(0, 0, null, "", 0);
-
                 if (files.ContainsKey(fileName))
                 {
-                    Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts().Clone();
-                    df = new DadosFicheiro(((DadosFicheiro)files[fileName]).getRQ(),
-                        ((DadosFicheiro)files[fileName]).getWQ(),
-                        ports, fileName, ((DadosFicheiro)files[fileName]).getNumDS());
+                    Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts();
 
                     files.Remove(fileName);
                     nBDataS.Remove(fileName);
@@ -575,8 +772,11 @@ namespace MetaDataServer
                     {
                         --dict[(string)entry.Key];
                         ArrayList aux = (ArrayList)(dataServersFiles[entry.Key]);
-                        aux.Remove(fileName);
-                        dataServersFiles.Remove(entry.Key);
+                        if (aux.Contains(fileName))
+                            aux.Remove(fileName);
+
+                        if (dataServersFiles.ContainsKey(entry.Key))
+                            dataServersFiles.Remove(entry.Key);
                         dataServersFiles.Add(entry.Key, aux);
                     }
 
@@ -584,100 +784,157 @@ namespace MetaDataServer
                 }
                 else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
             }
+
+            System.Console.WriteLine("[DELETE] MS confirmou apagar ficheiro: " + fileName);
         }
 
         /********DS To MetadataServer***********/
-        //resposta de confirmação do DS
-        public void respostaDS(string resposta)
-        {
-            if (isFailed)
-                throw new NullReferenceException();
-
-            System.Console.WriteLine(resposta);
-        }
-
         //registar DS no MS
         public void registarDS(string name, string id)
         {
             if (isFailed || !primary)
                 throw new NullReferenceException();
 
-            System.Console.WriteLine("[REGISTARDS] MS registou DS: " + name);
+            System.Console.WriteLine("[REGISTARDS] MS vai registar DS: " + name);
 
             //envia mensagem para outras replicas
             if (primary)
-                foreach (DictionaryEntry c in metaDataServers)
-                {
-                    IMSToMS ms = (IMSToMS)Activator.GetObject(
-                           typeof(IMSToMS),
-                           "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
-
-                    try
-                    {
-                        ms.registarDS_replica(name, id);
-                        System.Console.WriteLine("[REGISTARDS] Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
-                    }
-                    catch //(Exception e)
-                    {
-                    }
-                }
-
-            if (!dataServers.ContainsKey(name))
             {
-                dataServers.Add(name, id);
-                dict.Add(name, 0);
-
-                foreach (DictionaryEntry entry in files)
-                    if (((DadosFicheiro)entry.Value).getPorts().Count < (int)nBDataS[(string)entry.Key])
-                    {
-                        ((DadosFicheiro)entry.Value).getPorts().Add(name, id);
-                        ++dict[name];
-                        System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
-                    }
-
-                this.balancing();
-
-                if (dict[name] < minFiles)
+                lock (dict)
                 {
-                    System.Console.WriteLine("[REGISTARDS] Fazer a migração...");
-                    this.migracao(name, id);
-                    //propagar as alteraçoes para os outras replicas
+
+                    if (!dataServers.ContainsKey(name))
+                    {
+                        ArrayList filesDS = new ArrayList();
+                        dataServers.Add(name, id);
+                        dict.Add(name, 0);
+
+                        foreach (DictionaryEntry entry in files)
+                            if (((DadosFicheiro)entry.Value).getPorts().Count < (int)nBDataS[(string)entry.Key])
+                            {
+                                Hashtable p = ((DadosFicheiro)entry.Value).getPorts();
+                                p.Add(name, id);
+                                ((DadosFicheiro)entry.Value).setPorts(p);
+
+                                filesDS.Add(entry.Key);
+                                ++dict[name];
+
+                                ArrayList aux;
+                                try
+                                {
+                                    aux = (ArrayList)dataServersFiles[name];
+                                    dataServersFiles.Remove(name);
+                                    string f = (string)aux[0];
+
+                                }
+                                catch //(Exception)
+                                {
+                                    aux = new ArrayList();
+                                }
+
+                                aux.Add(entry.Key);
+                                dataServersFiles.Add(name, aux);
+
+                                System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
+                            }
+
+                        foreach (DictionaryEntry c in metaDataServers)
+                        {
+                            IMSToMS ms = (IMSToMS)Activator.GetObject(
+                                   typeof(IMSToMS),
+                                   "tcp://localhost:808" + c.Key.ToString() + "/" + c.Value.ToString() + "MetaServerMS");
+
+                            try
+                            {
+                                ms.registarDS_replica(name, id, filesDS);
+                                System.Console.WriteLine("[REGISTARDS] Primario contactou com sucesso o MS: " + c.Value.ToString() + " E " + c.Key.ToString());
+                            }
+                            catch //(Exception e)
+                            {
+                            }
+                        }
+
+                        this.balancing();
+
+                        if (dict[name] < minFiles)
+                        {
+                            System.Console.WriteLine("[REGISTARDS] Fazer a migração...");
+                            ++migracao;
+                        }
+                    }
+                    else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");
                 }
+
+                System.Console.WriteLine("[REGISTARDS] MS registou DS: " + name);
             }
-            else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");
         }
 
         /*************replicas***************/
+        public void open_replica(string fileName)
+        {
+            if (isFailed || primary)
+                throw new NullReferenceException();
+
+            //System.Console.WriteLine("[OPEN] MS vai abrir ficheiro: " + fileName);
+
+            try
+            {
+                ((DadosFicheiro)files[fileName]).setOpen(true);
+
+            }
+            catch
+            {
+                //System.Console.WriteLine("[OPEN] O Ficheiro " + fileName + " não existe.");
+            }
+            //System.Console.WriteLine("[OPEN] MS abriu ficheiro: " + fileName);
+        }
+
+        public void close_replica(string fileName)
+        {
+            if (isFailed || primary)
+                throw new NullReferenceException();
+
+            //System.Console.WriteLine("[OPEN] MS vai fechar o fcheiro " + fileName );
+
+            try
+            {
+                ((DadosFicheiro)files[fileName]).setOpen(false);
+
+            }
+            catch
+            {
+                //System.Console.WriteLine("[OPEN] O Ficheiro " + fileName + " não existe.");
+            }
+
+            //System.Console.WriteLine("[OPEN] MS fechou o fcheiro " + fileName );
+        }
+
         public void create_replica(DadosFicheiro file, int numDS)
         {
             if (isFailed || primary)
                 throw new NullReferenceException();
 
-            //System.Console.WriteLine("[CREATE] Cliente mandou MS criar ficheiro: " + file.getName());
+            //System.Console.WriteLine("[CREATE] MS vai criar ficheiro: " + file.getName());
 
             if (!files.ContainsKey(file.getName()))
             {
                 files.Add(file.getName(), file);
                 nBDataS.Add(file.getName(), numDS);
 
-                //actualizar valores na dic dos ds
-                foreach (DictionaryEntry entry in file.getPorts())
-                    ++dict[(string)entry.Key];
-
-                
+                //actualizar valores na dic dos ds                
                 foreach (DictionaryEntry entry in file.getPorts())
                 {
+                    ++dict[(string)entry.Key];
                     ArrayList aux;
                     try
                     {
                         aux = (ArrayList)dataServersFiles[entry.Key];
-                        string f = (string)aux[0];
                         dataServersFiles.Remove(entry.Key);
+                        string f = (string)aux[0];
                     }
-                    catch (NullReferenceException)
+                    catch
                     {
                         aux = new ArrayList();
-
                     }
 
                     aux.Add(file);
@@ -685,38 +942,55 @@ namespace MetaDataServer
                 }
 
                 this.balancing();
-
-                //System.Console.WriteLine("[CREATE]********Stored in DS********");
-                //foreach (DictionaryEntry c in file.getPorts())
-                //    System.Console.WriteLine("[CREATE] Nome: " + c.Key + " ID: " + c.Value);
-                // System.Console.WriteLine("[CREATE]***********DS-END***********");
             }
             //else
             //System.Console.WriteLine("[CREATE] O ficheiro " + file.getName() + " já existe!");
+
+            //System.Console.WriteLine("[CREATE] MS criou ficheiro: " + file.getName());
         }
 
-        public void registarDS_replica(string name, string id)
+        public void registarDS_replica(string name, string id, ArrayList filesDS)
         {
             if (isFailed || primary)
                 throw new NullReferenceException();
 
-            //System.Console.WriteLine("[REGISTARDS] MS registou DS: " + name);
+            //System.Console.WriteLine("[REGISTARDS] MS vai registar o DS: " + name);
 
             if (!dataServers.ContainsKey(name))
             {
                 dataServers.Add(name, id);
                 dict.Add(name, 0);
 
-                foreach (DictionaryEntry entry in files)
-                    if (((DadosFicheiro)entry.Value).getPorts().Count < (int)nBDataS[(string)entry.Key])
+                foreach (DictionaryEntry entry in filesDS)
+                {
+                    Hashtable p = ((DadosFicheiro)entry.Value).getPorts();
+                    p.Add(name, id);
+                    ((DadosFicheiro)entry.Value).setPorts(p);
+
+                    ++dict[name];
+
+                    ArrayList aux;
+                    try
                     {
-                        ((DadosFicheiro)entry.Value).getPorts().Add(name, id);
-                        ++dict[name];
-                        //System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
+                        aux = (ArrayList)dataServersFiles[name];
+                        dataServersFiles.Remove(name);
+                        string f = (string)aux[0];
                     }
+                    catch
+                    {
+                        aux = new ArrayList();
+                    }
+
+                    aux.Add(entry.Key);
+                    dataServersFiles.Add(name, aux);
+
+                    //System.Console.WriteLine("[REGISTARDS] O ficheiro " + entry.Key + " foi guardado no DS " + name);
+                }
                 this.balancing();
             }
-            //else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");  
+            //else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado"); 
+
+            //System.Console.WriteLine("[REGISTARDS] MS registou o DS: " + name);
         }
 
         public void confirmarDelete_replica(string fileName, bool confirmacao)
@@ -724,18 +998,13 @@ namespace MetaDataServer
             if (isFailed || primary)
                 throw new NullReferenceException();
 
-            //System.Console.WriteLine("[DELETE] Cliente confirmou apagar ficheiro: " + fileName);
+            //System.Console.WriteLine("[DELETE] MS vai confirmar apagar ficheiro: " + fileName);
 
             if (confirmacao)
             {
-                DadosFicheiro df = new DadosFicheiro(0, 0, null, "", 0);
-
                 if (files.ContainsKey(fileName))
                 {
-                    Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts().Clone();
-                    df = new DadosFicheiro(((DadosFicheiro)files[fileName]).getRQ(),
-                        ((DadosFicheiro)files[fileName]).getWQ(),
-                        ports, fileName, ((DadosFicheiro)files[fileName]).getNumDS());
+                    Hashtable ports = (Hashtable)((DadosFicheiro)files[fileName]).getPorts();
 
                     files.Remove(fileName);
                     nBDataS.Remove(fileName);
@@ -745,7 +1014,7 @@ namespace MetaDataServer
                     {
                         --dict[(string)entry.Key];
                         ArrayList aux = (ArrayList)(dataServersFiles[entry.Key]);
-                        aux.Remove(fileName);
+                        if (aux.Contains(fileName)) aux.Remove(fileName);
                         dataServersFiles.Remove(entry.Key);
                         dataServersFiles.Add(entry.Key, aux);
                     }
@@ -754,6 +1023,8 @@ namespace MetaDataServer
                 }
                 // else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
             }
+
+            //System.Console.WriteLine("[DELETE] MS confirmaou apagar ficheiro: " + fileName);
         }
 
         /*************Funçoes auxiliares**************/
@@ -830,36 +1101,46 @@ namespace MetaDataServer
                 maxFiles = (int)Math.Ceiling((double)numFiles / (double)numDS);
                 minFiles = (int)Math.Floor((double)numFiles / (double)numDS);
 
-                System.Console.WriteLine("Balancing" + " MaxFiles: " + maxFiles + " MinFiles: " + minFiles);
+                // System.Console.WriteLine("Balancing" + " MaxFiles: " + maxFiles + " MinFiles: " + minFiles);
             }
             catch { }
         }
 
-        public void migracao(string nome, string id)
+        //migra o ficheiro filename do ds1 para o ds2
+        public void migrar(string ds1, string ds2, string filename)
         {
-            foreach (KeyValuePair<string, int> i in dict)
+            if (!primary && !isFailed)
             {
-                if (i.Value > maxFiles)
+                ArrayList auxj = (ArrayList)dataServersFiles[ds1];
+
+                //retirar de ds1
+                if (auxj.Contains(filename))
+                    auxj.Remove(filename);
+
+                if (dataServersFiles.ContainsKey(ds1))
+                    dataServersFiles.Remove(ds1);
+
+                dataServersFiles.Add(ds1, auxj);
+                --dict[ds1];
+
+                //colocar em ds2
+                ArrayList auxi;
+                try
                 {
-                   // IMSToDS ds1 = (IMSToDS)Activator.GetObject(
-                    //       typeof(IMSToDS),
-                     //      "tcp://localhost:808" + i.Key.ToString() + "/" + i.Value.ToString() + "MetaServerDS");
-
-                   // IMSToDS ds2 = (IMSToDS)Activator.GetObject(
-                    //       typeof(IMSToDS),
-                     //      "tcp://localhost:808" + nome + "/" + id + "MetaServerDS");
-
-                    //ArrayList aux = (ArrayList)dataServersFiles[i.Key];
-                    //string file = (string)aux[0];
-                    //DadosFicheiroDS f = ds1.readMS(file);
-                    //ds2.writeMS(file, f.getFile());
-
-                    //aux.Remove(file);
-                    //dataServersFiles.Remove(nome);
-                    //dataServersFiles.Add(nome, aux);
-                    //--dict[nome];
-
+                    auxi = (ArrayList)dataServersFiles[ds2];
+                    auxi.Add(filename);
                 }
+                catch
+                {
+                    auxi = new ArrayList();
+                    auxi.Add(filename);
+                }
+
+                if (dataServersFiles.ContainsKey(ds2))
+                    dataServersFiles.Remove(ds2);
+
+                dataServersFiles.Add(ds2, auxi);
+                ++dict[ds2];
             }
 
         }
@@ -869,16 +1150,28 @@ namespace MetaDataServer
     {
         public static MetaServer ctx;
 
-        //creates a new file (if it doesn t exist) - in case of sucesses, returns the same that open
+        //close a file
+        public void close_replica(string file)
+        {
+            ctx.close_replica(file);
+        }
+
+        //open a file
+        public void open_replica(string file)
+        {
+            ctx.open_replica(file);
+        }
+
+        //creates a new file (if it doesn t exist)
         public void create_replica(DadosFicheiro file, int numDS)
         {
             ctx.create_replica(file, numDS);
         }
 
         //regista o DS no MS
-        public void registarDS_replica(string nome, string ID)
+        public void registarDS_replica(string nome, string ID, ArrayList f)
         {
-            ctx.registarDS_replica(nome, ID);
+            ctx.registarDS_replica(nome, ID, f);
         }
 
         //confirmar o delete
@@ -927,6 +1220,11 @@ namespace MetaDataServer
         public void fail()
         {
             ctx.fail();
+        }
+
+        public void migrar(string d1, string d2, string file)
+        {
+            ctx.migrar(d1, d2, file);
         }
 
     }
@@ -992,11 +1290,6 @@ namespace MetaDataServer
     class MetaServerDS : MarshalByRefObject, IDSToMS
     {
         public static MetaServer ctx;
-
-        public void respostaDS(string resposta)
-        {
-            ctx.respostaDS(resposta);
-        }
 
         //regista o DS no MS
         public void registarDS(string nome, string ID)
