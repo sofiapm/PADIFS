@@ -102,6 +102,8 @@ namespace CommonTypes
         Hashtable get_nBDataS();
         bool get_Primary();
         void migrar(string d1, string d2, string file);
+        void open_replica(string file);
+        void close_replica(string file);
 
         //DS
         void registarDS_replica(string nome, string id);
@@ -119,6 +121,7 @@ namespace CommonTypes
         Hashtable ports;
         string name;
         int numDS;
+        bool open;
 
         public DadosFicheiro(int rQ, int wQ, Hashtable ports, string n, int m){
 
@@ -152,6 +155,16 @@ namespace CommonTypes
         public int getNumDS()
         {
             return numDS;
+        }
+
+        public bool getOpen()
+        {
+            return open;
+        }
+
+        public void setOpen(bool o)
+        {
+            open = o;
         }
     }
 
