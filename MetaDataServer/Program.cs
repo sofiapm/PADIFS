@@ -203,7 +203,7 @@ namespace MetaDataServer
                                                + " de " + (string)entry1.Key
                                                + " para " + (string)entry2.Key);
 
-                                            //break;
+                                            break;
                                         }
                                     }
                                 }
