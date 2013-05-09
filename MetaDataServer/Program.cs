@@ -426,6 +426,7 @@ namespace MetaDataServer
 
         public bool get_Primary()
         {
+
             return primary;
         }
 
@@ -498,7 +499,7 @@ namespace MetaDataServer
                 {
                     if (ms_falhados)
                         primary = true;
-
+           
                     ms_falhados = true;
 
                     if (primary)

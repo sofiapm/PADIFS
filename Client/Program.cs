@@ -171,26 +171,6 @@ namespace Client
 
                 ficheiroInfo.Remove(fileName);
 
-                //int key = -1;
-                //bool existia = false;
-                ////verifica se ja existe um fileRegister para aquele ficheiro
-                //foreach (DictionaryEntry en in fileRegister)
-                //{
-                //    if (en.Value.ToString().Equals(fileName))
-                //    {
-                //        key = (int)en.Key;
-                //        existia = true;
-                //        break;
-                //    }
-                //}
-
-                //if (existia)//se ja existia, actualiza
-                //{
-                //    fileRegister.Remove(key);
-                //    keyFileRegister--;
-
-                //}
-
                 System.Console.WriteLine("[CLOSE]: Mandou Ms fechar file: " + fileName);
             }
             else
@@ -242,11 +222,6 @@ namespace Client
 
                 //actualiza os metadados do ficheiro
                 ficheiroInfo.Add(fileName, fileData);
-
-                //if (fileRegister.Contains(keyFileRegister))
-                //{
-                //    fileRegister.Remove(keyFileRegister);
-                //}
 
                 int key = -1;
                 bool existia = false;
@@ -415,24 +390,7 @@ namespace Client
             if (consegueApagar)
             {
                 ficheiroInfo.Remove(fileName);
-                //key = -1;
-                //existia = false;
-                ////verifica se ja existe um fileRegister para aquele ficheiro
-                //foreach (DictionaryEntry en in fileRegister)
-                //{
-                //    if (en.Value.ToString().Equals(fileName))
-                //    {
-                //        key = (int)en.Key;
-                //        existia = true;
-                //        break;
-                //    }
-                //}
 
-                //if (existia)//se ja existia, actualiza
-                //{
-                //    fileRegister.Remove(key);
-                //    keyFileRegister--;
-                //}
             }
 
 
@@ -612,7 +570,7 @@ namespace Client
                         }
                         catch
                         {
-                            System.Console.WriteLine("[READthreads]: Nao conseguiu aceder ao DS!");
+                            System.Console.WriteLine("[READthreads]1: Nao conseguiu aceder ao DS!");
                         }
 
 
@@ -627,13 +585,14 @@ namespace Client
                 }
                 catch
                 {
-                    System.Console.WriteLine("[READthreads]: Não conseguiu aceder ao DS");
+                    System.Console.WriteLine("[READthreads]2: Não conseguiu aceder ao DS");
                 }
             }
 
             resetEvent.WaitOne();
 
             int numNaoNull = 0;
+            //se o ficheiro nao existe no DS
             foreach (DictionaryEntry c in dadosDS)
             {
                 if (c.Value != null)
@@ -662,8 +621,9 @@ namespace Client
 
                 //verifica se tem DS para o quorum ou replicas
                 //se nao tiver, actualiza metadados
-                if (dataServers.Count < dados.getRQ() || dataServers.Count < dados.getNumDS())
+                while (dataServers.Count < dados.getRQ())
                 {
+                    System.Console.WriteLine("[READ]: A tentar aceder ao Quorum de Leitura");
                     open(fileName);
                     dados = (DadosFicheiro)ficheiroInfo[fileName];
                     dataServers = dados.getPorts();
@@ -715,6 +675,7 @@ namespace Client
                             int v = 0;
                             if (versao.Contains(fileName))
                                 v = (int)versao[fileName];
+                            System.Console.WriteLine("[VersaoGuardda]: " + v);
 
                             while (true)
                             {
@@ -729,6 +690,7 @@ namespace Client
                                     //entao é este o file que vai ler e actualiza a versao
                                     if (d.getVersion() >= v)
                                     {
+                                        System.Console.WriteLine("[VersaoLida]: " + d.getVersion());
                                         v = d.getVersion();
                                         file = d.getFile();
                                         versao.Remove(fileName);
@@ -788,24 +750,7 @@ namespace Client
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
             Hashtable dataServers = dados.getPorts();
 
-            //se os metadados do ficheiro nao tiverem DS suficientes para o 
-            //quorum ou com o numero suficiente de replicas, volta a pedir os metadados
-            //if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
-            //{
-            //    open(nameFile);
-            //    dados = (DadosFicheiro)ficheiroInfo[nameFile];
-            //    dataServers = dados.getPorts();
-            //}
-
-            ////se ainda nao existirem DS suficientes para o quorum, nao consegue fazer a escrita
-            //if (dataServers.Count < dados.getWQ())
-            //{
-            //   System.Console.WriteLine("[READ]: Nao tem DataServers suficientes para o Quorum de Leitura");
-            //}
-            //else
-            //{
             write(nameFile, conteudo);
-            //}
 
         }
 
@@ -842,24 +787,7 @@ namespace Client
                 DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[nameFile];
                 Hashtable dataServers = dados.getPorts();
 
-                //verifica se tem o numero de Ds para o quorum ou para o num de replicas
-                //se nao tiver, actualiza metadados
-                //if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
-                //{
-                //    open(nameFile);
-                //    dados = (DadosFicheiro)ficheiroInfo[nameFile];
-                //    dataServers = dados.getPorts();
-                //}
-
-                ////se ainda nao tiver o quorum, nao consegue fazer a escrita
-                //if (dataServers.Count < dados.getWQ())
-                //{
-                //    System.Console.WriteLine("[WRITE]: Nao tem DataServers suficientes para o Quorum de Escrita");
-                //}
-                //else
-                //{
                 write(nameFile, bytes);
-                //}
 
             }
             else
@@ -877,8 +805,9 @@ namespace Client
             DadosFicheiro dados = (DadosFicheiro)ficheiroInfo[fileName];
             Hashtable dataServers = dados.getPorts();
 
-            if (dataServers.Count < dados.getWQ() || dataServers.Count < dados.getNumDS())
+            while (dataServers.Count < dados.getWQ())
             {
+                System.Console.WriteLine("[WRITE]: A tentar aceder ao Quorum de Escrita");
                 open(fileName);
                 dados = (DadosFicheiro)ficheiroInfo[fileName];
                 dataServers = dados.getPorts();
@@ -910,17 +839,17 @@ namespace Client
                                 if (idWrite >= dados.getWQ())
                                     resetEvent.Set();
                             }
-                            catch (Exception e)
+                            catch
                             {
-                                System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                                System.Console.WriteLine("[WRITE]1: Não conseguiu aceder ao DS");
                             }
 
                         }).Start();
                     }
-                    catch (Exception e)
+                    catch
                     {
-                        System.Console.WriteLine(e.ToString());
-                        System.Console.WriteLine("[WRITE]: Não conseguiu aceder ao DS");
+                        //System.Console.WriteLine(e.ToString());
+                        System.Console.WriteLine("[WRITE]2: Não conseguiu aceder ao DS");
                     }
                 }
                 resetEvent.WaitOne();
