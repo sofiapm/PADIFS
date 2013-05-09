@@ -40,7 +40,7 @@ namespace DataServer
                         ws.Close();
                     }
 
-                    lock(pQ)
+                    lock (pQ)
                     {
                         BinaryFormatter bfw2 = new BinaryFormatter();
                         StreamWriter ws2 = new StreamWriter(@"" + strpathDSPq);
@@ -105,7 +105,7 @@ namespace DataServer
                     ms.registarDS(args[0], args[1].Last().ToString());
                     break;
                 }
-                catch (Exception e)
+                catch //(Exception e)
                 {
                     //System.Console.WriteLine(e.ToString());
                     System.Console.WriteLine("[REGISTARDS]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
@@ -371,10 +371,10 @@ namespace DataServer
 
                         string currentDirectory = Environment.CurrentDirectory;
                         string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-                        string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID +fileName;
-                       
+                        string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID + fileName;
+
                         DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(strpathFiles));
-                       
+
                         newFile.unlockRead();
                         return ffds;
                     }
@@ -440,9 +440,9 @@ namespace DataServer
                     if (!newFile.getLockRead() & !newFile.getLockWrite() & !newFile.getLockDelete())
                     {
                         newFile.lockWrite();
-                  
+
                         newFile.incrementVersion();
-                        
+
                         //overwrites local file
                         string currentDirectory = Environment.CurrentDirectory;
                         string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
@@ -472,7 +472,7 @@ namespace DataServer
                     //writes local file
                     string currentDirectory = Environment.CurrentDirectory;
                     string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-                    string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID +fileName;
+                    string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID + fileName;
                     File.WriteAllBytes(strpathFiles, array);
 
                     newFile.unlockWrite();
@@ -555,7 +555,7 @@ namespace DataServer
             string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + dataServerID + ".xml";
             string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + dataServerID + ".xml";
 
-            lock(files)
+            lock (files)
             {
                 StreamReader readMap = new StreamReader(@"" + strpathDSFiles);
                 BinaryFormatter bf = new BinaryFormatter();

@@ -137,7 +137,7 @@ namespace MetaDataServer
 
                                     //ficheiros de entry1
                                     ArrayList auxj = (ArrayList)dataServersFiles[(string)entry1.Key];
-                                    ArrayList aux = (ArrayList) auxj.Clone();
+                                    ArrayList aux = (ArrayList)auxj.Clone();
 
                                     //ficheiros de entry2
                                     ArrayList auxi;
@@ -499,7 +499,7 @@ namespace MetaDataServer
                 {
                     if (ms_falhados)
                         primary = true;
-           
+
                     ms_falhados = true;
 
                     if (primary)

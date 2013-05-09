@@ -18,12 +18,12 @@ namespace Client
         static void Main(string[] args)
         {
             TcpChannel channel;
-            
+
             channel = new TcpChannel(Int32.Parse(args[1]));
             ChannelServices.RegisterChannel(channel, false);
 
             System.Console.WriteLine("************Cliente " + args[0] + " no port: " + args[1] + "************");
-            
+
             RemotingConfiguration.RegisterWellKnownServiceType(
             typeof(PuppetClient),
             args[0] + "PuppetClient",
@@ -97,7 +97,8 @@ namespace Client
             bool temDS = true;
 
             try { fileData.getPorts(); }
-            catch (NullReferenceException e) { temDS = false; }
+            catch //(NullReferenceException e) 
+            { temDS = false; }
 
             if (!temDS)
             {
@@ -205,7 +206,8 @@ namespace Client
             bool temDS = true;
 
             try { fileData.getPorts(); }
-            catch (NullReferenceException e) { temDS = false; }
+            catch //(NullReferenceException e) 
+            { temDS = false; }
 
             if (!temDS)
             {
@@ -288,7 +290,8 @@ namespace Client
             bool temDS = true;
 
             try { dados.getPorts(); }
-            catch (NullReferenceException e) { temDS = false; }
+            catch //(NullReferenceException e) 
+            { temDS = false; }
 
             bool consegueApagar = false;
 
@@ -757,7 +760,7 @@ namespace Client
         //Funcao de Write que recebe a string
         public void writeS(int fileReg, string conteudo)
         {
-            
+
             if (fileRegister.Contains(fileReg))
             {
                 string nameFile = (string)fileRegister[fileReg];
@@ -956,7 +959,7 @@ namespace Client
             return ctx.dump();
 
         }
-        
+
         //puppet mandou o cliente enviar pedidos ao DS
         public void read(int fileRegister, string semantics, int stringRegister)
         {
