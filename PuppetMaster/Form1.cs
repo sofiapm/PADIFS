@@ -282,7 +282,7 @@ namespace PuppetMaster
 
          private void RunInstruction(string operation)
          {
-             string[] token = new string [] { " ", "\t" , ", "};
+             string[] token = new string [] { " ", "\t" , ", ", ","};
              string[] arg = operation.Split(token, StringSplitOptions.None);
 
              if (operation.StartsWith("FAIL"))
@@ -794,6 +794,7 @@ namespace PuppetMaster
                  stopClient(c.Key.ToString());
              }
              clients.Clear();
+             listBox_dump_client.Items.Clear();
 
              //Kill All dataServers            
              foreach (DictionaryEntry d in dataServers)
@@ -801,6 +802,7 @@ namespace PuppetMaster
                  stopDataServer(d.Key.ToString());
              }
              dataServers.Clear();
+             listBox_dump_data.Items.Clear();
 
              //Kill All MetadataServers            
              foreach (DictionaryEntry m in metaDataServers)
@@ -808,6 +810,7 @@ namespace PuppetMaster
                  stopMetaDataServer(m.Key.ToString());
              }
              metaDataServers.Clear();
+             listBox_dump_meta.Items.Clear();
 
          }
 

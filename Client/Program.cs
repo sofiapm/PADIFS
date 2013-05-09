@@ -812,7 +812,7 @@ namespace Client
         //Funcao de Write que recebe a string
         public void writeS(int fileReg, string conteudo)
         {
-            System.Console.WriteLine("CONTEUDOOOOOO: " + conteudo);
+            
             if (fileRegister.Contains(fileReg))
             {
                 string nameFile = (string)fileRegister[fileReg];

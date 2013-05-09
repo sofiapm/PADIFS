@@ -32,16 +32,21 @@ namespace DataServer
                     string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
                     string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + dataServerName + ".xml";
                     string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + dataServerName + ".xml";
+                    lock (fs)
+                    {
+                        BinaryFormatter bfw = new BinaryFormatter();
+                        StreamWriter ws = new StreamWriter(@"" + strpathDSFiles);
+                        bfw.Serialize(ws.BaseStream, fs);
+                        ws.Close();
+                    }
 
-                    BinaryFormatter bfw = new BinaryFormatter();
-                    StreamWriter ws = new StreamWriter(@"" + strpathDSFiles);
-                    bfw.Serialize(ws.BaseStream, fs);
-                    ws.Close();
-
-                    BinaryFormatter bfw2 = new BinaryFormatter();
-                    StreamWriter ws2 = new StreamWriter(@"" + strpathDSPq);
-                    bfw2.Serialize(ws2.BaseStream, pQ);
-                    ws2.Close();
+                    lock(pQ)
+                    {
+                        BinaryFormatter bfw2 = new BinaryFormatter();
+                        StreamWriter ws2 = new StreamWriter(@"" + strpathDSPq);
+                        bfw2.Serialize(ws2.BaseStream, pQ);
+                        ws2.Close();
+                    }
                 }
                 catch
                 {
@@ -387,7 +392,7 @@ namespace DataServer
             {
                 System.Console.WriteLine("DS: " + dataServerID + " - READ: está em modo failed. Ignora pedidos de clientes");
             }
-            return null;
+            throw new NullReferenceException();
         }
 
         //overwrites the content of file, creates new version
@@ -547,13 +552,18 @@ namespace DataServer
             string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + dataServerID + ".xml";
             string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + dataServerID + ".xml";
 
-            StreamReader readMap = new StreamReader(@"" + strpathDSFiles);
-            BinaryFormatter bf = new BinaryFormatter();
-            files = (Hashtable)bf.Deserialize(readMap.BaseStream);
-
-            StreamReader readMap2 = new StreamReader(@"" + strpathDSPq);
-            BinaryFormatter bf2 = new BinaryFormatter();
-            priorityQueue = (Queue<object>)bf2.Deserialize(readMap2.BaseStream);
+            lock(files)
+            {
+                StreamReader readMap = new StreamReader(@"" + strpathDSFiles);
+                BinaryFormatter bf = new BinaryFormatter();
+                files = (Hashtable)bf.Deserialize(readMap.BaseStream);
+            }
+            lock (priorityQueue)
+            {
+                StreamReader readMap2 = new StreamReader(@"" + strpathDSPq);
+                BinaryFormatter bf2 = new BinaryFormatter();
+                priorityQueue = (Queue<object>)bf2.Deserialize(readMap2.BaseStream);
+            }
         }
 
     }
