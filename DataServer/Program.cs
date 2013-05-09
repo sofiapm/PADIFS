@@ -226,9 +226,7 @@ namespace DataServer
             freezed = true;
             failed = false;
             dataServerID = id;
-
             cleanLocalFiles(id);
-            loadBackupFiles();
         }
 
         public void cleanLocalFiles(string id)
@@ -240,17 +238,6 @@ namespace DataServer
             string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + "ds-" + id + ".xml";
             File.Delete(strpathDSFiles);
             File.Delete(strpathDSPq);
-        }
-
-        public void loadBackupFiles()
-        {
-            try
-            {
-                readFromDisk();
-            }
-            catch
-            {
-            }
         }
 
         public bool getFreezed()
