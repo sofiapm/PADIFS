@@ -110,13 +110,17 @@ namespace MetaDataServer
         {
             while (true)
             {
-                SortedDictionary<string, int> dict = meta.get_DSnum2();
-                Hashtable dataServersFiles = meta.get_dataServersFiles2();
-                Hashtable dataServers = meta.get_dataServers2();
+                meta.balancing();
 
-                if (meta.get_migracao() > 0)
+                if (meta.get_Primary())
                 {
-                    System.Console.WriteLine("[MIGRACAO] MS entrou na migração de ficheiros...");
+                    SortedDictionary<string, int> dict = meta.get_DSnum2();
+                    Hashtable dataServersFiles = meta.get_dataServersFiles2();
+                    Hashtable dataServers = meta.get_dataServers2();
+
+                    // if (meta.get_migracao() > 0)
+                    //{
+                    //System.Console.WriteLine("[MIGRACAO] MS entrou na migração de ficheiros...");
 
                     lock (dict)
                     {
@@ -210,15 +214,14 @@ namespace MetaDataServer
                                         }
                                     }
                                 }
-                                //break;
                             }
-                            //break;
                         }
-                        meta.set_migracao(meta.get_migracao() - 1);
-                        meta.balancing();
-
-                        System.Console.WriteLine("[MIGRACAO] MS terminou migracao");
                     }
+                    //     meta.set_migracao(meta.get_migracao() - 1);
+                    meta.balancing();
+
+                    //System.Console.WriteLine("[MIGRACAO] MS terminou migracao");
+                    //  }
                 }
             }
         }
@@ -336,7 +339,7 @@ namespace MetaDataServer
         public bool primary = false;
 
         //flag que indica se é necessário haver migraçao de ficheiros
-        public int migracao = 0;
+        //public int migracao = 0;
 
         //numero maximo de ficheiros em cada DS
         public int maxFiles = 0;
@@ -443,15 +446,15 @@ namespace MetaDataServer
             return minFiles;
         }
 
-        public int get_migracao()
-        {
-            return migracao;
-        }
+        //public int get_migracao()
+        //{
+        //    return migracao;
+        //}
 
-        public void set_migracao(int m)
-        {
-            migracao = m;
-        }
+        //public void set_migracao(int m)
+        //{
+        //    migracao = m;
+        //}
 
         /********Puppet To MetaDataServer***********/
         //the MS stops processing requests from clients or others MS
@@ -465,7 +468,7 @@ namespace MetaDataServer
         public void recover()
         {
             System.Console.WriteLine("[RECOVER] MS vai recuperar!");
-            
+
             bool ms_falhados = false;
             primary = false;
 
@@ -702,7 +705,7 @@ namespace MetaDataServer
                     }
                 }
 
-                this.balancing();
+                // this.balancing();
 
                 String s = "[CREATE] " + fileName + " guardado no DS: ";
                 foreach (DictionaryEntry c in df.getPorts())
@@ -786,7 +789,16 @@ namespace MetaDataServer
                         dataServersFiles.Add(entry.Key, aux);
                     }
 
-                    this.balancing();
+                    //this.balancing();
+
+                    //foreach (DictionaryEntry entry in ports)
+                    //{
+                    //    if (dict[(string)entry.Key] < minFiles)
+                    //    {
+                    //        System.Console.WriteLine("[REGISTARDS] Fazer a migração...");
+                    //        ++migracao;
+                    //    }
+                    //}
                 }
                 else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
             }
@@ -860,13 +872,13 @@ namespace MetaDataServer
                             }
                         }
 
-                        this.balancing();
+                        //this.balancing();
 
-                        if (dict[name] < minFiles)
-                        {
-                            System.Console.WriteLine("[REGISTARDS] Fazer a migração...");
-                            ++migracao;
-                        }
+                        //    if (dict[name] < minFiles)
+                        //    {
+                        //        System.Console.WriteLine("[REGISTARDS] Fazer a migração...");
+                        //        ++migracao;
+                        //    }
                     }
                     else System.Console.WriteLine("[REGISTARDS] O DS " + name + " já está registado");
                 }
@@ -947,7 +959,7 @@ namespace MetaDataServer
                     dataServersFiles.Add(entry.Key, aux);
                 }
 
-                this.balancing();
+                // this.balancing();
             }
             //else
             //System.Console.WriteLine("[CREATE] O ficheiro " + file.getName() + " já existe!");
@@ -1025,7 +1037,7 @@ namespace MetaDataServer
                         dataServersFiles.Add(entry.Key, aux);
                     }
 
-                    this.balancing();
+                    // this.balancing();
                 }
                 // else System.Console.WriteLine("[DELETE] O ficheiro " + fileName + " não existe!");
             }
@@ -1107,7 +1119,7 @@ namespace MetaDataServer
                 maxFiles = (int)Math.Ceiling((double)numFiles / (double)numDS);
                 minFiles = (int)Math.Floor((double)numFiles / (double)numDS);
 
-                // System.Console.WriteLine("Balancing" + " MaxFiles: " + maxFiles + " MinFiles: " + minFiles);
+                // System.Console.WriteLine("Balancing" + " MaxFiles: " + maxFiles + " MinFiles: " + minFiles)
             }
             catch { }
         }
