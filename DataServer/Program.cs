@@ -22,34 +22,37 @@ namespace DataServer
         {
         }
 
-        public static void writeToDisk(string dataServerName, Hashtable fs, Queue<object> pQ)
+        public static void writeToDisk(string dataServerName, DataServer ds, Hashtable fs, Queue<object> pQ)
         {
             while (true)
             {
-                try
+                if (!ds.getFreezed())
                 {
-                    string currentDirectory = Environment.CurrentDirectory;
-                    string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-                    string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + dataServerName + ".xml";
-                    string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + dataServerName + ".xml";
-                    lock (fs)
+                    try
                     {
-                        BinaryFormatter bfw = new BinaryFormatter();
-                        StreamWriter ws = new StreamWriter(@"" + strpathDSFiles);
-                        bfw.Serialize(ws.BaseStream, fs);
-                        ws.Close();
-                    }
+                        string currentDirectory = Environment.CurrentDirectory;
+                        string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                        string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + dataServerName + ".xml";
+                        string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + dataServerName + ".xml";
+                        lock (fs)
+                        {
+                            BinaryFormatter bfw = new BinaryFormatter();
+                            StreamWriter ws = new StreamWriter(@"" + strpathDSFiles);
+                            bfw.Serialize(ws.BaseStream, fs);
+                            ws.Close();
+                        }
 
-                    lock (pQ)
-                    {
-                        BinaryFormatter bfw2 = new BinaryFormatter();
-                        StreamWriter ws2 = new StreamWriter(@"" + strpathDSPq);
-                        bfw2.Serialize(ws2.BaseStream, pQ);
-                        ws2.Close();
+                        lock (pQ)
+                        {
+                            BinaryFormatter bfw2 = new BinaryFormatter();
+                            StreamWriter ws2 = new StreamWriter(@"" + strpathDSPq);
+                            bfw2.Serialize(ws2.BaseStream, pQ);
+                            ws2.Close();
+                        }
                     }
-                }
-                catch
-                {
+                    catch
+                    {
+                    }
                 }
             }
         }
@@ -121,7 +124,7 @@ namespace DataServer
                 String d = args[0];
                 Hashtable fs = ds.getFiles();
                 Queue<object> pq = ds.getPriorityQueue();
-                writeToDisk(d, fs, pq);
+                writeToDisk(d, ds, fs, pq);
             }).Start();
 
             System.Console.ReadLine();
@@ -232,6 +235,23 @@ namespace DataServer
             freezed = true;
             failed = false;
             dataServerID = id;
+            try
+            {
+                readFromDisk();
+            }
+            catch
+            {
+            }
+        }
+
+        public bool getFreezed()
+        {
+            return freezed;
+        }
+
+        public bool getFailed()
+        {
+            return failed;
         }
 
         public Hashtable getFiles()
@@ -309,7 +329,18 @@ namespace DataServer
             {
                 FileStructure aux;
                 aux = (FileStructure)entry.Value;
-                st += "DataServer id: " + dataServerID + ", File name: " + aux.getFileName() + ", Version: " + aux.getVersion() +
+
+                string currentDirectory = Environment.CurrentDirectory;
+                string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID + aux.getFileName();
+
+                byte[] b = File.ReadAllBytes(strpathFiles);
+
+                char[] chars = new char[b.Length / sizeof(char)];
+                System.Buffer.BlockCopy(b, 0, chars, 0, b.Length);
+                string str = new string(chars);
+
+                st += "DataServer id: " + dataServerID + ", File name: " + aux.getFileName() + ", Version: " + aux.getVersion() + ", File content: " + str +
                     ", Write lock: " + aux.getLockWrite() + ", Read lock: " + aux.getLockRead() + ", Delete lock: " + aux.getLockDelete() + "\n";
             }
 

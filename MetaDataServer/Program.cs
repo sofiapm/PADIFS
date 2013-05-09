@@ -22,55 +22,58 @@ namespace MetaDataServer
         {
             while (true)
             {
-
-                Hashtable dataServers = meta.get_dataServers2();
-                Hashtable files = meta.get_files2();
-                Hashtable nBDataS = meta.get_nBDataS2();
-                SortedDictionary<string, int> dataServersNum = meta.get_DSnum2();
-                Hashtable dsF = meta.get_dataServersFiles2();
-
-                try
+                if (!meta.get_failed())
                 {
-                    //System.Console.WriteLine("O ms está a escrever para o disco!");
+                    Hashtable dataServers = meta.get_dataServers2();
+                    Hashtable files = meta.get_files2();
+                    Hashtable nBDataS = meta.get_nBDataS2();
+                    SortedDictionary<string, int> dataServersNum = meta.get_DSnum2();
+                    Hashtable dsF = meta.get_dataServersFiles2();
 
-                    string currentDirectory = Environment.CurrentDirectory;
-                    string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-                    string strpathDS = newDirectory[0] + "Disk\\" + "InfoDS" + nomeMeta + ".xml";
-                    string strpathFile = newDirectory[0] + "Disk\\" + "InfoFiles" + nomeMeta + ".xml";
-                    string strpathNBDS = newDirectory[0] + "Disk\\" + "NBDS" + nomeMeta + ".xml";
-                    string strpathDSnum = newDirectory[0] + "Disk\\" + "DSnum" + nomeMeta + ".xml";
-                    string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSfiles" + nomeMeta + ".xml";
 
-                    BinaryFormatter bfw = new BinaryFormatter();
-                    StreamWriter ws = new StreamWriter(@"" + strpathDS);
-                    bfw.Serialize(ws.BaseStream, dataServers);
-                    ws.Close();
+                    try
+                    {
+                        //System.Console.WriteLine("O ms está a escrever para o disco!");
 
-                    BinaryFormatter bfw2 = new BinaryFormatter();
-                    StreamWriter ws2 = new StreamWriter(@"" + strpathFile);
-                    bfw2.Serialize(ws2.BaseStream, files);
-                    ws2.Close();
+                        string currentDirectory = Environment.CurrentDirectory;
+                        string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+                        string strpathDS = newDirectory[0] + "Disk\\" + "InfoDS" + nomeMeta + ".xml";
+                        string strpathFile = newDirectory[0] + "Disk\\" + "InfoFiles" + nomeMeta + ".xml";
+                        string strpathNBDS = newDirectory[0] + "Disk\\" + "NBDS" + nomeMeta + ".xml";
+                        string strpathDSnum = newDirectory[0] + "Disk\\" + "DSnum" + nomeMeta + ".xml";
+                        string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSfiles" + nomeMeta + ".xml";
 
-                    BinaryFormatter bfw3 = new BinaryFormatter();
-                    StreamWriter ws3 = new StreamWriter(@"" + strpathNBDS);
-                    bfw3.Serialize(ws3.BaseStream, nBDataS);
-                    ws3.Close();
+                        BinaryFormatter bfw = new BinaryFormatter();
+                        StreamWriter ws = new StreamWriter(@"" + strpathDS);
+                        bfw.Serialize(ws.BaseStream, dataServers);
+                        ws.Close();
 
-                    BinaryFormatter bfw4 = new BinaryFormatter();
-                    StreamWriter ws4 = new StreamWriter(@"" + strpathDSnum);
-                    bfw4.Serialize(ws4.BaseStream, dataServersNum);
-                    ws4.Close();
+                        BinaryFormatter bfw2 = new BinaryFormatter();
+                        StreamWriter ws2 = new StreamWriter(@"" + strpathFile);
+                        bfw2.Serialize(ws2.BaseStream, files);
+                        ws2.Close();
 
-                    BinaryFormatter bfw5 = new BinaryFormatter();
-                    StreamWriter ws5 = new StreamWriter(@"" + strpathDSFiles);
-                    bfw5.Serialize(ws5.BaseStream, dsF);
-                    ws5.Close();
+                        BinaryFormatter bfw3 = new BinaryFormatter();
+                        StreamWriter ws3 = new StreamWriter(@"" + strpathNBDS);
+                        bfw3.Serialize(ws3.BaseStream, nBDataS);
+                        ws3.Close();
 
-                }
-                catch //(Exception)
-                {
-                    //System.Console.WriteLine("[WRITETODISK] O MS está a ler do disco!");
-                    //System.Console.WriteLine(e.ToString());
+                        BinaryFormatter bfw4 = new BinaryFormatter();
+                        StreamWriter ws4 = new StreamWriter(@"" + strpathDSnum);
+                        bfw4.Serialize(ws4.BaseStream, dataServersNum);
+                        ws4.Close();
+
+                        BinaryFormatter bfw5 = new BinaryFormatter();
+                        StreamWriter ws5 = new StreamWriter(@"" + strpathDSFiles);
+                        bfw5.Serialize(ws5.BaseStream, dsF);
+                        ws5.Close();
+
+                    }
+                    catch //(Exception)
+                    {
+                        //System.Console.WriteLine("[WRITETODISK] O MS está a ler do disco!");
+                        //System.Console.WriteLine(e.ToString());
+                    }
                 }
             }
         }
@@ -327,7 +330,7 @@ namespace MetaDataServer
         public Hashtable nBDataS = new Hashtable();
 
         //flag activa quando o metadata server esta em fail
-        public bool isFailed = false;
+        public bool isFailed = true;
 
         //flag que indica se é ou não o primario
         public bool primary = false;
@@ -462,7 +465,7 @@ namespace MetaDataServer
         public void recover()
         {
             System.Console.WriteLine("[RECOVER] MS vai recuperar!");
-            isFailed = false;
+            
             bool ms_falhados = false;
             primary = false;
 
@@ -474,6 +477,8 @@ namespace MetaDataServer
             {
                 //System.Console.WriteLine("[RECOVER] Não existe nenhum ficheiro em disco.");
             }
+
+            isFailed = false;
 
             //envia mensagem para outras replicas
             foreach (DictionaryEntry c in metaDataServers)
