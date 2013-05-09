@@ -100,9 +100,8 @@ namespace DataServer
                     ms.registarDS(args[0], args[1].Last().ToString());
                     break;
                 }
-                catch //(Exception e)
+                catch
                 {
-                    //System.Console.WriteLine(e.ToString());
                     System.Console.WriteLine("[REGISTARDS]: Não conseguiu aceder ao MS: " + c.Value.ToString() + " E " + c.Key.ToString());
                 }
             }
@@ -228,6 +227,12 @@ namespace DataServer
             failed = false;
             dataServerID = id;
 
+            cleanLocalFiles(id);
+            loadBackupFiles();
+        }
+
+        public void cleanLocalFiles(string id)
+        {
             //delete files if they exists
             string currentDirectory = Environment.CurrentDirectory;
             string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
@@ -235,7 +240,10 @@ namespace DataServer
             string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + "ds-" + id + ".xml";
             File.Delete(strpathDSFiles);
             File.Delete(strpathDSPq);
+        }
 
+        public void loadBackupFiles()
+        {
             try
             {
                 readFromDisk();
@@ -400,19 +408,16 @@ namespace DataServer
                     if (!newFile.getLockWrite() && !newFile.getLockDelete())
                     {
                         newFile.lockRead();
-
                         string currentDirectory = Environment.CurrentDirectory;
                         string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
                         string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID + fileName;
-
                         DadosFicheiroDS ffds = new DadosFicheiroDS(newFile.getVersion(), File.ReadAllBytes(strpathFiles));
-
                         newFile.unlockRead();
                         return ffds;
                     }
                     else
                     {
-                        System.Console.WriteLine("DS: " + dataServerID + " - READ: o ficheiro: " + fileName + " encontra-se em modo de escrita");
+                        System.Console.WriteLine("DS: " + dataServerID + " - READ: o ficheiro: " + fileName + " encontra-se bloqueado");
                         throw new NullReferenceException();
                     }
                 }
@@ -472,9 +477,7 @@ namespace DataServer
                     if (!newFile.getLockRead() & !newFile.getLockWrite() & !newFile.getLockDelete())
                     {
                         newFile.lockWrite();
-
                         newFile.incrementVersion();
-
                         //overwrites local file
                         string currentDirectory = Environment.CurrentDirectory;
                         string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
@@ -489,24 +492,22 @@ namespace DataServer
                     }
                     else
                     {
-                        System.Console.WriteLine("DS: " + dataServerID + " - WRITE: o ficheiro: " + fileName + " encontra-se em modo de escrita");
+                        System.Console.WriteLine("DS: " + dataServerID + " - WRITE: o ficheiro: " + fileName + " encontra-se bloqueado");
                         throw new NullReferenceException();
                     }
 
                 }
                 else
                 {
-                    System.Console.WriteLine("DS: " + dataServerID + " - WRITE: o ficheiro: " + fileName + " não existe em sistema. Criação de novo ficheiro");
+                    System.Console.WriteLine("DS: " + dataServerID + " - WRITE: o ficheiro: " + fileName + " não existe em sistema. Criação de um novo ficheiro");
                     //new file
                     FileStructure newFile = new FileStructure(fileName);
                     newFile.lockWrite();
-
                     //writes local file
                     string currentDirectory = Environment.CurrentDirectory;
                     string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
                     string strpathFiles = newDirectory[0] + "Disk\\" + dataServerID + fileName;
                     File.WriteAllBytes(strpathFiles, array);
-
                     newFile.unlockWrite();
                     lock (files)
                     {
