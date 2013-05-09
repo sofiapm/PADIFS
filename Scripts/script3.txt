@@ -1,0 +1,18 @@
+RECOVER m-0
+UNFREEZE d-1
+CREATE c-1, f1, 2, 1, 1
+CREATE c-1, f2, 1, 1, 1
+CREATE c-1, f3, 1, 1, 1
+CREATE c-1, f4, 1, 1, 1
+CREATE c-1, f5, 1, 1, 1
+CREATE c-1, f6, 1, 1, 1
+CREATE c-1, f7, 1, 1, 1
+UNFREEZE d-2
+RECOVER m-1
+UNFREEZE d-3
+DUMP c-1
+OPEN c-1, f3
+READ c-1, 2, default, 1
+WRITE c-1, 2, "Text from the EXESCRIPT."
+CLOSE c-1, f3
+DUMP c-1
