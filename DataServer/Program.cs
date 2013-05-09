@@ -392,7 +392,7 @@ namespace DataServer
             {
                 System.Console.WriteLine("DS: " + dataServerID + " - READ: está em modo failed. Ignora pedidos de clientes");
             }
-            return null;
+            throw new NullReferenceException();
         }
 
         //overwrites the content of file, creates new version
