@@ -233,7 +233,7 @@ namespace DataServer
 
         public void cleanLocalFiles(string id)
         {
-            //delete files if they exists
+            //delete files if they exists on disk
             string currentDirectory = Environment.CurrentDirectory;
             string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
             string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + "ds-" + id + ".xml";
