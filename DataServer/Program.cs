@@ -88,14 +88,6 @@ namespace DataServer
             DataServerMS.ctx = ds;
             DataServerPuppet.ctx = ds;
 
-            //delete files if they exists
-            string currentDirectory = Environment.CurrentDirectory;
-            string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
-            string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + args[0] + ".xml";
-            string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + args[0] + ".xml";
-            File.Delete(strpathDSFiles);
-            File.Delete(strpathDSPq);
-
             foreach (DictionaryEntry c in metaDataServers)
             {
                 IDSToMS ms = (IDSToMS)Activator.GetObject(
@@ -235,6 +227,15 @@ namespace DataServer
             freezed = true;
             failed = false;
             dataServerID = id;
+
+            //delete files if they exists
+            string currentDirectory = Environment.CurrentDirectory;
+            string[] newDirectory = Regex.Split(currentDirectory, "PuppetMaster");
+            string strpathDSFiles = newDirectory[0] + "Disk\\" + "DSFiles" + "ds-" + id + ".xml";
+            string strpathDSPq = newDirectory[0] + "Disk\\" + "DSPq" + "ds-" + id + ".xml";
+            File.Delete(strpathDSFiles);
+            File.Delete(strpathDSPq);
+
             try
             {
                 readFromDisk();
