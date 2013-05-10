@@ -626,7 +626,6 @@ namespace Client
                 //se nao tiver, actualiza metadados
                 while (dataServers.Count < dados.getRQ())
                 {
-                    System.Console.WriteLine("[READ]: A tentar aceder ao Quorum de Leitura");
                     open(fileName);
                     dados = (DadosFicheiro)ficheiroInfo[fileName];
                     dataServers = dados.getPorts();
@@ -678,7 +677,6 @@ namespace Client
                             int v = 0;
                             if (versao.Contains(fileName))
                                 v = (int)versao[fileName];
-                            System.Console.WriteLine("[VersaoGuardda]: " + v);
 
                             while (true)
                             {
@@ -693,7 +691,7 @@ namespace Client
                                     //entao é este o file que vai ler e actualiza a versao
                                     if (d.getVersion() >= v)
                                     {
-                                        System.Console.WriteLine("[VersaoLida]: " + d.getVersion());
+                                        
                                         v = d.getVersion();
                                         file = d.getFile();
                                         versao.Remove(fileName);
