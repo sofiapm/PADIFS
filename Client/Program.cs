@@ -408,7 +408,7 @@ namespace Client
             {
                 foreach (string operation in operations)
                 {
-                    string[] token = new string[] { " ", ", " };
+                    string[] token = new string[] { " ", ", ", "," };
                     string[] arg = operation.Split(token, StringSplitOptions.None);
 
                     //arg[1] e sempre o processo, que e ignorado
@@ -425,6 +425,7 @@ namespace Client
 
                     else if (arg[0].Equals("WRITE"))
                     {
+                        Console.WriteLine("Write no exescript");
                         if (arg[3].Length > 1)
                         {
                             string s = arg[3];
